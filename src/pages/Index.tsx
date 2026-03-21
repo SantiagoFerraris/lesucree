@@ -120,9 +120,17 @@ function AboutPreview() {
   );
 }
 
+const INSTAGRAM_POSTS = [
+  { shortcode: 'DUYvpAVD-q4', url: 'https://www.instagram.com/p/DUYvpAVD-q4/' },
+  { shortcode: 'DL-jG6ouV9X', url: 'https://www.instagram.com/p/DL-jG6ouV9X/' },
+  { shortcode: 'DL28Z_su87D', url: 'https://www.instagram.com/p/DL28Z_su87D/' },
+  { shortcode: 'DA_QwEkx3DB', url: 'https://www.instagram.com/p/DA_QwEkx3DB/' },
+  { shortcode: 'DLGJCt_OYhk', url: 'https://www.instagram.com/p/DLGJCt_OYhk/' },
+  { shortcode: 'C-BPlNlP3CG', url: 'https://www.instagram.com/p/C-BPlNlP3CG/' },
+];
+
 function InstagramSection() {
   const reveal = useScrollReveal();
-  const placeholders = Array.from({ length: 6 }, (_, i) => i);
   return (
     <section ref={reveal.ref} className="py-20 md:py-24 px-4">
       <div className="container">
@@ -131,22 +139,22 @@ function InstagramSection() {
         </h2>
         <SectionDivider />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-12 max-w-3xl mx-auto">
-          {placeholders.map(i => (
+          {INSTAGRAM_POSTS.map((post, i) => (
             <a
-              key={i}
-              href={INSTAGRAM_URL}
+              key={post.shortcode}
+              href={post.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`aspect-square rounded-lg overflow-hidden relative group ${reveal.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+              className={`aspect-square rounded-lg overflow-hidden relative group block ${reveal.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
               style={{ animationDelay: `${i * 0.08}s` }}
             >
-              <img
-                src={`https://placehold.co/400x400/F5E6DA/3E2723?text=IG+${i + 1}`}
-                alt={`Instagram ${i + 1}`}
-                className="w-full h-full object-cover"
+              <iframe
+                src={`https://www.instagram.com/p/${post.shortcode}/embed/`}
+                className="w-[300%] h-[300%] origin-top-left scale-[0.334] pointer-events-none border-0"
                 loading="lazy"
+                title={`Instagram post ${i + 1}`}
               />
-              <div className="absolute inset-0 bg-espresso/0 group-hover:bg-espresso/30 transition-colors duration-300 flex items-center justify-center">
+              <div className="absolute inset-0 bg-espresso/0 group-hover:bg-espresso/30 transition-colors duration-300 flex items-center justify-center z-10">
                 <Instagram className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={28} />
               </div>
             </a>
