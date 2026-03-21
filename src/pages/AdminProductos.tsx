@@ -177,7 +177,7 @@ export default function AdminProductos() {
               {filtered?.map((p, i) => (
                 <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'}`}>
                   <td className="py-3 pr-4">
-                    <img src={p.image_url || 'https://placehold.co/48x48/F5E6DA/3E2723?text=LS'} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                    <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" />
                   </td>
                   <td className="py-3 pr-4 font-medium text-espresso">{p.name}</td>
                   <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>

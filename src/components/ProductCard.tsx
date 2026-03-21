@@ -1,5 +1,6 @@
 import { formatPrice } from '@/lib/formatPrice';
 import { CATEGORY_LABELS, WHATSAPP_NUMBER } from '@/lib/constants';
+import ProductImage from '@/components/ProductImage';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Props {
@@ -16,11 +17,10 @@ export default function ProductCard({ product, index = 0 }: Props) {
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       <div className="aspect-[4/3] overflow-hidden">
-        <img
-          src={product.image_url || 'https://placehold.co/600x600/F5E6DA/3E2723?text=Le+Sucree'}
+        <ProductImage
+          src={product.image_url}
           alt={product.name}
           className="w-full h-full object-cover"
-          loading="lazy"
         />
       </div>
       <div className="p-6">
