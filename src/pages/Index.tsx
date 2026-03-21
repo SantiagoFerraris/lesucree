@@ -92,12 +92,12 @@ function AboutPreview() {
       <div className="container">
         <div className={`grid grid-cols-1 md:grid-cols-2 gap-12 items-center ${reveal.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="rounded-2xl overflow-hidden shadow-lg">
-            <img
-              src="https://placehold.co/600x500/F5E6DA/3E2723?text=Le+Sucree"
-              alt="Espacio de trabajo de Le Sucrée"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+             <img
+               src="https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=600&h=500&fit=crop"
+               alt="Espacio de trabajo de Le Sucrée"
+               className="w-full h-full object-cover"
+               loading="lazy"
+             />
           </div>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Nuestra Historia</span>
