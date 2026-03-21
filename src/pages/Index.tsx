@@ -91,14 +91,14 @@ function AboutPreview() {
     <section ref={reveal.ref} className="py-20 md:py-24 px-4 bg-blush/30">
       <div className="container">
         <div className={`grid grid-cols-1 md:grid-cols-2 gap-12 items-center ${reveal.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <div className="rounded-2xl overflow-hidden shadow-lg">
-             <img
-               src="https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=600&h=500&fit=crop"
-               alt="Espacio de trabajo de Le Sucrée"
-               className="w-full h-full object-cover"
-               loading="lazy"
-             />
-          </div>
+          <a href="https://www.instagram.com/p/C_l775_Pc4k/" target="_blank" rel="noopener noreferrer" className="rounded-2xl overflow-hidden shadow-lg aspect-[4/5] relative block">
+            <iframe
+              src="https://www.instagram.com/p/C_l775_Pc4k/embed/"
+              className="w-[300%] h-[300%] origin-top-left scale-[0.334] pointer-events-none border-0"
+              loading="lazy"
+              title="Le Sucrée - Nuestra Historia"
+            />
+          </a>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Nuestra Historia</span>
             <h2 className="font-display text-2xl md:text-[32px] font-bold text-espresso mt-3 leading-tight">
