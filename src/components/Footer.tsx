@@ -19,17 +19,17 @@ export default function Footer() {
               { to: '/nosotros', label: 'Nosotros' },
               { to: '/contacto', label: 'Contacto' },
             ].map(l => (
-              <Link key={l.to} to={l.to} className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Link key={l.to} to={l.to} className="text-sm opacity-80 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded">
                 {l.label}
               </Link>
             ))}
           </div>
           <div className="flex flex-col gap-3">
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Seguinos</span>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity">
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded" aria-label="Instagram de Le Sucrée">
               <Instagram size={16} /> {INSTAGRAM_HANDLE}
             </a>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded" aria-label="WhatsApp de Le Sucrée">
               📱 WhatsApp
             </a>
           </div>
