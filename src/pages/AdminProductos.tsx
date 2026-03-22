@@ -17,6 +17,7 @@ interface ProductFormData {
 }
 
 const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '' };
+const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
   const qc = useQueryClient();
@@ -26,6 +27,7 @@ export default function AdminProductos() {
   const [form, setForm] = useState<ProductFormData>(emptyForm);
   const [uploading, setUploading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -133,6 +135,8 @@ export default function AdminProductos() {
   };
 
   const filtered = products?.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
+  const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
@@ -151,7 +155,7 @@ export default function AdminProductos() {
         <input
           placeholder="Buscar productos..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => { setSearch(e.target.value); setPage(0); }}
           className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
         />
       </div>
@@ -160,59 +164,75 @@ export default function AdminProductos() {
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-warm-gray">
-                <th className="py-3 pr-4">Imagen</th>
-                <th className="py-3 pr-4">Nombre</th>
-                <th className="py-3 pr-4 hidden md:table-cell">Categoría</th>
-                <th className="py-3 pr-4">Precio</th>
-                <th className="py-3 pr-4 hidden sm:table-cell">Destacado</th>
-                <th className="py-3 pr-4 hidden sm:table-cell">Activo</th>
-                <th className="py-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered?.map((p, i) => (
-                <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'}`}>
-                  <td className="py-3 pr-4">
-                    <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  </td>
-                  <td className="py-3 pr-4 font-medium text-espresso">{p.name}</td>
-                  <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>
-                  <td className="py-3 pr-4 text-espresso">{formatPrice(p.price)}</td>
-                  <td className="py-3 pr-4 hidden sm:table-cell">
-                    <button
-                      onClick={() => toggleMutation.mutate({ id: p.id, field: 'featured', value: !p.featured })}
-                      className={`w-10 h-5 rounded-full transition-colors ${p.featured ? 'bg-dusty-pink' : 'bg-gray-200'} relative`}
-                    >
-                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${p.featured ? 'left-5' : 'left-0.5'}`} />
-                    </button>
-                  </td>
-                  <td className="py-3 pr-4 hidden sm:table-cell">
-                    <button
-                      onClick={() => toggleMutation.mutate({ id: p.id, field: 'active', value: !p.active })}
-                      className={`w-10 h-5 rounded-full transition-colors ${p.active ? 'bg-sage' : 'bg-gray-200'} relative`}
-                    >
-                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${p.active ? 'left-5' : 'left-0.5'}`} />
-                    </button>
-                  </td>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso">
-                        <Pencil size={15} />
-                      </button>
-                      <button onClick={() => setDeleteConfirm(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-warm-gray hover:text-red-500">
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-warm-gray">
+                  <th className="py-3 pr-4">Imagen</th>
+                  <th className="py-3 pr-4">Nombre</th>
+                  <th className="py-3 pr-4 hidden md:table-cell">Categoría</th>
+                  <th className="py-3 pr-4">Precio</th>
+                  <th className="py-3 pr-4 hidden sm:table-cell">Destacado</th>
+                  <th className="py-3 pr-4 hidden sm:table-cell">Activo</th>
+                  <th className="py-3">Acciones</th>
                 </tr>
+              </thead>
+              <tbody>
+                {paginated?.map((p, i) => (
+                  <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'}`}>
+                    <td className="py-3 pr-4">
+                      <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
+                    </td>
+                    <td className="py-3 pr-4 font-medium text-espresso">{p.name}</td>
+                    <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>
+                    <td className="py-3 pr-4 text-espresso">{formatPrice(p.price)}</td>
+                    <td className="py-3 pr-4 hidden sm:table-cell">
+                      <button
+                        onClick={() => toggleMutation.mutate({ id: p.id, field: 'featured', value: !p.featured })}
+                        className={`w-10 h-5 rounded-full transition-colors ${p.featured ? 'bg-dusty-pink' : 'bg-gray-200'} relative`}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${p.featured ? 'left-5' : 'left-0.5'}`} />
+                      </button>
+                    </td>
+                    <td className="py-3 pr-4 hidden sm:table-cell">
+                      <button
+                        onClick={() => toggleMutation.mutate({ id: p.id, field: 'active', value: !p.active })}
+                        className={`w-10 h-5 rounded-full transition-colors ${p.active ? 'bg-sage' : 'bg-gray-200'} relative`}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${p.active ? 'left-5' : 'left-0.5'}`} />
+                      </button>
+                    </td>
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso">
+                          <Pencil size={15} />
+                        </button>
+                        <button onClick={() => setDeleteConfirm(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-warm-gray hover:text-red-500">
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i)}
+                  className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${page === i ? 'bg-dusty-pink text-white' : 'text-warm-gray hover:bg-blush'}`}
+                >
+                  {i + 1}
+                </button>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete confirmation */}
