@@ -21,6 +21,7 @@ export type Database = {
           id: string
           message: string
           name: string
+          read: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           message: string
           name: string
+          read?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          read?: boolean | null
         }
         Relationships: []
       }
