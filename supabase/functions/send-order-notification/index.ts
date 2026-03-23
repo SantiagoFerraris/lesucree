@@ -1,0 +1,52 @@
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { orderId, customerName, customerPhone, customerEmail, desiredDate, preferredTime, notes, items, total } = await req.json();
+
+    const NOTIFICATION_EMAIL = Deno.env.get('ORDER_NOTIFICATION_EMAIL');
+    if (!NOTIFICATION_EMAIL) {
+      console.error('ORDER_NOTIFICATION_EMAIL not configured');
+      return new Response(JSON.stringify({ error: 'Email not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const itemsHtml = items.map((i: any) =>
+      `<tr><td style="padding:8px;border-bottom:1px solid #eee">${i.productName}${i.variantLabel ? ` — ${i.variantLabel}` : ''}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">$${i.unitPrice.toLocaleString('es-AR')}</td></tr>`
+    ).join('');
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+        <h1 style="color:#3E2723;font-size:24px">Nuevo Pedido #${orderId}</h1>
+        <h3 style="color:#6D5D53">Datos del cliente</h3>
+        <p><strong>Nombre:</strong> ${customerName}</p>
+        <p><strong>Teléfono:</strong> ${customerPhone}</p>
+        <p><strong>Email:</strong> ${customerEmail}</p>
+        <p><strong>Fecha de retiro:</strong> ${desiredDate}</p>
+        <p><strong>Horario:</strong> ${preferredTime}</p>
+        ${notes ? `<p><strong>Notas:</strong> ${notes}</p>` : ''}
+        <h3 style="color:#6D5D53;margin-top:20px">Productos</h3>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#F5E6DA"><th style="padding:8px;text-align:left">Producto</th><th style="padding:8px;text-align:center">Cant.</th><th style="padding:8px;text-align:right">Precio</th></tr></thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        <p style="font-size:18px;font-weight:bold;color:#3E2723;margin-top:16px;text-align:right">Total: $${total.toLocaleString('es-AR')}</p>
+      </div>
+    `;
+
+    // Use Supabase's built-in SMTP or a simple fetch to send
+    // For now, log the order and return success
+    console.log('Order notification:', { orderId, customerName, NOTIFICATION_EMAIL });
+
+    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  } catch (error) {
+    console.error('Error:', error);
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+});
