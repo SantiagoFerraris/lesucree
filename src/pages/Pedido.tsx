@@ -67,10 +67,10 @@ export default function Pedido() {
       notes: form.notes.trim() || null,
       items: orderItems,
       total: getCartTotal(),
-    } as any);
+    });
 
     if (error) {
-      toast.error('Error al enviar el pedido');
+      console.error('Order insert error:', error); toast.error(`Error al enviar el pedido: ${error.message}`);
       setLoading(false);
       return;
     }

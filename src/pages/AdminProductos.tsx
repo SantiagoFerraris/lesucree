@@ -96,7 +96,7 @@ export default function AdminProductos() {
       qc.invalidateQueries({ queryKey: ['admin-variants'] });
       closeForm();
     },
-    onError: () => toast.error('Error al guardar'),
+    onError: (err: any) => { console.error('Save mutation error:', err); toast.error(`Error al guardar: ${err?.message || 'Error desconocido'}`); },
   });
 
   const deleteMutation = useMutation({
@@ -131,7 +131,7 @@ export default function AdminProductos() {
     const ext = file.name.split('.').pop();
     const path = `${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('product-images').upload(path, file);
-    if (error) { toast.error('Error al subir imagen'); setUploading(false); return; }
+    if (error) { console.error('Image upload error:', error); toast.error(`Error al subir imagen: ${error.message}`); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
     setForm(p => ({ ...p, image_url: urlData.publicUrl }));
     setUploading(false);

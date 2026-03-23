@@ -30,7 +30,7 @@ export default function AdminPedidos() {
     queryKey: ['admin-orders'],
     queryFn: async () => {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
+      if (error) { console.error('AdminPedidos error:', error); throw error; }
       return data as any[];
     },
   });
@@ -38,7 +38,7 @@ export default function AdminPedidos() {
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from('orders').update({ status } as any).eq('id', id);
-      if (error) throw error;
+      if (error) { console.error('AdminPedidos error:', error); throw error; }
     },
     onSuccess: () => {
       toast.success('Estado actualizado');
