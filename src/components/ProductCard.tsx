@@ -1,15 +1,41 @@
+import { useState } from 'react';
+import { ShoppingBag, Check } from 'lucide-react';
 import { formatPrice } from '@/lib/formatPrice';
-import { CATEGORY_LABELS, WHATSAPP_NUMBER } from '@/lib/constants';
+import { CATEGORY_LABELS } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
+import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Props {
   product: Tables<'products'>;
   index?: number;
+  variants?: { id: string; label: string; price: number }[];
 }
 
-export default function ProductCard({ product, index = 0 }: Props) {
-  const consultUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola! Quiero consultar por ${product.name}`)}`;
+export default function ProductCard({ product, index = 0, variants }: Props) {
+  const { addToCart, setIsOpen } = useCart();
+  const [added, setAdded] = useState(false);
+
+  const hasVariants = variants && variants.length > 0;
+  const lowestPrice = hasVariants ? Math.min(...variants.map(v => v.price)) : product.price;
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const variant = hasVariants ? variants[0] : undefined;
+    addToCart({
+      productId: product.id,
+      productName: product.name,
+      variantId: variant?.id,
+      variantLabel: variant?.label,
+      price: variant?.price ?? product.price,
+      imageUrl: product.image_url || undefined,
+    });
+    setAdded(true);
+    setTimeout(() => {
+      setAdded(false);
+      setIsOpen(true);
+    }, 600);
+  };
 
   return (
     <div
@@ -32,15 +58,19 @@ export default function ProductCard({ product, index = 0 }: Props) {
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
         <div className="flex items-center justify-between mt-4">
-          <span className="font-body text-lg font-semibold text-espresso">{formatPrice(product.price)}</span>
-          <a
-            href={consultUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs uppercase tracking-[0.08em] font-semibold text-dusty-pink hover:text-mauve transition-colors"
+          <span className="font-body text-lg font-semibold text-espresso">
+            {hasVariants ? `Desde ${formatPrice(lowestPrice)}` : formatPrice(product.price)}
+          </span>
+          <button
+            onClick={handleAdd}
+            className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95 ${
+              added
+                ? 'bg-sage text-white'
+                : 'bg-dusty-pink/10 text-dusty-pink hover:bg-dusty-pink hover:text-white'
+            }`}
           >
-            Consultar →
-          </a>
+            {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
+          </button>
         </div>
       </div>
     </div>
