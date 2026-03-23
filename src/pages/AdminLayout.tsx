@@ -1,11 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, LogOut, Menu, X } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
 
 const navItems = [
   { to: '/admin/productos', label: 'Productos', icon: Package },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare },
 ];
 
