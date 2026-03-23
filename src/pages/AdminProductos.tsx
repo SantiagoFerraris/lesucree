@@ -65,17 +65,30 @@ export default function AdminProductos() {
         image_url: form.image_url || null,
       };
 
+      console.log('💾 Saving product:', payload);
+
       let productId: string;
       if (editing) {
         const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error updating product:', error);
+          throw error;
+        }
         productId = editing.id;
         // Delete old variants and re-insert
-        await supabase.from('product_variants').delete().eq('product_id', productId);
+        const { error: deleteError } = await supabase.from('product_variants').delete().eq('product_id', productId);
+        if (deleteError) {
+          console.error('❌ Error deleting old variants:', deleteError);
+          throw deleteError;
+        }
       } else {
         const { data, error } = await supabase.from('products').insert(payload).select('id').single();
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error inserting product:', error);
+          throw error;
+        }
         productId = data.id;
+        console.log('✅ Product created with ID:', productId);
       }
 
       // Insert variants
@@ -86,9 +99,16 @@ export default function AdminProductos() {
           price: parseFloat(v.price),
           sort_order: v.sort_order ?? i,
         }));
+        console.log('💾 Inserting variants:', variantRows);
         const { error } = await supabase.from('product_variants').insert(variantRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error inserting variants:', error);
+          throw error;
+        }
+        console.log('✅ Variants inserted successfully');
       }
+
+      console.log('✅ Product saved successfully');
     },
     onSuccess: () => {
       toast.success(editing ? 'Producto actualizado' : 'Producto creado');
@@ -96,7 +116,10 @@ export default function AdminProductos() {
       qc.invalidateQueries({ queryKey: ['admin-variants'] });
       closeForm();
     },
-    onError: () => toast.error('Error al guardar'),
+    onError: (error: any) => {
+      console.error('❌ Save mutation error:', error);
+      toast.error(`Error al guardar: ${error.message || 'Error desconocido'}`);
+    },
   });
 
   const deleteMutation = useMutation({
