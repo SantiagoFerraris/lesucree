@@ -15,19 +15,20 @@ interface Props {
 export default function ProductCard({ product, index = 0, variants }: Props) {
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
 
   const hasVariants = variants && variants.length > 0;
-  const lowestPrice = hasVariants ? Math.min(...variants.map(v => v.price)) : product.price;
+  const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
+  const displayPrice = selectedVariant?.price ?? product.price;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const variant = hasVariants ? variants[0] : undefined;
     addToCart({
       productId: product.id,
       productName: product.name,
-      variantId: variant?.id,
-      variantLabel: variant?.label,
-      price: variant?.price ?? product.price,
+      variantId: selectedVariant?.id,
+      variantLabel: selectedVariant?.label,
+      price: displayPrice,
       imageUrl: product.image_url || undefined,
     });
     setAdded(true);
@@ -57,9 +58,31 @@ export default function ProductCard({ product, index = 0, variants }: Props) {
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
+
+        {hasVariants && (
+          <div className="mt-3">
+            <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Tamaño</span>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {variants.map((v, i) => (
+                <button
+                  key={v.id}
+                  onClick={(e) => { e.stopPropagation(); setSelectedVariantIndex(i); }}
+                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
+                    selectedVariantIndex === i
+                      ? 'bg-dusty-pink text-white'
+                      : 'bg-cream text-espresso hover:bg-blush'
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-4">
           <span className="font-body text-lg font-semibold text-espresso">
-            {hasVariants ? `Desde ${formatPrice(lowestPrice)}` : formatPrice(product.price)}
+            {formatPrice(displayPrice)}
           </span>
           <button
             onClick={handleAdd}
