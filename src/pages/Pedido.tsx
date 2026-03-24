@@ -215,7 +215,7 @@ export default function Pedido() {
                 <span className="font-body font-semibold text-warm-gray">Subtotal</span>
                 <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
               </div>
-              <p className="text-xs text-warm-gray mt-3">El pago se coordina al momento del retiro</p>
+              <p className="text-xs text-warm-gray mt-3"><p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p></p>
             </div>
           </div>
         </div>
