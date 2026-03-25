@@ -30,6 +30,7 @@ export default function AdminProductos() {
   const [uploading, setUploading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [syncing, setSyncing] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -191,9 +192,22 @@ export default function AdminProductos() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h2 className="font-display text-2xl font-bold text-espresso">Productos</h2>
-        <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
-          <Plus size={16} /> Agregar Producto
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={async () => {
+            setSyncing(true);
+            try {
+              const { data, error } = await supabase.functions.invoke('sync-prices-from-sheet');
+              if (error) { toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
+              else { toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
+            } catch (err: any) { toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
+            finally { setSyncing(false); }
+          }} disabled={syncing} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors disabled:opacity-50">
+            <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> Sincronizar precios
+          </button>
+          <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
+            <Plus size={16} /> Agregar Producto
+          </button>
+        </div>
       </div>
 
       <div className="relative mb-6">
