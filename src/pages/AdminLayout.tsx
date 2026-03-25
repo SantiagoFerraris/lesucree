@@ -1,8 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const navItems = [
   { to: '/admin/productos', label: 'Productos', icon: Package },
@@ -13,6 +15,10 @@ const navItems = [
 export default function AdminLayout() {
   const { isAuthenticated, loading, logout } = useAdminAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   if (loading) {
     return (
@@ -50,6 +56,9 @@ export default function AdminLayout() {
               {item.label}
             </NavLink>
           ))}
+          <button onClick={() => setShowPasswordModal(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blush/70 hover:text-blush hover:bg-sidebar-accent/50 transition-colors w-full">
+            <Lock size={18} /> Cambiar contraseña
+          </button>
         </nav>
         <div className="p-3">
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blush/70 hover:bg-sidebar-accent/50 hover:text-blush transition-colors w-full">
@@ -83,6 +92,9 @@ export default function AdminLayout() {
                 {item.label}
               </NavLink>
             ))}
+            <button onClick={() => { setShowPasswordModal(true); setSidebarOpen(false); }} className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-blush/70 w-full">
+              <Lock size={18} /> Cambiar contraseña
+            </button>
             <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-blush/70 w-full mt-4">
               <LogOut size={18} /> Cerrar sesión
             </button>
@@ -96,6 +108,39 @@ export default function AdminLayout() {
           <Outlet />
         </div>
       </main>
+
+      {/* Change password modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-espresso">Cambiar contraseña</h3>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nueva contraseña</label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Mínimo 8 caracteres" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Confirmar contraseña</label>
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Repetir contraseña" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }} className="flex-1 px-4 py-2 rounded-full border border-espresso text-espresso text-sm font-semibold">Cancelar</button>
+              <button disabled={changingPassword} onClick={async () => {
+                if (newPassword.length < 8) { toast.error('La contraseña debe tener al menos 8 caracteres'); return; }
+                if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+                setChangingPassword(true);
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                if (error) { toast.error('Error al cambiar contraseña: ' + error.message); }
+                else { toast.success('Contraseña actualizada correctamente'); setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }
+                setChangingPassword(false);
+              }} className="flex-1 px-4 py-2 rounded-full bg-espresso text-white text-sm font-semibold disabled:opacity-50">
+                {changingPassword ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

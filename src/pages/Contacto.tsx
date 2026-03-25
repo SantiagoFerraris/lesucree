@@ -48,6 +48,14 @@ export default function Contacto() {
     if (error) {
       toast.error('Error al enviar el mensaje');
     } else {
+      // Send email notification via edge function
+      try {
+        await supabase.functions.invoke('send-contact-notification', {
+          body: { name, email, message },
+        });
+      } catch {
+        // Non-blocking — message is saved even if email fails
+      }
       toast.success('¡Mensaje enviado! Te responderemos pronto.');
       setForm({ name: '', email: '', message: '' });
       setCooldown(30);

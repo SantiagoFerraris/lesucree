@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Search, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -30,6 +30,7 @@ export default function AdminProductos() {
   const [uploading, setUploading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [syncing, setSyncing] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -191,15 +192,38 @@ export default function AdminProductos() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h2 className="font-display text-2xl font-bold text-espresso">Productos</h2>
-        <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
-          <Plus size={16} /> Agregar Producto
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={async () => {
+            setSyncing(true);
+            try {
+              const { data, error } = await supabase.functions.invoke('sync-prices-from-sheet');
+              if (error) { toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
+              else { toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
+            } catch (err: any) { toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
+            finally { setSyncing(false); }
+          }} disabled={syncing} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors disabled:opacity-50">
+            <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> Sincronizar precios
+          </button>
+          <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
+            <Plus size={16} /> Agregar Producto
+          </button>
+        </div>
       </div>
 
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
+      {(() => {
+        const lastSync = products?.reduce((latest, p) => {
+          const sync = (p as any).last_price_sync;
+          if (!sync) return latest;
+          return !latest || new Date(sync) > new Date(latest) ? sync : latest;
+        }, null as string | null);
+        return lastSync ? (
+          <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
+        ) : null;
+      })()}
 
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>
