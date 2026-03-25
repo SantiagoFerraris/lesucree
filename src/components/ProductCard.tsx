@@ -58,43 +58,6 @@ export default function ProductCard({ product, index = 0, variants }: Props) {
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
-
-        {hasVariants && (
-          <div className="mt-3">
-            <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Tamaño</span>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
-              {variants.map((v, i) => (
-                <button
-                  key={v.id}
-                  onClick={(e) => { e.stopPropagation(); setSelectedVariantIndex(i); }}
-                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
-                    selectedVariantIndex === i
-                      ? 'bg-dusty-pink text-white'
-                      : 'bg-cream text-espresso hover:bg-blush'
-                  }`}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mt-4">
-          <span className="font-body text-lg font-semibold text-espresso">
-            {formatPrice(displayPrice)}
-          </span>
-          <button
-            onClick={handleAdd}
-            className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95 ${
-              added
-                ? 'bg-sage text-white'
-                : 'bg-dusty-pink/10 text-dusty-pink hover:bg-dusty-pink hover:text-white'
-            }`}
-          >
-            {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
-          </button>
-        </div>
       </div>
     </div>
   );
