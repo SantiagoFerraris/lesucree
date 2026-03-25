@@ -214,6 +214,16 @@ export default function AdminProductos() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
+      {(() => {
+        const lastSync = products?.reduce((latest, p) => {
+          const sync = (p as any).last_price_sync;
+          if (!sync) return latest;
+          return !latest || new Date(sync) > new Date(latest) ? sync : latest;
+        }, null as string | null);
+        return lastSync ? (
+          <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
+        ) : null;
+      })()}
 
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>
