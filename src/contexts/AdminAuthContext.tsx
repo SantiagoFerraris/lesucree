@@ -74,7 +74,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   return (
         <AdminAuthContext.Provider value={{ isAuthenticated: !!session, isAdmin, loading, login, logout }}>
           {children}
-        </AdminAuthContext.Provider>AdminAuthContext.Provider>
+        </AdminAuthContext.Provider>
       );
 }
 
