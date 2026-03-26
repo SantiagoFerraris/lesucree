@@ -213,4 +213,4 @@ export default function Pedido() {
                 </div>
           </section>
         );
-}</section>
+}
