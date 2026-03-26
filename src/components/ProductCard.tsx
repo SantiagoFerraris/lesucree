@@ -42,7 +42,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
   return (
     <div
       className="card-product animate-fade-in-up"
-      style={{ animationDelay: `\${index * 0.05}s` }}
+      style={{ animationDelay: `${index * 0.05}s` }}
     >
       <div className="aspect-[4/3] overflow-hidden">
         <ProductImage
@@ -68,7 +68,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
                 <button
                   key={v.id}
                   onClick={(e) => { e.stopPropagation(); setSelectedVariantIndex(i); }}
-                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all \${
+                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
                     selectedVariantIndex === i
                       ? 'bg-blush text-white border border-dusty-pink'
                       : 'bg-white text-dusty-pink border border-dusty-pink/50'
@@ -88,7 +88,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
             </span>
             <button
               onClick={handleAdd}
-              className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95 \${
+              className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95 ${
                 added
                   ? 'bg-sage text-white'
                   : 'bg-dusty-pink/10 text-dusty-pink hover:bg-dusty-pink hover:text-white'
