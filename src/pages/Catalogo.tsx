@@ -39,8 +39,8 @@ export default function Catalogo() {
         <section className="pt-[72px]">
               <div className="py-16 md:py-20 px-4">
                       <div className="container">
-                                <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>h1>
-                                <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>p>
+                                <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>
+                                <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
                       
                                 <div className="flex gap-3 mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-none">
                                   {CATEGORIES.map(c => (
@@ -50,9 +50,9 @@ export default function Catalogo() {
                                           className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
                                         >
                           {c.label}
-                        </button>button>
+                        </button>
                       ))}
-                                </div>div>
+                                </div>
                       
                                 <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
                                   {isLoading && Array.from({ length: 6 }).map((_, i) => (
@@ -62,24 +62,24 @@ export default function Catalogo() {
                                                           <div className="h-3 bg-blush rounded w-1/3" />
                                                           <div className="h-5 bg-blush rounded w-2/3" />
                                                           <div className="h-4 bg-blush rounded w-1/4" />
-                                        </div>div>
-                        </div>div>
+                                        </div>
+                        </div>
                       ))}
                                   {products?.map((p, i) => (
                         <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
                                         <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} />
-                        </div>div>
+                        </div>
                       ))}
-                                </div>div>
+                                </div>
                       
                         {!isLoading && products?.length === 0 && (
                       <div className="text-center py-20">
-                                    <p className="text-warm-gray text-lg">Próximamente agregaremos productos.</p>p>
-                                    <p className="text-warm-gray mt-1">¡Seguinos en Instagram!</p>p>
-                      </div>div>
+                                    <p className="text-warm-gray text-lg">Próximamente agregaremos productos.</p>
+                                    <p className="text-warm-gray mt-1">¡Seguinos en Instagram!</p>
+                      </div>
                                 )}
-                      </div>div>
-              </div>div>
+                      </div>
+              </div>
         
           {selectedProduct && (
                   <ProductDetailModal
@@ -88,6 +88,6 @@ export default function Catalogo() {
                               onClose={() => setSelectedProduct(null)}
                             />
                 )}
-        </section>section>
+        </section>
       );
 }</section>
