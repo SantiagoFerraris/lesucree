@@ -216,6 +216,6 @@ export default function Index() {
                 <AboutPreview />
                 <InstagramSection />
                 <WhatsAppCTA />
-          </>>
+          </>
         );
-}</></section>
+}
