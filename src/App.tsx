@@ -1,4 +1,3 @@
-import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,36 +6,18 @@ import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import PublicLayout from "@/components/PublicLayout";
 import CartSidebar from "@/components/CartSidebar";
-import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Catalogo from "./pages/Catalogo";
 import Nosotros from "./pages/Nosotros";
 import Contacto from "./pages/Contacto";
 import Pedido from "./pages/Pedido";
+import AdminLayout from "./pages/AdminLayout";
+import AdminProductos from "./pages/AdminProductos";
+import AdminMensajes from "./pages/AdminMensajes";
+import AdminPedidos from "./pages/AdminPedidos";
 import NotFound from "./pages/NotFound";
 
-// Lazy-load admin routes — visitors don't need this code
-const AdminLayout = lazy(() => import("./pages/AdminLayout"));
-const AdminProductos = lazy(() => import("./pages/AdminProductos"));
-const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
-const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
-
-function AdminFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-cream">
-      <p className="text-warm-gray">Cargando panel...</p>
-    </div>
-  );
-}
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -45,7 +26,6 @@ const App = () => (
       <CartProvider>
         <AdminAuthProvider>
           <BrowserRouter>
-            <ScrollToTop />
             <CartSidebar />
             <Routes>
               {/* Public routes */}
@@ -56,13 +36,15 @@ const App = () => (
                 <Route path="/contacto" element={<Contacto />} />
                 <Route path="/pedido" element={<Pedido />} />
               </Route>
-              {/* Admin routes — lazy loaded */}
-              <Route path="/admin" element={<Suspense fallback={<AdminFallback />}><AdminLayout /></Suspense>}>
+
+              {/* Admin routes */}
+              <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Navigate to="/admin/productos" replace />} />
-                <Route path="productos" element={<Suspense fallback={null}><AdminProductos /></Suspense>} />
-                <Route path="mensajes" element={<Suspense fallback={null}><AdminMensajes /></Suspense>} />
-                <Route path="pedidos" element={<Suspense fallback={null}><AdminPedidos /></Suspense>} />
+                <Route path="productos" element={<AdminProductos />} />
+                <Route path="mensajes" element={<AdminMensajes />} />
+                <Route path="pedidos" element={<AdminPedidos />} />
               </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
