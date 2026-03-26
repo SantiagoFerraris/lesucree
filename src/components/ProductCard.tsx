@@ -70,11 +70,11 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
                   onClick={(e) => { e.stopPropagation(); setSelectedVariantIndex(i); }}
                   className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all \${
                     selectedVariantIndex === i
-                      ? 'bg-dusty-pink text-white border border-dusty-pink'
-                      : 'bg-white text-black border border-gray-300'
+                      ? 'bg-blush text-black border border-dusty-pink'
+                      : 'bg-white text-black border border-dusty-pink/50'
                   }`}
                 >
-                  {v.label}
+                  {v.label} — {formatPrice(v.price)}
                 </button>
               ))}
             </div>
