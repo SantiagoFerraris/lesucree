@@ -71,7 +71,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
                   className={`text-xs px-2.5 py-1 rounded-full font-semibold transition-all \${
                     selectedVariantIndex === i
                       ? 'bg-dusty-pink text-white border border-dusty-pink'
-                      : 'bg-cream text-espresso hover:bg-blush border border-dusty-pink/30'
+                      : 'bg-cream text-espresso hover:bg-blush border border-dusty-pink'
                   }`}
                 >
                   {v.label}
