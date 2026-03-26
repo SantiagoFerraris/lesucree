@@ -22,56 +22,54 @@ const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
 
 const queryClient = new QueryClient({
-    defaultOptions: {
-          queries: {
-                  staleTime: 5 * 60 * 1000,
-                  retry: 1,
-          },
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
     },
+  },
 });
 
 function AdminFallback() {
-    return (
-          <div className="min-h-screen flex items-center justify-center bg-cream">
-                <p className="text-warm-gray">Cargando panel...</p>p>
-          </div>div>
-        );
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-cream">
+      <p className="text-warm-gray">Cargando panel...</p>
+    </div>
+  );
 }
 
 const App = () => (
-    <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-              <Sonner />
-              <CartProvider>
-                      <AdminAuthProvider>
-                                <BrowserRouter>
-                                            <ScrollToTop />
-                                            <CartSidebar />
-                                            <Routes>
-                                              {/* Public routes */}
-                                                          <Route element={<PublicLayout />}>
-                                                                          <Route path="/" element={<Index />} />
-                                                                          <Route path="/catalogo" element={<Catalogo />} />
-                                                                          <Route path="/nosotros" element={<Nosotros />} />
-                                                                          <Route path="/contacto" element={<Contacto />} />
-                                                                          <Route path="/pedido" element={<Pedido />} />
-                                                          </Route>Route>
-                                            
-                                              {/* Admin routes — lazy loaded */}
-                                                          <Route path="/admin" element={<Suspense fallback={<AdminFallback />}><AdminLayout /></Suspense>Suspense>}>
-                                                                          <Route index element={<Navigate to="/admin/productos" replace />} />
-                                                                          <Route path="productos" element={<Suspense fallback={null}><AdminProductos /></Suspense>Suspense>} />
-                                                                                          <Route path="mensajes" element={<Suspense fallback={null}><AdminMensajes /></Suspense>Suspense>} />
-                                                                                                          <Route path="pedidos" element={<Suspense fallback={null}><AdminPedidos /></Suspense>Suspense>} />
-                                                                                                            </Route>Route>
-                                                                                          
-                                                                                                        <Route path="*" element={<NotFound />} />
-                                                                                            </Route>Routes>
-                                                                          </Route>BrowserRouter>
-                                                          </Route>AdminAuthProvider>
-                                            </Routes>CartProvider>
-                                </BrowserRouter>TooltipProvider>
-                      </AdminAuthProvider>QueryClientProvider>
-              );
-              
-              export default App;</div>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Sonner />
+      <CartProvider>
+        <AdminAuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <CartSidebar />
+            <Routes>
+              {/* Public routes */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/catalogo" element={<Catalogo />} />
+                <Route path="/nosotros" element={<Nosotros />} />
+                <Route path="/contacto" element={<Contacto />} />
+                <Route path="/pedido" element={<Pedido />} />
+              </Route>
+              {/* Admin routes — lazy loaded */}
+              <Route path="/admin" element={<Suspense fallback={<AdminFallback />}><AdminLayout /></Suspense>}>
+                <Route index element={<Navigate to="/admin/productos" replace />} />
+                <Route path="productos" element={<Suspense fallback={null}><AdminProductos /></Suspense>} />
+                <Route path="mensajes" element={<Suspense fallback={null}><AdminMensajes /></Suspense>} />
+                <Route path="pedidos" element={<Suspense fallback={null}><AdminPedidos /></Suspense>} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AdminAuthProvider>
+      </CartProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
