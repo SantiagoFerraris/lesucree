@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,10 +103,6 @@ export default function Catalogo() {
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
   const reveal = useScrollReveal();
-
-  useEffect(() => {
-    document.title = 'Catálogo | Le Sucrée Pastelería';
-  }, []);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', category],

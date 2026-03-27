@@ -2,7 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -19,14 +19,6 @@ export default function AdminLayout() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
-
-    useEffect(() => {
-          const meta = document.createElement('meta');
-          meta.name = 'robots';
-          meta.content = 'noindex, nofollow';
-          document.head.appendChild(meta);
-          return () => { document.head.removeChild(meta); };
-    }, []);
 
   if (loading) {
     return (
