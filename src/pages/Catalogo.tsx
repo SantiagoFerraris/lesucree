@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, ShoppingBag, Check, Minus, Plus } from 'lucide-react';
+import { X, ShoppingBag, Check, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductImage from '@/components/ProductImage';
@@ -11,6 +11,8 @@ import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
+
+const ITEMS_PER_PAGE = 9;
 
 function ProductDetailModal({ product, variants, onClose }: { product: Tables<'products'>; variants: Variant[]; onClose: () => void }) {
   const hasVariants = variants.length > 0;
@@ -102,7 +104,9 @@ function ProductDetailModal({ product, variants, onClose }: { product: Tables<'p
 export default function Catalogo() {
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
+  const [page, setPage] = useState(1);
   const reveal = useScrollReveal();
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', category],
@@ -126,6 +130,17 @@ export default function Catalogo() {
 
   const getVariants = (productId: string) => allVariants?.filter(v => v.product_id === productId) || [];
 
+  const totalPages = Math.ceil((products?.length || 0) / ITEMS_PER_PAGE);
+  const paginatedProducts = products?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    if (gridRef.current) {
+      const top = gridRef.current.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="pt-[72px]">
       <div className="py-16 md:py-20 px-4">
@@ -137,7 +152,7 @@ export default function Catalogo() {
             {CATEGORIES.map(c => (
               <button
                 key={c.value}
-                onClick={() => setCategory(c.value)}
+                onClick={() => { setCategory(c.value); setPage(1); }}
                 className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
               >
                 {c.label}
@@ -145,22 +160,52 @@ export default function Catalogo() {
             ))}
           </div>
 
-          <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            {isLoading && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="card-product animate-pulse">
-                <div className="aspect-[4/3] bg-blush" />
-                <div className="p-6 space-y-3">
-                  <div className="h-3 bg-blush rounded w-1/3" />
-                  <div className="h-5 bg-blush rounded w-2/3" />
-                  <div className="h-4 bg-blush rounded w-1/4" />
+          <div ref={gridRef}>
+            <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+              {isLoading && Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-product animate-pulse">
+                  <div className="aspect-[4/3] bg-blush" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-3 bg-blush rounded w-1/3" />
+                    <div className="h-5 bg-blush rounded w-2/3" />
+                    <div className="h-4 bg-blush rounded w-1/4" />
+                  </div>
                 </div>
+              ))}
+              {paginatedProducts?.map((p, i) => (
+                <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
+                  <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} />
+                </div>
+              ))}
+            </div>
+
+            {!isLoading && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <button
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page === 1}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${page === 1 ? 'border border-dusty-pink/40 text-dusty-pink/40 cursor-not-allowed' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white active:scale-95'}`}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    className={`w-10 h-10 rounded-full text-sm font-semibold transition-all active:scale-95 ${p === page ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${page === totalPages ? 'border border-dusty-pink/40 text-dusty-pink/40 cursor-not-allowed' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white active:scale-95'}`}
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-            ))}
-            {products?.map((p, i) => (
-              <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
-                <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} />
-              </div>
-            ))}
+            )}
           </div>
 
           {!isLoading && products?.length === 0 && (
