@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
                                   if (error) { errors.push(`Row ${i + 1}: ${error.message}`); } else { updated++; updatedProductIds.add(product.id); }
                     }
                   } catch (e) {
-                              errors.push(`Row ${i + 1}: ${e.message}`);
+                              errors.push(`Row ${i + 1}: ${e instanceof Error ? e.message : String(e)}`);
                   }
         }
 
