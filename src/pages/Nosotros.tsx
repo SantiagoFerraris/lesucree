@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Heart, Leaf, ChefHat } from 'lucide-react';
 import SectionDivider from '@/components/SectionDivider';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
@@ -11,6 +12,10 @@ const values = [
 export default function Nosotros() {
   const storyReveal = useScrollReveal();
   const valuesReveal = useScrollReveal();
+
+    useEffect(() => {
+          document.title = 'Nosotros | Le Sucrée Pastelería';
+    }, []);
 
   return (
     <section className="pt-[72px]">
