@@ -13,6 +13,10 @@ function stripHtmlTags(str: string): string {
 }
 
 export default function Contacto() {
+  useEffect(() => {
+    document.title = 'Contacto | Le Sucrée Pastelería';
+  }, []);
+
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
