@@ -1,9 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
@@ -53,6 +58,8 @@ export default function AdminPedidos() {
   const [dateFilter, setDateFilter] = useState('todos');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -84,6 +91,23 @@ export default function AdminPedidos() {
     onSuccess: () => { toast.success('Estado de pago actualizado'); qc.invalidateQueries({ queryKey: ['admin-orders'] }); },
   });
 
+  const deleteOrders = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from('orders').delete().in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Pedido(s) eliminado(s) correctamente');
+      setSelected(new Set());
+      setDeleteTarget(null);
+      setExpanded(null);
+      qc.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: () => {
+      toast.error('Error al eliminar. Intentá de nuevo.');
+    },
+  });
+
   const filtered = useMemo(() => {
     return orders?.filter(o => {
       const matchSearch = o.customer_name.toLowerCase().includes(search.toLowerCase());
@@ -96,7 +120,6 @@ export default function AdminPedidos() {
     });
   }, [orders, search, statusFilter, dateFilter, todayStr, tomorrowStr, weekEnd]);
 
-  // Status counts
   const statusCounts = useMemo(() => {
     if (!orders) return {};
     const counts: Record<string, number> = {};
@@ -157,6 +180,43 @@ export default function AdminPedidos() {
     };
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!paginated) return;
+    if (selected.size === paginated.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(paginated.map(o => o.id)));
+    }
+  };
+
+  const allPageSelected = (paginated?.length ?? 0) > 0 && paginated!.every(o => selected.has(o.id));
+
+  const handleBulkDelete = () => {
+    setDeleteTarget({
+      ids: Array.from(selected),
+      label: `${selected.size} pedido${selected.size > 1 ? 's' : ''}`,
+    });
+  };
+
+  const handleDeleteOne = (o: any) => {
+    setDeleteTarget({
+      ids: [o.id],
+      label: `el pedido #${o.id.slice(0, 8).toUpperCase()} de ${o.customer_name}`,
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) deleteOrders.mutate(deleteTarget.ids);
+  };
+
   return (
     <div>
       <h2 className="font-display text-2xl font-bold text-espresso mb-6">Pedidos</h2>
@@ -168,13 +228,13 @@ export default function AdminPedidos() {
           <input
             placeholder="Buscar por nombre..."
             value={search}
-            onChange={e => { setSearch(e.target.value); setPage(0); }}
+            onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
             className="w-full sm:w-64 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
           />
         </div>
         <select
           value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setPage(0); }}
+          onChange={e => { setStatusFilter(e.target.value); setPage(0); setSelected(new Set()); }}
           className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
         >
           <option value="todos">Todos los estados</option>
@@ -183,9 +243,16 @@ export default function AdminPedidos() {
           <option value="completed">Completado ({statusCounts.completed || 0})</option>
           <option value="cancelled">Cancelado ({statusCounts.cancelled || 0})</option>
         </select>
-        <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-warm-gray hover:bg-cream/50 transition-colors">
-          <Download size={14} /> Exportar CSV
-        </button>
+        <div className="flex gap-2">
+          {selected.size > 0 && (
+            <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 font-semibold hover:bg-red-100 transition-colors">
+              <Trash2 size={14} /> Eliminar ({selected.size})
+            </button>
+          )}
+          <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-warm-gray hover:bg-cream/50 transition-colors">
+            <Download size={14} /> Exportar CSV
+          </button>
+        </div>
       </div>
 
       {/* Date filter pills */}
@@ -193,7 +260,7 @@ export default function AdminPedidos() {
         {DATE_FILTERS.map(f => (
           <button
             key={f.value}
-            onClick={() => { setDateFilter(f.value); setPage(0); }}
+            onClick={() => { setDateFilter(f.value); setPage(0); setSelected(new Set()); }}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
               dateFilter === f.value ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'
             }`}
@@ -225,32 +292,53 @@ export default function AdminPedidos() {
         </div>
       ) : (
         <>
+          {/* Select all header */}
+          <div className="flex items-center gap-3 px-4 py-2 mb-1">
+            <Checkbox checked={allPageSelected} onCheckedChange={toggleSelectAll} />
+            <span className="text-xs text-warm-gray font-semibold">Seleccionar todos</span>
+          </div>
+
           <div className="space-y-3">
             {paginated.map(o => {
               const msgs = getWhatsAppMessages(o);
               const isOverdue = o.desired_date < todayStr && (o.status === 'pending' || o.status === 'confirmed');
               return (
                 <div key={o.id} className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden ${getUrgencyBorder(o)}`}>
-                  <div
-                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-cream/30 transition-colors"
-                    onClick={() => setExpanded(expanded === o.id ? null : o.id)}
-                  >
+                  <div className="flex items-center justify-between p-4 hover:bg-cream/30 transition-colors">
                     <div className="flex items-center gap-3 flex-wrap min-w-0">
-                      <span className="text-xs font-mono text-warm-gray">#{o.id.slice(0, 8).toUpperCase()}</span>
-                      <span className="font-semibold text-sm text-espresso">{o.customer_name}</span>
-                      <span className="text-xs text-warm-gray">{formatDate(o.created_at)}</span>
-                      <span className="text-xs text-warm-gray">Retiro: {formatDate(o.desired_date)}</span>
-                      <span className="font-semibold text-sm text-espresso">{formatPrice(o.total)}</span>
-                      <span className="text-xs text-warm-gray truncate max-w-[150px]">{getProductSummary(o.items as any[])}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || ''}`}>
-                        {STATUS_LABELS[o.status] || o.status}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
-                        {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
-                      </span>
-                      {isOverdue && <span className="text-xs text-red-600 font-semibold">⚠️ Retiro vencido</span>}
+                      <Checkbox
+                        checked={selected.has(o.id)}
+                        onCheckedChange={() => toggleSelect(o.id)}
+                        onClick={e => e.stopPropagation()}
+                      />
+                      <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>
+                        <span className="text-xs font-mono text-warm-gray">#{o.id.slice(0, 8).toUpperCase()}</span>
+                        <span className="font-semibold text-sm text-espresso">{o.customer_name}</span>
+                        <span className="text-xs text-warm-gray">{formatDate(o.created_at)}</span>
+                        <span className="text-xs text-warm-gray">Retiro: {formatDate(o.desired_date)}</span>
+                        <span className="font-semibold text-sm text-espresso">{formatPrice(o.total)}</span>
+                        <span className="text-xs text-warm-gray truncate max-w-[150px]">{getProductSummary(o.items as any[])}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || ''}`}>
+                          {STATUS_LABELS[o.status] || o.status}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
+                          {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
+                        </span>
+                        {isOverdue && <span className="text-xs text-red-600 font-semibold">⚠️ Retiro vencido</span>}
+                      </div>
                     </div>
-                    {expanded === o.id ? <ChevronUp size={16} className="text-warm-gray flex-shrink-0" /> : <ChevronDown size={16} className="text-warm-gray flex-shrink-0" />}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDeleteOne(o); }}
+                        className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Eliminar pedido"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                      <div className="cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>
+                        {expanded === o.id ? <ChevronUp size={16} className="text-warm-gray" /> : <ChevronDown size={16} className="text-warm-gray" />}
+                      </div>
+                    </div>
                   </div>
                   {expanded === o.id && (
                     <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-3">
@@ -321,7 +409,7 @@ export default function AdminPedidos() {
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-6">
               {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => setPage(i)} className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${page === i ? 'bg-dusty-pink text-white' : 'text-warm-gray hover:bg-blush'}`}>
+                <button key={i} onClick={() => { setPage(i); setSelected(new Set()); }} className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${page === i ? 'bg-dusty-pink text-white' : 'text-warm-gray hover:bg-blush'}`}>
                   {i + 1}
                 </button>
               ))}
@@ -329,6 +417,33 @@ export default function AdminPedidos() {
           )}
         </>
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteTarget && deleteTarget.ids.length === 1
+                ? '¿Eliminar este pedido?'
+                : `¿Eliminar ${deleteTarget?.ids.length} pedidos?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget && deleteTarget.ids.length === 1
+                ? `Se eliminará permanentemente ${deleteTarget.label}. Esta acción no se puede deshacer.`
+                : `Se eliminarán permanentemente ${deleteTarget?.label}. Esta acción no se puede deshacer.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleteOrders.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
