@@ -35,7 +35,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="section-divider mt-12 mb-6" style={{ background: 'hsl(var(--gold-accent) / 0.3)' }} />
-        <p className="text-center text-xs opacity-60">© 2026 Le Sucrée Pastelería. Todos los derechos reservados.</p>
+        <p className="text-center text-xs opacity-60">© {new Date().getFullYear()} Le Sucrée Pastelería. Todos los derechos reservados.</p>
       </div>
     </footer>
   );

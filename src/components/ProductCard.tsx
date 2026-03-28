@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
 import { CATEGORY_LABELS } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
@@ -33,6 +34,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
       imageUrl: product.image_url || undefined,
     });
     setAdded(true);
+    toast.success(`${product.name} agregado al pedido`);
     setTimeout(() => {
       setAdded(false);
       setIsOpen(true);
