@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
-import { CATEGORY_LABELS, CATEGORIES } from '@/lib/constants';
+import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
+import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
@@ -33,6 +34,13 @@ export default function AdminProductos() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+
+  const { data: categories = [] } = useCategories();
+  const categoryLabels = buildCategoryLabels(categories);
+
+  // Build "Todos" + all categories for admin filter
+  const allFilterOptions = [{ value: 'todos', label: 'Todos' }, ...categories.map(c => ({ value: c.value, label: c.label }))];
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -54,6 +62,12 @@ export default function AdminProductos() {
 
   const getVariants = (pid: string) => allVariants?.filter((v: any) => v.product_id === pid) || [];
 
+  // Product count by category for the category manager
+  const productCountByCategory: Record<string, number> = {};
+  products?.forEach(p => {
+    productCountByCategory[p.category] = (productCountByCategory[p.category] || 0) + 1;
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const hasVariants = form.variants.length > 0;
@@ -73,7 +87,6 @@ export default function AdminProductos() {
         const { error } = await supabase.from('products').update(payload).eq('id', editing.id);
         if (error) throw error;
         productId = editing.id;
-        // Delete old variants and re-insert
         await supabase.from('product_variants').delete().eq('product_id', productId);
       } else {
         const { data, error } = await supabase.from('products').insert(payload).select('id').single();
@@ -81,7 +94,6 @@ export default function AdminProductos() {
         productId = data.id;
       }
 
-      // Insert variants
       if (form.variants.length > 0) {
         const variantRows = form.variants.map((v, i) => ({
           product_id: productId,
@@ -160,7 +172,7 @@ export default function AdminProductos() {
     setShowForm(true);
   };
 
-  const openNew = () => { setEditing(null); setForm(emptyForm); setShowForm(true); };
+  const openNew = () => { setEditing(null); setForm({ ...emptyForm, category: categories[0]?.value || 'tortas' }); setShowForm(true); };
   const closeForm = () => { setShowForm(false); setEditing(null); setForm(emptyForm); };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -199,7 +211,7 @@ export default function AdminProductos() {
     const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
     const rows = filtered.map(p => {
       const vars = getVariants(p.id);
-      return [p.name, CATEGORY_LABELS[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
+      return [p.name, categoryLabels[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
     });
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -226,6 +238,9 @@ export default function AdminProductos() {
           }} disabled={syncing} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors disabled:opacity-50">
             <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> Sincronizar precios
           </button>
+          <button onClick={() => setShowCategoryManager(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
+            <Settings2 size={16} /> Categorías
+          </button>
           <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
             <Plus size={16} /> Agregar Producto
           </button>
@@ -239,7 +254,7 @@ export default function AdminProductos() {
 
       {/* Category filter pills */}
       <div className="flex gap-2 mb-3 flex-wrap">
-        {CATEGORIES.map(c => (
+        {allFilterOptions.map(c => (
           <button key={c.value} onClick={() => { setCategoryFilter(c.value); setPage(0); }}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${categoryFilter === c.value ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'}`}>
             {c.label}
@@ -296,7 +311,7 @@ export default function AdminProductos() {
                         {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}
                       </td>
 
-                      <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>
+                      <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{categoryLabels[p.category] || p.category}</td>
                       <td className="py-3 pr-4 text-espresso">
                         {vars.length > 0 ? `Desde ${formatPrice(p.price)}` : formatPrice(p.price)}
                       </td>
@@ -369,7 +384,7 @@ export default function AdminProductos() {
               <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Categoría *</label>
                 <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className={inputClass}>
-                  {CATEGORIES.filter(c => c.value !== 'todos').map(c => (
+                  {categories.map(c => (
                     <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
@@ -430,6 +445,15 @@ export default function AdminProductos() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Category Manager Modal */}
+      {showCategoryManager && (
+        <CategoryManagerModal
+          categories={categories}
+          productCountByCategory={productCountByCategory}
+          onClose={() => setShowCategoryManager(false)}
+        />
       )}
     </div>
   );

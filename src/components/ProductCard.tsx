@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
-import { CATEGORY_LABELS } from '@/lib/constants';
+import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -18,6 +18,8 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const { data: categories } = useCategories();
+  const categoryLabels = buildCategoryLabels(categories);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
@@ -58,7 +60,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
       </div>
       <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
-          {CATEGORY_LABELS[product.category] || product.category}
+          {categoryLabels[product.category] || product.category}
         </span>
         <h3 className="font-display text-lg font-bold text-espresso mt-1">{product.name}</h3>
         {product.description && (

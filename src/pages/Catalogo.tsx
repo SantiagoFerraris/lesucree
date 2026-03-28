@@ -4,7 +4,7 @@ import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
-import { CATEGORIES } from '@/lib/constants';
+import { useCategories } from '@/hooks/useCategories';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -18,6 +18,9 @@ export default function Catalogo() {
   const [page, setPage] = useState(1);
   const reveal = useScrollReveal();
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const { data: dbCategories = [] } = useCategories(true); // only visible
+  const filterOptions = [{ value: 'todos', label: 'Todos' }, ...dbCategories.map(c => ({ value: c.value, label: c.label }))];
 
   const { data: products, isLoading, isError, refetch } = useQuery({
     queryKey: ['products', category],
@@ -60,7 +63,7 @@ export default function Catalogo() {
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
 
           <div className="flex gap-2 md:gap-3 mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide">
-            {CATEGORIES.map(c => (
+            {filterOptions.map(c => (
               <button
                 key={c.value}
                 onClick={() => { setCategory(c.value); setPage(1); }}
