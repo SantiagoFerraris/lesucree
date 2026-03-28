@@ -5,14 +5,16 @@ import AdminLogin from './AdminLogin';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
+import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/productos', label: 'Productos', icon: Package },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-  { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare },
-  { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3 },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, badgeKey: null },
+  { to: '/admin/productos', label: 'Productos', icon: Package, badgeKey: null },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart, badgeKey: 'pendingOrders' as const },
+  { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare, badgeKey: 'unreadMessages' as const },
+  { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3, badgeKey: null },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users, badgeKey: null },
 ];
 
 export default function AdminLayout() {
