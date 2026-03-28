@@ -95,6 +95,33 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string
+          sort_order: number | null
+          value: string
+          visible: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label: string
+          sort_order?: number | null
+          value: string
+          visible?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string
+          sort_order?: number | null
+          value?: string
+          visible?: boolean | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string | null
