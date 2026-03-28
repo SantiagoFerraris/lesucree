@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Instagram, MapPin, Clock, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
+import { WHATSAPP_URL, WHATSAPP_NUMBER, WHATSAPP_NOTIFICATION_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
 import SectionDivider from '@/components/SectionDivider';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
@@ -81,6 +81,8 @@ export default function Contacto() {
         // Non-blocking — message is saved even if email fails
       }
       toast.success('¡Mensaje enviado! Te responderemos pronto.');
+      const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}\n📧 Email: ${email}\n💬 Mensaje: ${message}`;
+      window.open(`https://wa.me/${WHATSAPP_NOTIFICATION_NUMBER}?text=${encodeURIComponent(waText)}`, '_blank');
       setForm({ name: '', email: '', message: '' });
       setHoneypot('');
       setCooldown(30);
