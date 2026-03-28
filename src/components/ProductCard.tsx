@@ -23,6 +23,9 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
   const displayPrice = selectedVariant?.price ?? product.price;
 
+  // For "Desde $X" display when variants exist
+  const minVariantPrice = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
+
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart({
@@ -61,6 +64,11 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
+
+        {/* Price display */}
+        <p className="font-body text-base font-semibold text-espresso mt-2">
+          {minVariantPrice !== null ? `Desde ${formatPrice(minVariantPrice)}` : formatPrice(product.price)}
+        </p>
 
         {!compact && hasVariants && (
           <div className="mt-3">

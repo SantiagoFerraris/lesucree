@@ -10,10 +10,6 @@ import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/ant
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_MESSAGE_LENGTH = 1000;
 
-function stripHtmlTags(str: string): string {
-  return str.replace(/<[^>]*>/g, '');
-}
-
 export default function Contacto() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
@@ -50,7 +46,7 @@ export default function Contacto() {
 
     const name = form.name.trim();
     const email = form.email.trim();
-    const message = stripHtmlTags(form.message.trim());
+    const message = form.message.trim();
 
     if (!name || !email || !message) {
       toast.error('Por favor completá todos los campos');
@@ -66,11 +62,14 @@ export default function Contacto() {
     }
 
     setLoading(true);
-    const { error } = await supabase.from('contact_messages').insert({ name, email, message });
+    const { data: result, error } = await supabase.functions.invoke('create-contact-message', {
+      body: { name, email, message },
+    });
     setLoading(false);
-    if (error) {
-      console.error('Contact insert error:', error);
-      toast.error('Error al enviar el mensaje');
+
+    if (error || !result?.success) {
+      console.error('Contact submit error:', error || result?.error);
+      toast.error(result?.error || 'Error al enviar el mensaje');
     } else {
       // Send email notification via edge function
       try {
@@ -139,26 +138,36 @@ export default function Contacto() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
-              <input
-                type="text"
-                placeholder="Nombre"
-                aria-label="Nombre"
-                value={form.name}
-                onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className={inputClass}
-                maxLength={100}
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                aria-label="Email"
-                value={form.email}
-                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className={inputClass}
-                maxLength={255}
-              />
+              <div>
+                <label htmlFor="contacto-name" className="sr-only">Nombre</label>
+                <input
+                  id="contacto-name"
+                  type="text"
+                  placeholder="Nombre"
+                  aria-label="Nombre"
+                  value={form.name}
+                  onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  className={inputClass}
+                  maxLength={100}
+                />
+              </div>
+              <div>
+                <label htmlFor="contacto-email" className="sr-only">Email</label>
+                <input
+                  id="contacto-email"
+                  type="email"
+                  placeholder="Email"
+                  aria-label="Email"
+                  value={form.email}
+                  onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                  className={inputClass}
+                  maxLength={255}
+                />
+              </div>
               <div className="relative">
+                <label htmlFor="contacto-message" className="sr-only">Mensaje</label>
                 <textarea
+                  id="contacto-message"
                   placeholder="Mensaje"
                   aria-label="Mensaje"
                   value={form.message}
