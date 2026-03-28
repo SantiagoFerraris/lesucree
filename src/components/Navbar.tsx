@@ -87,7 +87,7 @@ export default function Navbar() {
 
       {/* Mobile overlay */}
       {open && (
-        <div className="fixed inset-0 top-[72px] bg-cream z-40 flex flex-col items-center justify-center gap-8 animate-fade-in">
+        <div className="fixed inset-0 top-[72px] z-40 flex flex-col items-center justify-center gap-8 animate-fade-in" style={{ backgroundColor: 'hsl(30, 100%, 97%)' }}>
           {links.map(l => (
             <Link
               key={l.to}
