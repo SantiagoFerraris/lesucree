@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
-import { CATEGORY_LABELS } from '@/lib/constants';
+import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
