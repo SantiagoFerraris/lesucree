@@ -182,9 +182,29 @@ export default function AdminProductos() {
     }));
   };
 
-  const filtered = products?.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = products?.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat = categoryFilter === 'todos' || p.category === categoryFilter;
+    return matchSearch && matchCat;
+  });
+  const activeCount = products?.filter(p => p.active).length ?? 0;
+  const inactiveCount = (products?.length ?? 0) - activeCount;
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const exportProductsCSV = () => {
+    if (!filtered?.length) return;
+    const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
+    const rows = filtered.map(p => {
+      const vars = getVariants(p.id);
+      return [p.name, CATEGORY_LABELS[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
+    });
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `productos_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
