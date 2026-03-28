@@ -24,7 +24,9 @@ const PAGE_SIZE = 10;
 export default function AdminProductos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('todos');
   const [editing, setEditing] = useState<Tables<'products'> | null>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ProductFormData>(emptyForm);
   const [uploading, setUploading] = useState(false);
