@@ -145,19 +145,30 @@ export default function AdminLayout() {
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 bg-espresso/95 flex flex-col pt-14 animate-fade-in">
           <nav className="px-6 py-4 space-y-2">
-            {navItems.map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-3 rounded-lg text-sm ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70'}`
-                }
-              >
-                <item.icon size={18} />
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems.map(item => {
+              const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => {
+                    if (item.to === '/admin/pedidos') localStorage.setItem('lastVisitedPedidos', new Date().toISOString());
+                    setSidebarOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-3 rounded-lg text-sm ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70'}`
+                  }
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                  {badgeCount > 0 && (
+                    <span className="ml-auto text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white font-bold">
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
             <button onClick={() => { setShowPasswordModal(true); setSidebarOpen(false); }} className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-blush/70 w-full">
               <Lock size={18} /> Cambiar contraseña
             </button>
