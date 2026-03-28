@@ -57,9 +57,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
         />
       </div>
       <div className="p-6 flex flex-col flex-1">
-        <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
-          {CATEGORY_LABELS[product.category] || product.category}
-        </span>
+        <CategoryLabel category={product.category} />
         <h3 className="font-display text-lg font-bold text-espresso mt-1">{product.name}</h3>
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
