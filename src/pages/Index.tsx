@@ -24,7 +24,7 @@ interface Variant { id: string; label: string; price: number; sort_order: number
 
 function HeroSection() {
   return (
-    <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4">
+    <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4 pt-24 md:pt-[72px]">
       <div className="text-center max-w-2xl mx-auto">
         <div className="section-divider mb-8 animate-fade-in-up" />
         <h1 className="font-display text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
