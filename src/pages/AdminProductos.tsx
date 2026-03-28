@@ -293,9 +293,9 @@ export default function AdminProductos() {
                       </td>
                       <td className="py-3 pr-4 font-medium text-espresso">
                         <span className="flex items-center gap-1">{p.name}{(!p.description || !p.description.trim()) && <AlertTriangle size={13} className="text-amber-500" title="Sin descripción" />}</span>
-                        {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}</td>
-
+                        {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}
                       </td>
+
                       <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>
                       <td className="py-3 pr-4 text-espresso">
                         {vars.length > 0 ? `Desde ${formatPrice(p.price)}` : formatPrice(p.price)}
