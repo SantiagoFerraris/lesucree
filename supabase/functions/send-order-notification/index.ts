@@ -42,12 +42,14 @@ Deno.serve(async (req) => {
     }
 
     // Validate that the order actually exists in the database
-    const { data: order } = await supabaseAdmin.from('orders').select('id').eq('id', orderId).single();
+    const { data: order } = await supabaseAdmin.from('orders').select('id, notified_at').eq('id', orderId).single();
+    let resolvedOrderId = order?.id;
+
     if (!order) {
       // orderId from frontend is truncated (first 8 chars uppercase), so also try matching by customer info
       const { data: orderByName } = await supabaseAdmin
         .from('orders')
-        .select('id')
+        .select('id, notified_at')
         .eq('customer_name', customerName)
         .eq('customer_email', customerEmail)
         .order('created_at', { ascending: false })
@@ -60,6 +62,19 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      resolvedOrderId = orderByName.id;
+
+      // One-time notification guard
+      if (orderByName.notified_at) {
+        return new Response(JSON.stringify({ success: true, skipped: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else if (order.notified_at) {
+      // One-time notification guard
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const NOTIFICATION_EMAIL = Deno.env.get('ORDER_NOTIFICATION_EMAIL');
@@ -121,6 +136,11 @@ Deno.serve(async (req) => {
       console.log('Email sent successfully via Resend to', NOTIFICATION_EMAIL);
     } else {
       console.log('RESEND_API_KEY not set. Order notification logged:', { orderId, customerName, NOTIFICATION_EMAIL });
+    }
+
+    // Mark as notified
+    if (resolvedOrderId) {
+      await supabaseAdmin.from('orders').update({ notified_at: new Date().toISOString() }).eq('id', resolvedOrderId);
     }
 
     return new Response(JSON.stringify({ success: true, emailSent: !!RESEND_API_KEY }), {
