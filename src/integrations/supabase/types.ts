@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      advisor_run_log: {
+        Row: {
+          duration_ms: number | null
+          error: string | null
+          id: string
+          insights_generated: number | null
+          ran_at: string | null
+        }
+        Insert: {
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          insights_generated?: number | null
+          ran_at?: string | null
+        }
+        Update: {
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          insights_generated?: number | null
+          ran_at?: string | null
+        }
+        Relationships: []
+      }
+      business_insights: {
+        Row: {
+          action_label: string | null
+          action_route: string | null
+          category: string
+          created_at: string | null
+          data_snapshot: Json | null
+          description: string
+          dismissed_at: string | null
+          expires_at: string | null
+          id: string
+          insight_type: string
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          priority: string
+          read_at: string | null
+          title: string
+          was_acted_on: boolean | null
+        }
+        Insert: {
+          action_label?: string | null
+          action_route?: string | null
+          category: string
+          created_at?: string | null
+          data_snapshot?: Json | null
+          description: string
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          insight_type: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          priority: string
+          read_at?: string | null
+          title: string
+          was_acted_on?: boolean | null
+        }
+        Update: {
+          action_label?: string | null
+          action_route?: string | null
+          category?: string
+          created_at?: string | null
+          data_snapshot?: Json | null
+          description?: string
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          insight_type?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          priority?: string
+          read_at?: string | null
+          title?: string
+          was_acted_on?: boolean | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string | null
@@ -55,6 +136,7 @@ export type Database = {
           items: Json
           notes: string | null
           notified_at: string | null
+          payment_status: string | null
           preferred_time: string
           status: string
           total: number
@@ -69,6 +151,7 @@ export type Database = {
           items: Json
           notes?: string | null
           notified_at?: string | null
+          payment_status?: string | null
           preferred_time: string
           status?: string
           total: number
@@ -83,6 +166,7 @@ export type Database = {
           items?: Json
           notes?: string | null
           notified_at?: string | null
+          payment_status?: string | null
           preferred_time?: string
           status?: string
           total?: number
@@ -207,7 +291,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_summary: {
+        Row: {
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          first_order_date: string | null
+          last_order_date: string | null
+          total_orders: number | null
+          total_spent: number | null
+        }
+        Relationships: []
+      }
+      daily_revenue: {
+        Row: {
+          avg_order_value: number | null
+          cancelled_orders: number | null
+          completed_orders: number | null
+          order_count: number | null
+          order_date: string | null
+          pending_orders: number | null
+          revenue: number | null
+        }
+        Relationships: []
+      }
+      product_performance: {
+        Row: {
+          product_id: string | null
+          product_name: string | null
+          times_ordered: number | null
+          total_revenue: number | null
+          total_units_sold: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }

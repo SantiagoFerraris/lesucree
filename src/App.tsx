@@ -16,6 +16,7 @@ import Pedido from "./pages/Pedido";
 import NotFound from "./pages/NotFound";
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProductos = lazy(() => import("./pages/AdminProductos"));
 const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
@@ -64,10 +65,12 @@ const App = () => (
 
                 {/* Admin routes */}
                 <Route path="/admin" element={<AdminSuspense><AdminLayout /></AdminSuspense>}>
-                  <Route index element={<Navigate to="/admin/productos" replace />} />
+                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminSuspense><AdminDashboard /></AdminSuspense>} />
                   <Route path="productos" element={<AdminSuspense><AdminProductos /></AdminSuspense>} />
                   <Route path="mensajes" element={<AdminSuspense><AdminMensajes /></AdminSuspense>} />
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
+
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

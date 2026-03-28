@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const navItems = [
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare },
