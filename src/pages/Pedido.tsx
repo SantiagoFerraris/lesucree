@@ -86,33 +86,33 @@ export default function Pedido() {
     if (!validate() || items.length === 0) return;
 
     setLoading(true);
-    const orderId = crypto.randomUUID();
-    const orderItems = items.map(i => ({
-      productId: i.productId,
-      productName: i.productName,
-      variantLabel: i.variantLabel || null,
-      quantity: i.quantity,
-      unitPrice: i.price,
-    }));
-
-    const { error } = await supabase.from('orders').insert({
-      id: orderId,
-      customer_name: form.name.trim(),
-      customer_phone: form.phone.trim(),
-      customer_email: form.email.trim(),
-      desired_date: form.date,
-      preferred_time: form.time,
-      notes: form.notes.trim() || null,
-      items: orderItems,
-      total: getCartTotal(),
+    // Submit order via secure edge function (server-side price validation)
+    const { data: orderResult, error } = await supabase.functions.invoke('create-order', {
+      body: {
+        customerName: form.name.trim(),
+        customerPhone: form.phone.trim(),
+        customerEmail: form.email.trim(),
+        desiredDate: form.date,
+        preferredTime: form.time,
+        notes: form.notes.trim(),
+        items: items.map(i => ({
+          productId: i.productId,
+          variantId: i.variantId || undefined,
+          quantity: i.quantity,
+        })),
+      },
     });
 
-    if (error) {
-      console.error('Order insert error:', error);
-      toast.error('Error al enviar el pedido. Intentá de nuevo.');
+    if (error || !orderResult?.success) {
+      console.error('Order error:', error || orderResult?.error);
+      toast.error(orderResult?.error || 'Error al enviar el pedido. Intentá de nuevo.');
       setLoading(false);
       return;
     }
+
+    const orderId = orderResult.orderId;
+    const serverItems = orderResult.items;
+    const serverTotal = orderResult.total;
 
     // Send email notification via edge function
     try {
@@ -125,16 +125,16 @@ export default function Pedido() {
           desiredDate: form.date,
           preferredTime: form.time,
           notes: form.notes.trim(),
-          items: orderItems,
-          total: getCartTotal(),
+          items: serverItems,
+          total: serverTotal,
         },
       });
     } catch {
       // Non-blocking — order is saved even if email fails
     }
 
-    const itemsList = items.map(i => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.price * i.quantity)}`).join('\n');
-    const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(getCartTotal())}`;
+    const itemsList = (serverItems as any[]).map((i: any) => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.unitPrice * i.quantity)}`).join('\n');
+    const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(serverTotal)}`;
     window.open(`https://wa.me/${WHATSAPP_NOTIFICATION_NUMBER}?text=${encodeURIComponent(waText)}`, '_blank');
 
     clearCart();
