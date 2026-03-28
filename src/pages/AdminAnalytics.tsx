@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DollarSign, TrendingUp, CheckCircle, ShoppingBag, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
-import { CATEGORY_LABELS } from '@/lib/constants';
+import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,

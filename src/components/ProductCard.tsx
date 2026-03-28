@@ -18,6 +18,8 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const { data: categories } = useCategories();
+  const categoryLabels = buildCategoryLabels(categories);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
@@ -57,7 +59,9 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
         />
       </div>
       <div className="p-6 flex flex-col flex-1">
-        <CategoryLabel category={product.category} />
+        <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
+          {categoryLabels[product.category] || product.category}
+        </span>
         <h3 className="font-display text-lg font-bold text-espresso mt-1">{product.name}</h3>
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
