@@ -18,8 +18,8 @@ export default function AdminLogin() {
     const error = await login(email.trim(), password);
     setLoading(false);
     if (error) {
-      console.error('Login error:', error);
-      toast.error('Email o contraseña incorrectos');
+      console.error('Login failed');
+      toast.error(error);
       setPassword('');
     }
   };

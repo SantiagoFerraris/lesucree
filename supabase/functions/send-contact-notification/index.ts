@@ -20,11 +20,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate message exists in database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Cleanup old rate limit entries (non-blocking)
+    try { await supabaseAdmin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
+
+    // Server-side rate limiting: max 3 contact notifications per email per 5 minutes
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from('rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('identifier', email)
+      .eq('action_type', 'contact')
+      .gte('created_at', fiveMinAgo);
+
+    if (count !== null && count >= 3) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Record this request
+    await supabaseAdmin.from('rate_limits').insert({ identifier: email, action_type: 'contact' });
+
+    // Validate message exists in database
     const { data: msg } = await supabaseAdmin
       .from('contact_messages')
       .select('id')

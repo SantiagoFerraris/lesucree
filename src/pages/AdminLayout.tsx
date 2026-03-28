@@ -16,6 +16,7 @@ export default function AdminLayout() {
   const { isAuthenticated, loading, logout } = useAdminAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -33,6 +34,51 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     await logout();
     setSidebarOpen(false);
+  };
+
+  const resetPasswordForm = () => {
+    setShowPasswordModal(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword) { toast.error('Ingresá tu contraseña actual'); return; }
+    if (newPassword.length < 8) { toast.error('La nueva contraseña debe tener al menos 8 caracteres'); return; }
+    if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+
+    setChangingPassword(true);
+
+    // Verify current password
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) {
+      toast.error('Ocurrió un error. Intentá de nuevo.');
+      setChangingPassword(false);
+      return;
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (verifyError) {
+      console.error('Password verification error:', verifyError.message);
+      toast.error('La contraseña actual es incorrecta');
+      setChangingPassword(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      console.error('Password update error:', error.message);
+      toast.error('Ocurrió un error al cambiar la contraseña. Intentá de nuevo.');
+    } else {
+      toast.success('Contraseña actualizada correctamente');
+      resetPasswordForm();
+    }
+    setChangingPassword(false);
   };
 
   return (
@@ -116,25 +162,21 @@ export default function AdminLayout() {
             <h3 className="font-display text-lg font-bold text-espresso">Cambiar contraseña</h3>
             <div className="mt-4 space-y-3">
               <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Contraseña actual</label>
+                <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Contraseña actual" autoComplete="current-password" />
+              </div>
+              <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nueva contraseña</label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Mínimo 8 caracteres" />
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Confirmar contraseña</label>
-                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Repetir contraseña" />
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso" placeholder="Repetir contraseña" autoComplete="new-password" />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }} className="flex-1 px-4 py-2 rounded-full border border-espresso text-espresso text-sm font-semibold">Cancelar</button>
-              <button disabled={changingPassword} onClick={async () => {
-                if (newPassword.length < 8) { toast.error('La contraseña debe tener al menos 8 caracteres'); return; }
-                if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
-                setChangingPassword(true);
-                const { error } = await supabase.auth.updateUser({ password: newPassword });
-                if (error) { toast.error('Error al cambiar contraseña: ' + error.message); }
-                else { toast.success('Contraseña actualizada correctamente'); setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }
-                setChangingPassword(false);
-              }} className="flex-1 px-4 py-2 rounded-full bg-espresso text-white text-sm font-semibold disabled:opacity-50">
+              <button onClick={resetPasswordForm} className="flex-1 px-4 py-2 rounded-full border border-espresso text-espresso text-sm font-semibold">Cancelar</button>
+              <button disabled={changingPassword} onClick={handleChangePassword} className="flex-1 px-4 py-2 rounded-full bg-espresso text-white text-sm font-semibold disabled:opacity-50">
                 {changingPassword ? 'Guardando...' : 'Guardar'}
               </button>
             </div>

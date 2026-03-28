@@ -13,11 +13,35 @@ Deno.serve(async (req) => {
   try {
     const { orderId, customerName, customerPhone, customerEmail, desiredDate, preferredTime, notes, items, total } = await req.json();
 
-    // Validate that the order actually exists in the database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Cleanup old rate limit entries (non-blocking)
+    try { await supabaseAdmin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
+
+    // Server-side rate limiting: max 5 order notifications per email per 10 minutes
+    if (customerEmail) {
+      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { count } = await supabaseAdmin
+        .from('rate_limits')
+        .select('*', { count: 'exact', head: true })
+        .eq('identifier', customerEmail)
+        .eq('action_type', 'order')
+        .gte('created_at', tenMinAgo);
+
+      if (count !== null && count >= 5) {
+        return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Record this request
+      await supabaseAdmin.from('rate_limits').insert({ identifier: customerEmail, action_type: 'order' });
+    }
+
+    // Validate that the order actually exists in the database
     const { data: order } = await supabaseAdmin.from('orders').select('id').eq('id', orderId).single();
     if (!order) {
       // orderId from frontend is truncated (first 8 chars uppercase), so also try matching by customer info

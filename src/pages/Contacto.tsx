@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Instagram } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_URL, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
 import SectionDivider from '@/components/SectionDivider';
+import HoneypotField from '@/components/HoneypotField';
+import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_MESSAGE_LENGTH = 1000;
@@ -16,6 +18,12 @@ export default function Contacto() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [honeypot, setHoneypot] = useState('');
+  const formLoadedAt = useRef(Date.now());
+
+  useEffect(() => {
+    formLoadedAt.current = Date.now();
+  }, []);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -25,6 +33,21 @@ export default function Contacto() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Anti-spam checks
+    if (isHoneypotFilled(honeypot)) {
+      toast.success('¡Mensaje enviado! Te responderemos pronto.');
+      return;
+    }
+    if (isSubmissionTooFast(formLoadedAt.current)) {
+      toast.error('Por favor esperá un momento antes de enviar.');
+      return;
+    }
+    if (!checkRateLimit('contact')) {
+      toast.error('Demasiados envíos. Por favor esperá un momento.');
+      return;
+    }
+
     const name = form.name.trim();
     const email = form.email.trim();
     const message = stripHtmlTags(form.message.trim());
@@ -46,6 +69,7 @@ export default function Contacto() {
     const { error } = await supabase.from('contact_messages').insert({ name, email, message });
     setLoading(false);
     if (error) {
+      console.error('Contact insert error:', error);
       toast.error('Error al enviar el mensaje');
     } else {
       // Send email notification via edge function
@@ -58,6 +82,7 @@ export default function Contacto() {
       }
       toast.success('¡Mensaje enviado! Te responderemos pronto.');
       setForm({ name: '', email: '', message: '' });
+      setHoneypot('');
       setCooldown(30);
     }
   };
@@ -93,6 +118,7 @@ export default function Contacto() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
               <input
                 type="text"
                 placeholder="Nombre"
