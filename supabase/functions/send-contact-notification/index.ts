@@ -1,8 +1,17 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
@@ -88,10 +97,10 @@ Deno.serve(async (req) => {
         <h1 style="color:#3E2723;font-size:24px;margin-bottom:4px">Nuevo mensaje de contacto</h1>
         <p style="color:#6D5D53;font-size:14px;margin-top:0">Le Sucrée Pastelería</p>
         <hr style="border:none;border-top:1px solid #F5E6DA;margin:20px 0">
-        <p><strong style="color:#3E2723">Nombre:</strong> ${name}</p>
-        <p><strong style="color:#3E2723">Email:</strong> <a href="mailto:${email}" style="color:#D4A69A">${email}</a></p>
+        <p><strong style="color:#3E2723">Nombre:</strong> ${escapeHtml(String(name))}</p>
+        <p><strong style="color:#3E2723">Email:</strong> <a href="mailto:${escapeHtml(String(email))}" style="color:#D4A69A">${escapeHtml(String(email))}</a></p>
         <p><strong style="color:#3E2723">Mensaje:</strong></p>
-        <div style="background:#FDF8F5;padding:16px;border-radius:8px;color:#3E2723;font-size:14px;line-height:1.6;white-space:pre-wrap">${message}</div>
+        <div style="background:#FDF8F5;padding:16px;border-radius:8px;color:#3E2723;font-size:14px;line-height:1.6;white-space:pre-wrap">${escapeHtml(String(message))}</div>
         <p style="color:#999;font-size:12px;margin-top:20px">Recibido el ${now}</p>
       </div>
     `;

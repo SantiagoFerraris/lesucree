@@ -201,35 +201,35 @@ export default function Pedido() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nombre completo *</label>
-                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputClass} maxLength={100} />
+                <label htmlFor="pedido-name" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nombre completo *</label>
+                <input id="pedido-name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputClass} maxLength={100} />
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Teléfono *</label>
-                <input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} placeholder="+54 341..." maxLength={20} />
+                <label htmlFor="pedido-phone" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Teléfono *</label>
+                <input id="pedido-phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} placeholder="+54 341..." maxLength={20} />
                 {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email *</label>
-                <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputClass} maxLength={255} />
+                <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email *</label>
+                <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputClass} maxLength={255} />
                 {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Fecha de retiro *</label>
-                <input type="date" min={getMinDate()} value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className={inputClass} />
+                <label htmlFor="pedido-date" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Fecha de retiro *</label>
+                <input id="pedido-date" type="date" min={getMinDate()} value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className={inputClass} />
                 {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Horario preferido *</label>
-                <select value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} className={inputClass}>
+                <label htmlFor="pedido-time" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Horario preferido *</label>
+                <select id="pedido-time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} className={inputClass}>
                   <option>Mañana (9-12)</option>
                   <option>Tarde (12-18)</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Notas adicionales</label>
-                <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputClass} min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
+                <label htmlFor="pedido-notes" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Notas adicionales</label>
+                <textarea id="pedido-notes" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputClass} min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
                 <span className="text-xs text-warm-gray/50">{form.notes.length}/500</span>
               </div>
               <button
