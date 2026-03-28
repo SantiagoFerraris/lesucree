@@ -5,14 +5,16 @@ import AdminLogin from './AdminLogin';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
+import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/productos', label: 'Productos', icon: Package },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
-  { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare },
-  { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3 },
-  { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, badgeKey: null },
+  { to: '/admin/productos', label: 'Productos', icon: Package, badgeKey: null },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart, badgeKey: 'pendingOrders' as const },
+  { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare, badgeKey: 'unreadMessages' as const },
+  { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3, badgeKey: null },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users, badgeKey: null },
 ];
 
 export default function AdminLayout() {
@@ -23,6 +25,10 @@ export default function AdminLayout() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const badges = useSidebarBadges();
+
+  // Realtime subscriptions (must be before conditional returns)
+  useRealtimeOrders();
 
   if (loading) {
     return (
@@ -93,18 +99,29 @@ export default function AdminLayout() {
           <p className="text-xs opacity-60 mt-1">Panel de Administración</p>
         </div>
         <nav className="flex-1 px-3 space-y-1">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70 hover:bg-sidebar-accent/50 hover:text-blush'}`
-              }
-            >
-              <item.icon size={18} />
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map(item => {
+            const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  if (item.to === '/admin/pedidos') localStorage.setItem('lastVisitedPedidos', new Date().toISOString());
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70 hover:bg-sidebar-accent/50 hover:text-blush'}`
+                }
+              >
+                <item.icon size={18} />
+                {item.label}
+                {badgeCount > 0 && (
+                  <span className="ml-auto text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white font-bold">
+                    {badgeCount > 99 ? '99+' : badgeCount}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
           <button onClick={() => setShowPasswordModal(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blush/70 hover:text-blush hover:bg-sidebar-accent/50 transition-colors w-full">
             <Lock size={18} /> Cambiar contraseña
           </button>
@@ -128,19 +145,30 @@ export default function AdminLayout() {
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 bg-espresso/95 flex flex-col pt-14 animate-fade-in">
           <nav className="px-6 py-4 space-y-2">
-            {navItems.map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-3 rounded-lg text-sm ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70'}`
-                }
-              >
-                <item.icon size={18} />
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems.map(item => {
+              const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => {
+                    if (item.to === '/admin/pedidos') localStorage.setItem('lastVisitedPedidos', new Date().toISOString());
+                    setSidebarOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-3 rounded-lg text-sm ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70'}`
+                  }
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                  {badgeCount > 0 && (
+                    <span className="ml-auto text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white font-bold">
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
             <button onClick={() => { setShowPasswordModal(true); setSidebarOpen(false); }} className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-blush/70 w-full">
               <Lock size={18} /> Cambiar contraseña
             </button>

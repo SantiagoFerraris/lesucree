@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import AdvisorWidget from '@/components/admin/AdvisorWidget';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
@@ -239,6 +240,9 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* AI Advisor Widget */}
+      <AdvisorWidget />
     </div>
   );
 }
