@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useBlocker } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ShoppingBag } from 'lucide-react';
@@ -7,6 +7,8 @@ import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
+import HoneypotField from '@/components/HoneypotField';
+import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
 const PHONE_REGEX = /^[\d\s\-+()]{7,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,6 +28,12 @@ export default function Pedido() {
   const [cooldown, setCooldown] = useState(0);
   const [success, setSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [honeypot, setHoneypot] = useState('');
+  const formLoadedAt = useRef(Date.now());
+
+  useEffect(() => {
+    formLoadedAt.current = Date.now();
+  }, []);
 
   // Warn before closing/refreshing when cart has items
   const shouldBlock = items.length > 0 && !success;
@@ -67,6 +75,21 @@ export default function Pedido() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Anti-spam checks
+    if (isHoneypotFilled(honeypot)) {
+      toast.success('¡Pedido enviado con éxito!');
+      return;
+    }
+    if (isSubmissionTooFast(formLoadedAt.current)) {
+      toast.error('Por favor esperá un momento antes de enviar.');
+      return;
+    }
+    if (!checkRateLimit('order')) {
+      toast.error('Demasiados envíos. Por favor esperá un momento.');
+      return;
+    }
+
     if (!validate() || items.length === 0) return;
 
     setLoading(true);
@@ -92,7 +115,8 @@ export default function Pedido() {
     });
 
     if (error) {
-      console.error('Order insert error:', error); toast.error(`Error al enviar el pedido: ${error.message}`);
+      console.error('Order insert error:', error);
+      toast.error('Error al enviar el pedido. Intentá de nuevo.');
       setLoading(false);
       return;
     }
@@ -117,8 +141,9 @@ export default function Pedido() {
     }
 
     clearCart();
+    setHoneypot('');
     setSuccess(orderId.slice(0, 8).toUpperCase());
-    setCooldown(60);
+    setCooldown(30);
     setLoading(false);
   };
 
@@ -194,6 +219,7 @@ export default function Pedido() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
               <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nombre completo *</label>
                 <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputClass} maxLength={100} />
