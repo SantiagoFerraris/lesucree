@@ -20,6 +20,8 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProductos = lazy(() => import("./pages/AdminProductos"));
 const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminClientes = lazy(() => import("./pages/AdminClientes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +72,8 @@ const App = () => (
                   <Route path="productos" element={<AdminSuspense><AdminProductos /></AdminSuspense>} />
                   <Route path="mensajes" element={<AdminSuspense><AdminMensajes /></AdminSuspense>} />
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
+                  <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
+                  <Route path="clientes" element={<AdminSuspense><AdminClientes /></AdminSuspense>} />
 
                 </Route>
 
