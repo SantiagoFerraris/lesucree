@@ -1,0 +1,24 @@
+{
+    "name": "Le Sucrée Pastelería Artesanal",
+    "short_name": "Le Sucrée",
+    "description": "Pastelería artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FDF6F0",
+    "theme_color": "#8B6F4E",
+    "orientation": "portrait-primary",
+    "lang": "es",
+    "icons": [
+          {
+                  "src": "/favicon.svg",
+                  "sizes": "any",
+                  "type": "image/svg+xml",
+                  "purpose": "any maskable"
+          },
+          {
+                  "src": "/favicon.ico",
+                  "sizes": "48x48",
+                  "type": "image/x-icon"
+          }
+    ]
+}
