@@ -153,6 +153,7 @@ export default function Catalogo() {
               <button
                 key={c.value}
                 onClick={() => { setCategory(c.value); setPage(1); }}
+                aria-pressed={category === c.value}
                 className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
               >
                 {c.label}

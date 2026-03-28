@@ -5,7 +5,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import ProductImage from '@/components/ProductImage';
 
 export default function CartSidebar() {
-  const { items, removeFromCart, updateQuantity, getCartTotal, getCartCount, isOpen, setIsOpen } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartCount, isOpen, setIsOpen } = useCart();
 
   if (!isOpen) return null;
 
@@ -40,39 +40,47 @@ export default function CartSidebar() {
               </Link>
             </div>
           ) : (
-            items.map((item) => (
-              <div key={`${item.productId}-${item.variantId || ''}`} className="flex gap-3 bg-white rounded-xl p-3 shadow-sm">
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  <ProductImage src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-espresso truncate">{item.productName}</h4>
-                  {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
-                  <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <button
-                      onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
-                      className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
-                    >
-                      <Minus size={12} />
-                    </button>
-                    <span className="text-sm font-semibold text-espresso w-5 text-center">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
-                      className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
-                    >
-                      <Plus size={12} />
-                    </button>
+            <>
+              {items.map((item) => (
+                <div key={`${item.productId}-${item.variantId || ''}`} className="flex gap-3 bg-white rounded-xl p-3 shadow-sm">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                    <ProductImage src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-espresso truncate">{item.productName}</h4>
+                    {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
+                    <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
+                        className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span className="text-sm font-semibold text-espresso w-5 text-center">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
+                        className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.productId, item.variantId)}
+                    className="p-1 text-warm-gray/50 hover:text-red-500 transition-colors self-start"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => removeFromCart(item.productId, item.variantId)}
-                  className="p-1 text-warm-gray/50 hover:text-red-500 transition-colors self-start"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))
+              ))}
+              <button
+                onClick={clearCart}
+                className="block mx-auto text-xs text-warm-gray/60 hover:text-red-500 transition-colors mt-2"
+              >
+                Vaciar carrito
+              </button>
+            </>
           )}
         </div>
 

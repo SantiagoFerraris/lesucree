@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useBlocker } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ShoppingBag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
@@ -25,6 +26,27 @@ export default function Pedido() {
   const [cooldown, setCooldown] = useState(0);
   const [success, setSuccess] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Warn before closing/refreshing when cart has items
+  const shouldBlock = items.length > 0 && !success;
+
+  useEffect(() => {
+    if (!shouldBlock) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [shouldBlock]);
+
+  // Block in-app navigation
+  const blocker = useBlocker(
+    useCallback(
+      ({ currentLocation, nextLocation }) =>
+        shouldBlock && currentLocation.pathname !== nextLocation.pathname,
+      [shouldBlock]
+    )
+  );
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -127,7 +149,9 @@ export default function Pedido() {
     return (
       <section className="pt-[72px]">
         <div className="py-20 px-4 text-center">
+          <ShoppingBag size={64} className="mx-auto text-warm-gray/30 mb-4" />
           <h1 className="font-display text-3xl font-bold text-espresso">Tu carrito está vacío</h1>
+          <p className="text-warm-gray mt-3">Agregá productos desde nuestro catálogo para armar tu pedido.</p>
           <Link to="/catalogo" className="inline-block mt-6 text-dusty-pink hover:text-mauve font-semibold transition-colors">
             Ver catálogo →
           </Link>
@@ -140,6 +164,24 @@ export default function Pedido() {
 
   return (
     <section className="pt-[72px]">
+      {/* Navigation blocker dialog */}
+      {blocker.state === 'blocked' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4">
+          <div className="bg-soft-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-lg font-bold text-espresso">¿Salir de esta página?</h3>
+            <p className="text-warm-gray text-sm mt-2">Tenés productos en tu carrito. Si salís, no perderás el carrito pero sí los datos del formulario.</p>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => blocker.reset?.()} className="flex-1 px-4 py-2 rounded-full border border-espresso text-espresso text-sm font-semibold hover:bg-espresso/10 transition-colors">
+                Quedarme
+              </button>
+              <button onClick={() => blocker.proceed?.()} className="flex-1 px-4 py-2 rounded-full bg-dusty-pink text-white text-sm font-semibold hover:bg-mauve transition-colors">
+                Salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="py-16 md:py-20 px-4">
         <div className="container">
           <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Confirmar tu Pedido</h1>
@@ -215,7 +257,7 @@ export default function Pedido() {
                 <span className="font-body font-semibold text-warm-gray">Subtotal</span>
                 <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
               </div>
-              <p className="text-xs text-warm-gray mt-3"><p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p></p>
+              <p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p>
             </div>
           </div>
         </div>
