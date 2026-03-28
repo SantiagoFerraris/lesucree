@@ -332,6 +332,3 @@ export default function AdminPedidos() {
     </div>
   );
 }
-
-// Need ShoppingBag for empty state
-import { ShoppingBag } from 'lucide-react';
