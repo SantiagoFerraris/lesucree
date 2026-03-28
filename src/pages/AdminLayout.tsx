@@ -99,18 +99,29 @@ export default function AdminLayout() {
           <p className="text-xs opacity-60 mt-1">Panel de Administración</p>
         </div>
         <nav className="flex-1 px-3 space-y-1">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70 hover:bg-sidebar-accent/50 hover:text-blush'}`
-              }
-            >
-              <item.icon size={18} />
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map(item => {
+            const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => {
+                  if (item.to === '/admin/pedidos') localStorage.setItem('lastVisitedPedidos', new Date().toISOString());
+                }}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-sidebar-accent text-white' : 'text-blush/70 hover:bg-sidebar-accent/50 hover:text-blush'}`
+                }
+              >
+                <item.icon size={18} />
+                {item.label}
+                {badgeCount > 0 && (
+                  <span className="ml-auto text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white font-bold">
+                    {badgeCount > 99 ? '99+' : badgeCount}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
           <button onClick={() => setShowPasswordModal(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blush/70 hover:text-blush hover:bg-sidebar-accent/50 transition-colors w-full">
             <Lock size={18} /> Cambiar contraseña
           </button>
