@@ -34,6 +34,8 @@ function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: stri
 
 export default function AdminAnalytics() {
   const [period, setPeriod] = useState(30);
+  const { data: dbCategories } = useCategories();
+  const categoryLabels = buildCategoryLabels(dbCategories);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-analytics-orders'],
@@ -107,7 +109,7 @@ export default function AdminAnalytics() {
       });
     });
     return Object.entries(map).map(([cat, value], i) => ({
-      name: CATEGORY_LABELS[cat] || cat, value, color: CAT_COLORS[i % CAT_COLORS.length],
+      name: categoryLabels[cat] || cat, value, color: CAT_COLORS[i % CAT_COLORS.length],
     }));
   }, [periodOrders, products]);
 
