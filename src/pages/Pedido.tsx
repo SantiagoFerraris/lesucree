@@ -5,6 +5,7 @@ import { ShoppingBag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
+import { WHATSAPP_NOTIFICATION_NUMBER } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
 import HoneypotField from '@/components/HoneypotField';
@@ -131,6 +132,10 @@ export default function Pedido() {
     } catch {
       // Non-blocking — order is saved even if email fails
     }
+
+    const itemsList = items.map(i => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.price * i.quantity)}`).join('\n');
+    const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(getCartTotal())}`;
+    window.open(`https://wa.me/${WHATSAPP_NOTIFICATION_NUMBER}?text=${encodeURIComponent(waText)}`, '_blank');
 
     clearCart();
     setHoneypot('');
