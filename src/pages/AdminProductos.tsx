@@ -236,6 +236,24 @@ export default function AdminProductos() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
+
+      {/* Category filter pills */}
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {CATEGORIES.map(c => (
+          <button key={c.value} onClick={() => { setCategoryFilter(c.value); setPage(0); }}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${categoryFilter === c.value ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'}`}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-warm-gray">{filtered?.length ?? 0} productos</p>
+        <button onClick={exportProductsCSV} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-warm-gray hover:bg-cream/50 transition-colors">
+          <Download size={13} /> Exportar CSV
+        </button>
+      </div>
+
       {(() => {
         const lastSync = products?.reduce((latest, p) => {
           const sync = (p as any).last_price_sync;
@@ -246,6 +264,7 @@ export default function AdminProductos() {
           <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
         ) : null;
       })()}
+
 
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>
