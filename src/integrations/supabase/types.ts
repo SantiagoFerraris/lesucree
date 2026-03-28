@@ -21,6 +21,7 @@ export type Database = {
           id: string
           message: string
           name: string
+          notified_at: string | null
           read: boolean | null
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           message: string
           name: string
+          notified_at?: string | null
           read?: boolean | null
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          notified_at?: string | null
           read?: boolean | null
         }
         Relationships: []
@@ -51,6 +54,7 @@ export type Database = {
           id: string
           items: Json
           notes: string | null
+          notified_at: string | null
           preferred_time: string
           status: string
           total: number
@@ -64,6 +68,7 @@ export type Database = {
           id?: string
           items: Json
           notes?: string | null
+          notified_at?: string | null
           preferred_time: string
           status?: string
           total: number
@@ -77,6 +82,7 @@ export type Database = {
           id?: string
           items?: Json
           notes?: string | null
+          notified_at?: string | null
           preferred_time?: string
           status?: string
           total?: number
