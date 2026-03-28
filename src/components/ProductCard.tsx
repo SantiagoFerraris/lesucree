@@ -43,17 +43,17 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
 
   return (
     <div
-      className="card-product animate-fade-in-up"
+      className="card-product flex flex-col animate-fade-in-up"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       <div className="aspect-[4/3] overflow-hidden">
         <ProductImage
           src={product.image_url}
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
           {CATEGORY_LABELS[product.category] || product.category}
         </span>
@@ -84,7 +84,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
         )}
 
         {!compact && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between mt-auto pt-4">
             <span className="font-body text-lg font-semibold text-espresso">
               {formatPrice(displayPrice)}
             </span>

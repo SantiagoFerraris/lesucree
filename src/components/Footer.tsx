@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Instagram } from 'lucide-react';
-import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_URL } from '@/lib/constants';
+import { Instagram, MapPin, Phone, Clock } from 'lucide-react';
+import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_URL, WHATSAPP_NUMBER } from '@/lib/constants';
 
 export default function Footer() {
   return (
     <footer className="bg-espresso text-blush">
       <div className="container py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
             <span className="font-script text-3xl">Le Sucrée</span>
             <p className="font-body text-sm mt-2 opacity-80">Pastelería Artesanal</p>
@@ -23,6 +23,18 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
+          </div>
+          <div className="flex flex-col gap-3">
+            <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Contacto</span>
+            <div className="flex items-center gap-2 text-sm opacity-80">
+              <MapPin size={14} className="flex-shrink-0" /> Rosario, Santa Fe
+            </div>
+            <a href={`tel:+${WHATSAPP_NUMBER}`} className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Phone size={14} className="flex-shrink-0" /> +54 9 341 274-1229
+            </a>
+            <div className="flex items-center gap-2 text-sm opacity-80">
+              <Clock size={14} className="flex-shrink-0" /> Pedidos con 48hs de anticipación
+            </div>
           </div>
           <div className="flex flex-col gap-3">
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Seguinos</span>

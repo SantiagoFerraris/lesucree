@@ -148,13 +148,13 @@ export default function Catalogo() {
           <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
 
-          <div className="flex gap-3 mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-none">
+          <div className="flex gap-2 md:gap-3 mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide">
             {CATEGORIES.map(c => (
               <button
                 key={c.value}
                 onClick={() => { setCategory(c.value); setPage(1); }}
                 aria-pressed={category === c.value}
-                className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
+                className={`whitespace-nowrap rounded-full px-3 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
               >
                 {c.label}
               </button>
@@ -211,8 +211,9 @@ export default function Catalogo() {
 
           {!isLoading && products?.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-warm-gray text-lg">Próximamente agregaremos productos.</p>
-              <p className="text-warm-gray mt-1">¡Seguinos en Instagram!</p>
+              <ShoppingBag size={48} className="mx-auto text-warm-gray/30 mb-4" />
+              <p className="text-warm-gray text-lg font-display font-bold text-espresso">No hay productos en esta categoría todavía</p>
+              <p className="text-warm-gray mt-2 text-sm">Próximamente agregaremos más opciones. ¡Seguinos en Instagram!</p>
             </div>
           )}
         </div>

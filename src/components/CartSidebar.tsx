@@ -12,7 +12,7 @@ export default function CartSidebar() {
   return (
     <>
       <div className="fixed inset-0 z-[9990] bg-espresso/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsOpen(false)} />
-      <div className="fixed top-0 right-0 bottom-0 z-[9991] w-full max-w-md bg-soft-white shadow-2xl flex flex-col animate-fade-in">
+      <div className="fixed top-0 right-0 bottom-0 z-[9991] w-full max-w-md bg-soft-white shadow-2xl flex flex-col animate-slide-in-right">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-blush">
           <div className="flex items-center gap-2">

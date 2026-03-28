@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Instagram } from 'lucide-react';
+import { Instagram, MapPin, Clock, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { WHATSAPP_URL, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
+import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
 import SectionDivider from '@/components/SectionDivider';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
@@ -109,11 +109,29 @@ export default function Contacto() {
                   <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-warm-gray hover:text-dusty-pink transition-colors" aria-label="Instagram de Le Sucrée">
                     <Instagram size={18} /> {INSTAGRAM_HANDLE}
                   </a>
+                  <a href={`tel:+${WHATSAPP_NUMBER}`} className="flex items-center gap-3 text-warm-gray hover:text-dusty-pink transition-colors">
+                    <Phone size={18} /> +54 9 341 274-1229
+                  </a>
                 </div>
               </div>
-              <p className="text-sm text-warm-gray leading-relaxed">
-                Realizamos pedidos con al menos 48hs de anticipación. Zona de entrega: Rosario y Roldán.
-              </p>
+              <div>
+                <h3 className="font-display text-lg font-bold text-espresso">Ubicación</h3>
+                <div className="mt-3 flex items-start gap-3 text-warm-gray">
+                  <MapPin size={18} className="flex-shrink-0 mt-0.5" />
+                  <p className="text-sm leading-relaxed">Rosario, Santa Fe, Argentina<br />Entregas en Rosario y Roldán</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-lg font-bold text-espresso">Horarios de retiro</h3>
+                <div className="mt-3 flex items-start gap-3 text-warm-gray">
+                  <Clock size={18} className="flex-shrink-0 mt-0.5" />
+                  <div className="text-sm leading-relaxed">
+                    <p>Mañana: 9:00 - 12:00</p>
+                    <p>Tarde: 12:00 - 18:00</p>
+                    <p className="mt-1 text-xs text-warm-gray/70">Pedidos con al menos 48hs de anticipación</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Form */}
@@ -122,6 +140,7 @@ export default function Contacto() {
               <input
                 type="text"
                 placeholder="Nombre"
+                aria-label="Nombre"
                 value={form.name}
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                 className={inputClass}
@@ -130,6 +149,7 @@ export default function Contacto() {
               <input
                 type="email"
                 placeholder="Email"
+                aria-label="Email"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                 className={inputClass}
@@ -138,6 +158,7 @@ export default function Contacto() {
               <div className="relative">
                 <textarea
                   placeholder="Mensaje"
+                  aria-label="Mensaje"
                   value={form.message}
                   onChange={e => setForm(p => ({ ...p, message: e.target.value.slice(0, MAX_MESSAGE_LENGTH) }))}
                   className={`${inputClass} min-h-[120px] resize-none`}
