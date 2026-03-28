@@ -57,9 +57,12 @@ export default function AdminMensajes() {
     return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  const unreadCount = messages?.filter(m => !(m as any).read).length ?? 0;
+
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold text-espresso mb-6">Mensajes</h2>
+      <h2 className="font-display text-2xl font-bold text-espresso mb-2">Mensajes</h2>
+      {unreadCount > 0 && <p className="text-xs text-warm-gray mb-4">{unreadCount} sin leer</p>}
 
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
