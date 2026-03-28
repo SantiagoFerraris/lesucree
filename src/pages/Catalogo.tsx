@@ -41,15 +41,15 @@ function ProductDetailModal({ product, variants, onClose }: { product: Tables<'p
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4" onClick={onClose}>
-      <div className="bg-soft-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-6 sm:p-4" onClick={onClose}>
+      <div className="bg-soft-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden max-h-[85vh] sm:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="relative">
-          <ProductImage src={product.image_url} alt={product.name} className="w-full aspect-[4/3] object-cover" />
+          <ProductImage src={product.image_url} alt={product.name} className="w-full aspect-[16/10] sm:aspect-[4/3] object-cover" />
           <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-espresso hover:bg-white transition-colors active:scale-95" aria-label="Cerrar">
             <X size={18} />
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">{product.category}</span>
           <h3 className="font-display text-2xl font-bold text-espresso mt-1">{product.name}</h3>
           {product.description && <p className="text-warm-gray mt-3 leading-relaxed">{product.description}</p>}
