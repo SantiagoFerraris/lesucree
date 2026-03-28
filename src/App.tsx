@@ -16,6 +16,7 @@ import Pedido from "./pages/Pedido";
 import NotFound from "./pages/NotFound";
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProductos = lazy(() => import("./pages/AdminProductos"));
 const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
