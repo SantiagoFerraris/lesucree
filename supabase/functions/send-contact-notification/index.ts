@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     // Validate message exists in database
     const { data: msg } = await supabaseAdmin
       .from('contact_messages')
-      .select('id')
+      .select('id, notified_at')
       .eq('name', name)
       .eq('email', email)
       .order('created_at', { ascending: false })
@@ -59,6 +59,13 @@ Deno.serve(async (req) => {
     if (!msg) {
       return new Response(JSON.stringify({ error: 'Message not found' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // One-time notification guard: skip if already notified
+    if (msg.notified_at) {
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -116,6 +123,9 @@ Deno.serve(async (req) => {
     } else {
       console.log('RESEND_API_KEY not set. Contact notification logged:', { name, email });
     }
+
+    // Mark as notified
+    await supabaseAdmin.from('contact_messages').update({ notified_at: new Date().toISOString() }).eq('id', msg.id);
 
     return new Response(JSON.stringify({ success: true, emailSent: !!RESEND_API_KEY }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
