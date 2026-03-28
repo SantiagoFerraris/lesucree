@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useBlocker } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ShoppingBag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,14 +47,6 @@ export default function Pedido() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [shouldBlock]);
 
-  // Block in-app navigation
-  const blocker = useBlocker(
-    useCallback(
-      ({ currentLocation, nextLocation }) =>
-        shouldBlock && currentLocation.pathname !== nextLocation.pathname,
-      [shouldBlock]
-    )
-  );
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -189,23 +181,6 @@ export default function Pedido() {
 
   return (
     <section className="pt-[72px]">
-      {/* Navigation blocker dialog */}
-      {blocker.state === 'blocked' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4">
-          <div className="bg-soft-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold text-espresso">¿Salir de esta página?</h3>
-            <p className="text-warm-gray text-sm mt-2">Tenés productos en tu carrito. Si salís, no perderás el carrito pero sí los datos del formulario.</p>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => blocker.reset?.()} className="flex-1 px-4 py-2 rounded-full border border-espresso text-espresso text-sm font-semibold hover:bg-espresso/10 transition-colors">
-                Quedarme
-              </button>
-              <button onClick={() => blocker.proceed?.()} className="flex-1 px-4 py-2 rounded-full bg-dusty-pink text-white text-sm font-semibold hover:bg-mauve transition-colors">
-                Salir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="py-16 md:py-20 px-4">
         <div className="container">
