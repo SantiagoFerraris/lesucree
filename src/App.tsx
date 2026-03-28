@@ -65,10 +65,12 @@ const App = () => (
 
                 {/* Admin routes */}
                 <Route path="/admin" element={<AdminSuspense><AdminLayout /></AdminSuspense>}>
-                  <Route index element={<Navigate to="/admin/productos" replace />} />
+                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminSuspense><AdminDashboard /></AdminSuspense>} />
                   <Route path="productos" element={<AdminSuspense><AdminProductos /></AdminSuspense>} />
                   <Route path="mensajes" element={<AdminSuspense><AdminMensajes /></AdminSuspense>} />
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
+
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
