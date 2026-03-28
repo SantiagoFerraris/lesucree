@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -24,7 +24,9 @@ const PAGE_SIZE = 10;
 export default function AdminProductos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('todos');
   const [editing, setEditing] = useState<Tables<'products'> | null>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ProductFormData>(emptyForm);
   const [uploading, setUploading] = useState(false);
@@ -182,9 +184,29 @@ export default function AdminProductos() {
     }));
   };
 
-  const filtered = products?.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = products?.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchCat = categoryFilter === 'todos' || p.category === categoryFilter;
+    return matchSearch && matchCat;
+  });
+  const activeCount = products?.filter(p => p.active).length ?? 0;
+  const inactiveCount = (products?.length ?? 0) - activeCount;
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const exportProductsCSV = () => {
+    if (!filtered?.length) return;
+    const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
+    const rows = filtered.map(p => {
+      const vars = getVariants(p.id);
+      return [p.name, CATEGORY_LABELS[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
+    });
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `productos_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
@@ -214,6 +236,24 @@ export default function AdminProductos() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
+
+      {/* Category filter pills */}
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {CATEGORIES.map(c => (
+          <button key={c.value} onClick={() => { setCategoryFilter(c.value); setPage(0); }}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${categoryFilter === c.value ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'}`}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-warm-gray">{filtered?.length ?? 0} productos</p>
+        <button onClick={exportProductsCSV} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-warm-gray hover:bg-cream/50 transition-colors">
+          <Download size={13} /> Exportar CSV
+        </button>
+      </div>
+
       {(() => {
         const lastSync = products?.reduce((latest, p) => {
           const sync = (p as any).last_price_sync;
@@ -224,6 +264,7 @@ export default function AdminProductos() {
           <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
         ) : null;
       })()}
+
 
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>
@@ -251,9 +292,10 @@ export default function AdminProductos() {
                         <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
                       </td>
                       <td className="py-3 pr-4 font-medium text-espresso">
-                        {p.name}
+                        <span className="flex items-center gap-1">{p.name}{(!p.description || !p.description.trim()) && <span title="Sin descripción"><AlertTriangle size={13} className="text-amber-500" /></span>}</span>
                         {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}
                       </td>
+
                       <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{CATEGORY_LABELS[p.category]}</td>
                       <td className="py-3 pr-4 text-espresso">
                         {vars.length > 0 ? `Desde ${formatPrice(p.price)}` : formatPrice(p.price)}

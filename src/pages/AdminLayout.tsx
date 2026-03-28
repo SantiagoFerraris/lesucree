@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard, BarChart3, Users } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
@@ -11,6 +11,8 @@ const navItems = [
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare },
+  { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3 },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users },
 ];
 
 export default function AdminLayout() {
@@ -150,7 +152,7 @@ export default function AdminLayout() {
       )}
 
       {/* Main content */}
-      <main className="flex-1 md:ml-56 pt-14 md:pt-0">
+      <main className="flex-1 md:ml-56 pt-14 md:pt-0 pb-20 md:pb-0">
         <div className="p-6 md:p-8">
           <Outlet />
         </div>
