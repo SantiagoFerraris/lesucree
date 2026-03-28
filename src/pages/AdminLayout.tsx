@@ -25,6 +25,10 @@ export default function AdminLayout() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const badges = useSidebarBadges();
+
+  // Realtime subscriptions (must be before conditional returns)
+  useRealtimeOrders();
 
   if (loading) {
     return (
