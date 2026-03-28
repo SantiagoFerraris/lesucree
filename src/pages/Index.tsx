@@ -24,7 +24,7 @@ interface Variant { id: string; label: string; price: number; sort_order: number
 
 function HeroSection() {
   return (
-    <section className="min-h-[90vh] md:min-h-[90vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4">
+    <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4">
       <div className="text-center max-w-2xl mx-auto">
         <div className="section-divider mb-8 animate-fade-in-up" />
         <h1 className="font-display text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
@@ -71,7 +71,7 @@ function FeaturedSection() {
   const reveal = useScrollReveal();
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
 
-  const { data: products } = useQuery({
+  const { data: products, isLoading } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
       const { data, error } = await supabase.from('products').select('*').eq('featured', true).eq('active', true).limit(6);
@@ -99,6 +99,16 @@ function FeaturedSection() {
         </h2>
         <SectionDivider />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {isLoading && Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="card-product animate-pulse">
+              <div className="aspect-[4/3] bg-blush" />
+              <div className="p-6 space-y-3">
+                <div className="h-3 bg-blush rounded w-1/3" />
+                <div className="h-5 bg-blush rounded w-2/3" />
+                <div className="h-4 bg-blush rounded w-1/4" />
+              </div>
+            </div>
+          ))}
           {products?.map((p, i) => (
             <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
               <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} compact />
@@ -260,7 +270,7 @@ function InstagramSection() {
             </a>
           ))}
         </div>
-        <div className="text-center mt-8">
+        <div className="text-center mt-4">
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-dusty-pink hover:text-mauve font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded" aria-label="Instagram de Le Sucrée">{INSTAGRAM_HANDLE}</a>
         </div>
       </div>

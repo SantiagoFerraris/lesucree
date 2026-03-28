@@ -80,6 +80,9 @@
 }
 
 @layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
   .nav-link {
     @apply text-sm uppercase tracking-[0.08em] font-semibold transition-colors duration-300;
     color: hsl(var(--espresso));
@@ -88,8 +91,9 @@
     color: hsl(var(--dusty-pink));
   }
   .nav-link-active {
-    border-bottom: 2px solid hsl(var(--dusty-pink));
+    border-bottom: 3px solid hsl(var(--dusty-pink));
     padding-bottom: 2px;
+    color: hsl(var(--dusty-pink));
   }
 
   .section-divider {
@@ -107,8 +111,8 @@
     transition: all 0.3s ease;
   }
   .card-product:hover {
-    box-shadow: 0 8px 30px rgba(62, 39, 35, 0.12);
-    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(62, 39, 35, 0.14);
+    transform: translateY(-6px);
   }
 }
 

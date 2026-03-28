@@ -6,7 +6,7 @@ export default function WhatsAppButton() {
       href={WHATSAPP_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-[9999] w-14 h-14 md:w-14 md:h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:outline-none"
+      className="fixed bottom-20 md:bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:outline-none"
       aria-label="Chateá por WhatsApp"
       title="WhatsApp"
     >

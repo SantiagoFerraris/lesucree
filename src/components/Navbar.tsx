@@ -42,7 +42,7 @@ export default function Navbar() {
             <Link
               key={l.to}
               to={l.to}
-              className={`nav-link focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded ${pathname === l.to ? 'nav-link-active' : ''}`}
+              className={`nav-link focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded ${pathname === l.to ? 'nav-link-active text-dusty-pink' : ''}`}
             >
               {l.label}
             </Link>
