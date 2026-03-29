@@ -149,6 +149,9 @@
 
 /* Prevent horizontal scroll on mobile devices */
 html,
+/* ===== Mobile Optimization ===== */
+/* Prevent horizontal scroll on mobile devices */
+html,
 body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -156,49 +159,43 @@ body {
 
 /* Better touch targets for mobile */
 @media (max-width: 768px) {
-    /* Reduce padding on small screens */
-  .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-  }
+    .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+    }
 
-  /* Improve tap targets */
-  a, button {
-        min-height: 44px;
-  }
+  button,
+    a {
+          min-height: 44px;
+    }
 
-  /* Adjust nav link spacing for mobile menu */
   .nav-link {
         font-size: 0.875rem;
-        padding: 0.75rem 0;
+        padding: 0.75rem;
   }
 
-  /* Card product adjustments for mobile */
   .card-product {
-        border-radius: 12px;
+        border-radius: 0.75rem;
   }
 
   .card-product:hover {
         transform: none;
   }
 
-  /* Reduce section spacing on mobile */
   section {
-        scroll-margin-top: 60px;
+        scroll-margin-top: 72px;
   }
 
-  /* Fix font sizes for mobile readability */
   h1 {
-        font-size: 2rem;
+        font-size: 1.75rem;
         line-height: 1.2;
   }
 
   h2 {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
         line-height: 1.3;
   }
 
-  /* Footer mobile layout improvements */
   footer {
         text-align: center;
         padding-left: 1rem;
@@ -210,7 +207,7 @@ body {
   }
 }
 
-/* Small phone screens (< 375px) */
+/* Small phone screens (< 375px) like iPhone SE */
 @media (max-width: 374px) {
     .container {
           padding-left: 0.75rem;
@@ -218,10 +215,14 @@ body {
     }
 
   h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
   }
 
   h2 {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
+  }
+
+  .card-product {
+        border-radius: 0.5rem;
   }
 }
