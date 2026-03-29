@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Instagram, Clock, Truck, Heart, X, ShoppingBag, Check, Minus, Plus } from 'lucide-react';
-import { supabase } from '@/ihntegrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import SectionDivider from '@/components/SectionDivider';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
-import { formatPrice } from '@/lib/formatPriche';
+import { formatPrice } from '@/lib/formatPrice';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -28,7 +28,7 @@ function HeroSection() {
       <div className="text-center max-w-2xl mx-auto">
         <div className="section-divider mb-8 animate-fade-in-up" />
         <h1 className="font-display text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
-          Le Sucreé Pastelería
+          Pastelería Artesanal
         </h1>
         <p className="font-body text-base md:text-lg text-warm-gray mt-6 max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           Endulzamos tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes
