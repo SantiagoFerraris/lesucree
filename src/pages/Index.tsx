@@ -31,9 +31,9 @@ interface Variant {
 function HeroSection() {
   return (
     <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4 pt-24 md:pt-[72px]">
-      <div className="text-center max-w-2xl mx-auto">
+      <div className="text-center max-w-2xl mx-auto px-2">
         <div className="section-divider mb-8 animate-fade-in-up" />
-        <h1 className="font-display text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
+        <h1 className="font-display text-[26px] sm:text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
           Le Sucreé Pastelería
         </h1>
         <p
@@ -119,15 +119,15 @@ function FeaturedSection() {
   const getVariants = (productId: string) => allVariants?.filter((v) => v.product_id === productId) || [];
 
   return (
-    <section ref={reveal.ref} className="py-20 md:py-24 px-4">
+    <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-display text-xl sm:text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Nuestros Favoritos
         </h2>
         <SectionDivider />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
           {isLoading &&
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="card-product animate-pulse">
@@ -301,7 +301,7 @@ function ProductDetailModal({
 function AboutPreview() {
   const reveal = useScrollReveal();
   return (
-    <section ref={reveal.ref} className="py-20 md:py-24 px-4 bg-blush/30">
+    <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4 bg-blush/30">
       <div className="container">
         <div
           className={`grid grid-cols-1 md:grid-cols-2 gap-12 items-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
@@ -316,7 +316,7 @@ function AboutPreview() {
           </div>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Nuestra Historia</span>
-            <h2 className="font-display text-2xl md:text-[32px] font-bold text-espresso mt-3 leading-tight">
+            <h2 className="font-display text-xl sm:text-2xl md:text-[32px] font-bold text-espresso mt-3 leading-tight">
               Hecho a mano, con pasión
             </h2>
             <p className="text-warm-gray mt-4 leading-relaxed">
@@ -360,10 +360,10 @@ const INSTAGRAM_GRID = [
 function InstagramSection() {
   const reveal = useScrollReveal();
   return (
-    <section ref={reveal.ref} className="py-20 md:py-24 px-4">
+    <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-display text-xl sm:text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Seguinos en Instagram
         </h2>
