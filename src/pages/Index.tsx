@@ -70,7 +70,7 @@ function TrustBadges() {
   const reveal = useScrollReveal();
   const badges = [
     { icon: Clock, text: "Pedidos con 48hs de anticipación" },
-    { icon: Truck, text: "Envíos en Rosario y Roldán" },
+    { icon: Truck, text: "Rosario y Roldán" },
     { icon: Heart, text: "Hecho 100% artesanal" },
   ];
   return (
