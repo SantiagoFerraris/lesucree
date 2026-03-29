@@ -103,7 +103,7 @@ export default function Contacto() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-display text-lg font-bold text-espresso">Información de contacto</h3>
-                <div className="mt-4 space-y-3">hh
+                <div className="mt-4 space-y-3">
                   <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-warm-gray hover:text-dusty-pink transition-colors">
                     <span className="text-lg">📱</span> WhatsApp
                   </a>
