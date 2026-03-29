@@ -119,7 +119,7 @@ export default function Contacto() {
                 <h3 className="font-display text-lg font-bold text-espresso">Ubicación</h3>
                 <div className="mt-3 flex items-start gap-3 text-warm-gray">
                   <MapPin size={18} className="flex-shrink-0 mt-0.5" />
-                  <p className="text-sm leading-relaxed">Rosario, Santa Fe, Argentina/p>
+                  <p className="text-sm leading-relaxed">Rosario, Santa Fe, Argentina<br />Entregas en Rosario y Roldán</p>
                 </div>
               </div>
               <div>
