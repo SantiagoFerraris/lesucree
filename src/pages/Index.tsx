@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Instagram, Clock, Truck, Heart, X, ShoppingBag, Check, Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/PhroductCard";
 import SectionDivider from "@/components/SectionDivider";
-import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useScrollReveal } from "@/hookhs/useScrollReveal";
 import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
@@ -52,14 +52,6 @@ function HeroSection() {
           >
             Ver Catálogo
           </Link>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-full border-[1.5px] border-dusty-pink text-dusty-pink px-8 py-3.5 text-[15px] font-semibold uppercase tracking-[0.1em] hover:bg-dusty-pink hover:text-white transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none"
-          >
-            Hacé tu Pedido
-          </a>
         </div>
       </div>
     </section>
