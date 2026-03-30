@@ -57,18 +57,18 @@ export default function Catalogo() {
 
   return (
     <section className="pt-[72px]">
-      <div className="py-16 md:py-20 px-4">
+      <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
-          <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>
+          <h1 className="font-display text-[24px] sm:text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
 
-          <div className="flex gap-2 md:gap-3 mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide">
+          <div className="flex gap-1.5 sm:gap-2 md:gap-3 mt-6 sm:mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide -mx-1 px-1">
             {filterOptions.map(c => (
               <button
                 key={c.value}
                 onClick={() => { setCategory(c.value); setPage(1); }}
                 aria-pressed={category === c.value}
-                className={`whitespace-nowrap rounded-full px-3 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
+                className={`whitespace-nowrap rounded-full px-2.5 sm:px-3 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
               >
                 {c.label}
               </button>
@@ -76,7 +76,7 @@ export default function Catalogo() {
           </div>
 
           <div ref={gridRef}>
-            <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+            <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
               {isLoading && Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="card-product animate-pulse">
                   <div className="aspect-[4/3] bg-blush" />
