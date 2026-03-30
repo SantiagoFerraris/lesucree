@@ -102,7 +102,7 @@ export default function Contacto() {
             {/* Info */}
             <div className="space-y-6">
               <div>
-                <h3 className="font-display text-lg font-bold text-espresso">Información de contacto</h3>
+                <h3 className="font-body text-xs uppercase tracking-[0.08em] text-warm-gray">Información de contacto</h3>
                 <div className="mt-4 space-y-3">
                   <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-warm-gray hover:text-dusty-pink transition-colors">
                     <span className="text-lg">📱</span> WhatsApp
@@ -116,14 +116,14 @@ export default function Contacto() {
                 </div>
               </div>
               <div>
-                <h3 className="font-display text-lg font-bold text-espresso">Ubicación</h3>
+                <h3 className="font-body text-xs uppercase tracking-[0.08em] text-warm-gray">Ubicación</h3>
                 <div className="mt-3 flex items-start gap-3 text-warm-gray">
                   <MapPin size={18} className="flex-shrink-0 mt-0.5" />
                   <p className="text-sm leading-relaxed">Rosario, Santa Fe, Argentina</p>
                 </div>
               </div>
               <div>
-                <h3 className="font-display text-lg font-bold text-espresso">Horarios de retiro</h3>
+                <h3 className="font-body text-xs uppercase tracking-[0.08em] text-warm-gray">Horarios de retiro</h3>
                 <div className="mt-3 flex items-start gap-3 text-warm-gray">
                   <Clock size={18} className="flex-shrink-0 mt-0.5" />
                   <div className="text-sm leading-relaxed">
