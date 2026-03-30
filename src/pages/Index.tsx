@@ -19,6 +19,7 @@ import petitFoursImg from "@/assets/torta_4_petit_fours.jpg";
 import dulceDeLecheImg from "@/assets/torta_5_dulce_de_leche.jpg";
 import cookiesImg from "@/assets/torta_6_cookies.jpg";
 import chocolateAvellanasImg from "@/assets/torta_7_chocolate_avellanas.jpg";
+import logoImg from "@/assets/logo_lesucree.png";
 
 interface Variant {
   id: string;
@@ -33,9 +34,11 @@ function HeroSection() {
     <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4 pt-24 md:pt-[72px]">
       <div className="text-center max-w-2xl mx-auto px-2">
         <div className="section-divider mb-8 animate-fade-in-up" />
-        <h1 className="font-display text-[26px] sm:text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
-          Le Sucreé Pastelería
-        </h1>
+        <img
+            src={logoImg}
+            alt="Le Sucreé Pastelería"
+            className="w-36 sm:w-44 md:w-56 mx-auto animate-fade-in-up drop-shadow-sm"
+          />
         <p
           className="font-body text-base md:text-lg text-warm-gray mt-6 max-w-lg mx-auto animate-fade-in-up"
           style={{ animationDelay: "0.2s" }}
