@@ -37,7 +37,7 @@ function HeroSection() {
         <img
             src={logoImg}
             alt="Le Sucreé Pastelería"
-            className="w-36 sm:w-44 md:w-56 mx-auto animate-fade-in-up drop-shadow-sm"
+            className="w-40 sm:w-48 md:w-60 mx-auto animate-fade-in-up rounded-full mix-blend-multiply"
           />
         <p
           className="font-body text-base md:text-lg text-warm-gray mt-6 max-w-lg mx-auto animate-fade-in-up"
