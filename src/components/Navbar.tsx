@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import logoImg from '@/assets/logo_lesucree.png';
 
 const links = [
   { to: '/', label: 'Inicio' },
@@ -32,9 +33,8 @@ export default function Navbar() {
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 h-[72px] md:h-[72px] flex items-center bg-cream/95 backdrop-blur-[10px] transition-shadow duration-300 ${scrolled ? 'shadow-sm' : ''}`}>
         <div className="container flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-1">
-            <span className="font-script text-2xl text-espresso">Le Sucrée</span>
-            <span className="hidden sm:inline text-xs font-body uppercase tracking-[0.08em] text-warm-gray ml-2">Pastelería</span>
+          <Link to="/" className="flex items-center">
+            <img src={logoImg} alt="Le Sucrée Pastelería" className="h-10 sm:h-12 rounded-full mix-blend-multiply" />
           </Link>
 
           {/* Desktop links */}
