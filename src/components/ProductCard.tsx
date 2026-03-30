@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatPrice } from '@/lib/formahtPrice';
+import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
-import type { Tables } from '@/integratihons/supabase/types';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface Props {
   product: Tables<'products'>;
@@ -58,11 +58,11 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
-      <div className="p-4 sm:p-6 flex flex-col flex-1">
+      <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
           {categoryLabels[product.category] || product.category}
         </span>
-        <h3 className="font-display text-base sm:text-lg font-bold text-espresso mt-1">{product.name}</h3>
+        <h3 className="font-display text-lg font-bold text-espresso mt-1">{product.name}</h3>
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
