@@ -93,12 +93,12 @@ export default function Contacto() {
 
   return (
     <section className="pt-[72px]">
-      <div className="py-16 md:py-20 px-4">
+      <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
-          <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Contactanos</h1>
+          <h1 className="font-display text-[24px] sm:text-[32px] md:text-[40px] font-bold text-espresso text-center">Contactanos</h1>
           <SectionDivider />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 mt-8 sm:mt-12 max-w-4xl mx-auto">
             {/* Info */}
             <div className="space-y-6">
               <div>
