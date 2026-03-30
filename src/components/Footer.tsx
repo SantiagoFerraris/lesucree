@@ -5,10 +5,10 @@ import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_URL, WHATSAPP_NUMBER } from '
 export default function Footer() {
   return (
     <footer className="bg-espresso text-blush">
-      <div className="container py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+      <div className="container py-10 sm:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-12">
           <div>
-            <span className="font-script text-3xl">Le Sucrée</span>
+            <span className="font-script text-2xl sm:text-3xl">Le Sucrée</span>
             <p className="font-body text-sm mt-2 opacity-80">Pastelería Artesanal</p>
           </div>
           <div className="flex flex-col gap-3">
