@@ -59,7 +59,7 @@ export default function Catalogo() {
     <section className="pt-[72px]">
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
-          <h1 className="font-display text-[24px] sm:text-[32px] md:text-[40px] font-bold text-espresso text-center">Nuestro Catálogo</h1>
+          <h1 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center">Nuestro Catálogo</h1>
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
 
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 mt-6 sm:mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide -mx-1 px-1">
