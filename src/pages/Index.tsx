@@ -33,8 +33,9 @@ function HeroSection() {
     <section className="min-h-[60vh] md:min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-blush to-cream px-4 pt-24 md:pt-[72px]">
       <div className="text-center max-w-2xl mx-auto px-2">
         <div className="section-divider mb-8 animate-fade-in-up" />
-        <h1 className="font-display text-[26px] sm:text-[32px] md:text-[56px] font-bold text-espresso leading-[1.1] animate-fade-in-up">
-          Le Sucreé Pastelería
+        <h1 className="text-espresso animate-fade-in-up flex items-baseline justify-center gap-2 sm:gap-3">
+          <span className="font-script text-[28px] sm:text-[36px] md:text-[48px]">Le Sucrée</span>
+          <span className="font-body text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.08em] text-warm-gray">Pastelería</span>
         </h1>
         <p
           className="font-body text-base md:text-lg text-warm-gray mt-6 max-w-lg mx-auto animate-fade-in-up"
