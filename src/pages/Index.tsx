@@ -123,7 +123,7 @@ function FeaturedSection() {
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display text-xl sm:text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Nuestros Favoritos
         </h2>
@@ -317,7 +317,7 @@ function AboutPreview() {
           </div>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Nuestra Historia</span>
-            <h2 className="font-display text-xl sm:text-2xl md:text-[32px] font-bold text-espresso mt-3 leading-tight">
+            <h2 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso mt-3 leading-tight">
               Hecho a mano, con pasión
             </h2>
             <p className="text-warm-gray mt-4 leading-relaxed">
@@ -364,7 +364,7 @@ function InstagramSection() {
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display text-xl sm:text-2xl md:text-4xl font-bold text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Seguinos en Instagram
         </h2>
@@ -411,7 +411,7 @@ function WhatsAppCTA() {
   return (
     <section ref={reveal.ref} className="py-16 md:py-20 px-4 bg-blush">
       <div className={`container text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-        <h2 className="font-display text-2xl md:text-[28px] font-bold text-espresso">¿Querés hacer un pedido?</h2>
+        <h2 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso">¿Querés hacer un pedido?</h2>
         <p className="font-body text-base text-warm-gray mt-3">Escribinos por WhatsApp y te asesoramos</p>
         <a
           href={WHATSAPP_URL}
