@@ -48,7 +48,7 @@ export default function Nosotros() {
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <v.icon className="mx-auto text-dusty-pink" size={32} />
-                <h3 className="font-display text-xl font-bold text-espresso mt-4">{v.title}</h3>
+                <h3 className="font-body text-xs uppercase tracking-[0.08em] text-warm-gray mt-4">{v.title}</h3>
                 <p className="text-warm-gray text-sm mt-2 leading-relaxed">{v.desc}</p>
               </div>
             ))}
