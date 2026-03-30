@@ -145,11 +145,8 @@
 }
 
 
-/* ===== Mobile Optimization for Android ===== */
-
-/* Prevent horizontal scroll on mobile devices */
-html,
 /* ===== Mobile Optimization ===== */
+
 /* Prevent horizontal scroll on mobile devices */
 html,
 body {
