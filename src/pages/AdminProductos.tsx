@@ -154,9 +154,11 @@ export default function AdminProductos() {
     if (file.size > 5 * 1024 * 1024) { toast.error('Máximo 5MB'); return; }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Solo JPG, PNG o WebP'); return; }
     setUploading(true);
-    const ext = file.name.split('.').pop();
+    const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+    const optimizedFile = await resizeImageBeforeUpload(file, 1200);
+    const ext = optimizedFile.name.split('.').pop();
     const path = `${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('product-images').upload(path, file);
+    const { error } = await supabase.storage.from('product-images').upload(path, optimizedFile);
     if (error) { console.error('Image upload error:', error); toast.error(`Error al subir imagen: ${error.message}`); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
     setForm(p => ({ ...p, image_url: urlData.publicUrl }));

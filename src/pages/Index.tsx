@@ -15,7 +15,7 @@ import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import type { Tables } from "@/integrations/supabase/types";
 
-import heroImg from "@/assets/hero-patisserie.jpg";
+
 import tiramisuImg from "@/assets/torta_1_tiramisu.jpg";
 import pistachoImg from "@/assets/torta_2_pistacho_chocolate_blanco.jpg";
 import pavlovaImg from "@/assets/torta_3_pavlova.jpg";
@@ -34,9 +34,9 @@ interface Variant {
 
 /* ─── HERO ─── */
 function HeroSection() {
-  const { data: heroImageUrl } = useHeroImageUrl();
+  const { data: heroImageUrl, isLoading: heroLoading } = useHeroImageUrl();
   const { data: settings } = useSiteSettings();
-  const bgImage = heroImageUrl || heroImg;
+  const bgImage = heroImageUrl || null;
   const heroTitle = settings?.hero_title || 'Le Sucrée';
   const heroSubtitle = settings?.hero_subtitle || 'Pastelería';
   const heroText = settings?.hero_text || 'Endulzamos tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
@@ -45,9 +45,10 @@ function HeroSection() {
     <section
       className="relative min-h-[70vh] flex items-center"
       style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundImage: bgImage ? `url(${bgImage})` : 'none',
+        backgroundColor: '#fdf6f0',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       {/* Gradient overlay */}

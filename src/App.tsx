@@ -10,11 +10,12 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PublicLayout from "@/components/PublicLayout";
 import CartSidebar from "@/components/CartSidebar";
 import Index from "./pages/Index";
-import Catalogo from "./pages/Catalogo";
-import Nosotros from "./pages/Nosotros";
-import Contacto from "./pages/Contacto";
-import Pedido from "./pages/Pedido";
-import NotFound from "./pages/NotFound";
+
+const Catalogo = lazy(() => import("./pages/Catalogo"));
+const Nosotros = lazy(() => import("./pages/Nosotros"));
+const Contacto = lazy(() => import("./pages/Contacto"));
+const Pedido = lazy(() => import("./pages/Pedido"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -28,9 +29,10 @@ const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 2 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
+      gcTime: 10 * 60 * 1000,
     },
   },
 });
@@ -43,6 +45,12 @@ function ScrollToTop() {
 
 const AdminSuspense = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div className="p-8 text-center text-warm-gray">Cargando...</div>}>
+    {children}
+  </Suspense>
+);
+
+const PublicSuspense = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><p className="text-muted-foreground">Cargando...</p></div>}>
     {children}
   </Suspense>
 );
@@ -62,10 +70,10 @@ const App = () => (
                 {/* Public routes */}
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<Index />} />
-                  <Route path="/catalogo" element={<Catalogo />} />
-                  <Route path="/nosotros" element={<Nosotros />} />
-                  <Route path="/contacto" element={<Contacto />} />
-                  <Route path="/pedido" element={<Pedido />} />
+                  <Route path="/catalogo" element={<PublicSuspense><Catalogo /></PublicSuspense>} />
+                  <Route path="/nosotros" element={<PublicSuspense><Nosotros /></PublicSuspense>} />
+                  <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
+                  <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
                 </Route>
 
                 {/* Admin routes */}
@@ -80,7 +88,7 @@ const App = () => (
                   <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
                 </Route>
 
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<PublicSuspense><NotFound /></PublicSuspense>} />
               </Routes>
             </ErrorBoundary>
           </BrowserRouter>

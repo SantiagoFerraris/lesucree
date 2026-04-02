@@ -76,8 +76,9 @@ export default function AdminConfiguracion() {
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Solo JPG, PNG o WebP'); return; }
 
     setHeroUploading(true);
-    const ext = file.name.split('.').pop();
-    const path = `hero/hero-bg.${ext}`;
+    const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+    const optimizedFile = await resizeImageBeforeUpload(file, 1920);
+    const path = `hero/hero-bg.jpg`;
 
     // Delete existing hero images
     const { data: existingFiles } = await supabase.storage.from('site-images').list('hero');
@@ -85,7 +86,7 @@ export default function AdminConfiguracion() {
       await supabase.storage.from('site-images').remove(existingFiles.map(f => `hero/${f.name}`));
     }
 
-    const { error } = await supabase.storage.from('site-images').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from('site-images').upload(path, optimizedFile, { upsert: true });
     if (error) {
       toast.error(`Error al subir imagen: ${error.message}`);
       setHeroUploading(false);
