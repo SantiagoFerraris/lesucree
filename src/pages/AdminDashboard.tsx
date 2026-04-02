@@ -1,20 +1,29 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
+import { generateUrgentAlerts, generateDailySummary, generateInsights } from '@/lib/insightEngine';
+import type { SmartInsight } from '@/lib/insightEngine';
+import UrgentAlertsLayer from '@/components/admin/UrgentAlerts';
+import DailySummaryLayer from '@/components/admin/DailySummary';
+import OpportunitiesLayer from '@/components/admin/OpportunitiesLayer';
+import ActionHistoryModal from '@/components/admin/ActionHistoryModal';
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import AdvisorWidget from '@/components/admin/AdvisorWidget';
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendiente', confirmed: 'Confirmado', completed: 'Completado', cancelled: 'Cancelado',
+  pending: 'Pendiente', confirmed: 'Confirmado', completed: 'Completado', picked_up: 'Retirado', cancelled: 'Cancelado',
 };
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#D4A574', confirmed: '#8B6F47', completed: '#5D4E37', cancelled: '#D4B896',
+  pending: '#D4A574', confirmed: '#8B6F47', completed: '#5D4E37', picked_up: '#3D6B4F', cancelled: '#D4B896',
 };
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const PAYMENT_LABELS: Record<string, string> = {
+  pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
+};
 
 function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: string; value: string; loading: boolean }) {
   return (
@@ -32,6 +41,7 @@ function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: stri
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
@@ -45,21 +55,29 @@ export default function AdminDashboard() {
     },
   });
 
-  const { data: unreadMessages, isLoading: messagesLoading } = useQuery({
-    queryKey: ['admin-dashboard-messages'],
+  const { data: products } = useQuery({
+    queryKey: ['admin-dashboard-products'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('contact_messages').select('id').eq('read', false);
+      const { data, error } = await supabase.from('products').select('*');
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
-  // FIX Bug 2: Monthly sales includes completed + confirmed with seña_recibida/pagado_completo
+  const { data: unreadMessages, isLoading: messagesLoading } = useQuery({
+    queryKey: ['admin-dashboard-messages'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('contact_messages').select('*').eq('read', false);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // FIX BUG 1: Monthly sales sums ALL non-cancelled orders in the current month
   const monthlyRevenue = orders?.filter(o => {
     if (o.created_at < monthStart) return false;
-    if (o.status === 'completed') return true;
-    if (o.status === 'confirmed' && (o.payment_status === 'seña_recibida' || o.payment_status === 'pagado_completo')) return true;
-    return false;
+    if (o.status === 'cancelled') return false;
+    return true;
   }).reduce((s, o) => s + Number(o.total), 0) ?? 0;
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
@@ -75,7 +93,7 @@ export default function AdminDashboard() {
   });
 
   // Status distribution
-  const statusCounts = ['pending', 'confirmed', 'completed', 'cancelled'].map(s => ({
+  const statusCounts = ['pending', 'confirmed', 'completed', 'picked_up', 'cancelled'].map(s => ({
     name: STATUS_LABELS[s], value: orders?.filter(o => o.status === s).length ?? 0, color: STATUS_COLORS[s],
   })).filter(s => s.value > 0);
 
@@ -89,7 +107,6 @@ export default function AdminDashboard() {
 
   const formatDate = (d: string) => {
     if (!d) return '—';
-    // Handle both date-only and full timestamp strings
     const dateObj = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
     if (isNaN(dateObj.getTime())) return '—';
     return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
@@ -108,23 +125,89 @@ export default function AdminDashboard() {
     return `${first} + ${items.length - 1} más`;
   };
 
-  const PAYMENT_LABELS: Record<string, string> = {
-    pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
-  };
-
-  // Today's Prep view — products for today + tomorrow pickups
+  // Today's Prep
   const prepOrders = orders?.filter(o =>
     (o.desired_date === todayStr || o.desired_date === tomorrowStr) && o.status !== 'cancelled'
   ) ?? [];
-  const prepItems: Record<string, { name: string; qty: number; date: string }> = {};
+  const prepItems: Record<string, { name: string; qty: number }> = {};
   prepOrders.forEach(o => {
     (o.items as any[])?.forEach((item: any) => {
       const key = `${item.productName}${item.variantLabel ? ` (${item.variantLabel})` : ''}`;
-      if (!prepItems[key]) prepItems[key] = { name: key, qty: 0, date: o.desired_date };
+      if (!prepItems[key]) prepItems[key] = { name: key, qty: 0 };
       prepItems[key].qty += item.quantity || 1;
     });
   });
   const prepList = Object.values(prepItems).sort((a, b) => b.qty - a.qty);
+
+  // ==================== SMART ASSISTANT ====================
+  const [insights, setInsights] = useState<SmartInsight[]>([]);
+  const [analysisRunning, setAnalysisRunning] = useState(false);
+  const [summary, setSummary] = useState<ReturnType<typeof generateDailySummary> | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+
+  // Urgent alerts recalculate on every load
+  const urgentAlerts = orders && unreadMessages
+    ? generateUrgentAlerts(orders, unreadMessages, today)
+    : [];
+
+  // Generate daily summary
+  const refreshSummary = useCallback(() => {
+    if (!orders) return;
+    setSummaryLoading(true);
+    const s = generateDailySummary(orders, products || [], new Date());
+    setSummary(s);
+    setSummaryLoading(false);
+  }, [orders, products]);
+
+  useEffect(() => {
+    if (orders && !summary) refreshSummary();
+  }, [orders, summary, refreshSummary]);
+
+  // Run analysis
+  const runAnalysis = useCallback(() => {
+    if (!orders || !products) return;
+    setAnalysisRunning(true);
+    setTimeout(() => {
+      const newInsights = generateInsights(orders, products, unreadMessages || [], new Date());
+      // Restore dismissed state from localStorage
+      const dismissedIds = JSON.parse(localStorage.getItem('dismissed_insights') || '{}');
+      const now = Date.now();
+      const filtered = newInsights.map(i => ({
+        ...i,
+        dismissed: dismissedIds[i.id] && (now - dismissedIds[i.id]) < 7 * 86400000,
+      }));
+      setInsights(filtered);
+      setAnalysisRunning(false);
+      setHasAnalyzed(true);
+    }, 500);
+  }, [orders, products, unreadMessages]);
+
+  // Auto-run on first load
+  useEffect(() => {
+    if (orders && products && !hasAnalyzed) runAnalysis();
+  }, [orders, products, hasAnalyzed, runAnalysis]);
+
+  const dismissInsight = (id: string) => {
+    setInsights(prev => prev.map(i => i.id === id ? { ...i, dismissed: true } : i));
+    const dismissed = JSON.parse(localStorage.getItem('dismissed_insights') || '{}');
+    dismissed[id] = Date.now();
+    localStorage.setItem('dismissed_insights', JSON.stringify(dismissed));
+  };
+
+  const logAction = async (entry: any) => {
+    try {
+      await (supabase.from('assistant_actions_log').insert(entry) as any);
+      qc.invalidateQueries({ queryKey: ['assistant-action-log'] });
+    } catch (e) { console.error('Log error:', e); }
+  };
+
+  const refreshAll = () => {
+    qc.invalidateQueries({ queryKey: ['admin-dashboard-orders'] });
+    qc.invalidateQueries({ queryKey: ['admin-dashboard-messages'] });
+    qc.invalidateQueries({ queryKey: ['admin-dashboard-products'] });
+  };
 
   return (
     <div>
@@ -151,21 +234,6 @@ export default function AdminDashboard() {
         <KpiCard icon={Clock} label="Retiros de Hoy" value={String(todayPickups)} loading={isLoading} />
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
       </div>
-
-      {/* Today's Prep */}
-      {prepList.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
-          <h3 className="text-sm font-semibold text-espresso mb-3">🧁 Preparar para Hoy y Mañana</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {prepList.map(item => (
-              <div key={item.name} className="flex items-center justify-between bg-cream/50 rounded-lg px-3 py-2">
-                <span className="text-sm text-espresso">{item.name}</span>
-                <span className="text-sm font-bold text-espresso">x{item.qty}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -207,8 +275,23 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Today's Prep */}
+      {prepList.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+          <h3 className="text-sm font-semibold text-espresso mb-3">🧁 Preparar para Hoy y Mañana</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {prepList.map(item => (
+              <div key={item.name} className="flex items-center justify-between bg-cream/50 rounded-lg px-3 py-2">
+                <span className="text-sm text-espresso">{item.name}</span>
+                <span className="text-sm font-bold text-espresso">x{item.qty}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Upcoming pickups */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
         <h3 className="text-sm font-semibold text-espresso mb-4">Próximos Retiros</h3>
         {isLoading ? (
           <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-200 animate-pulse rounded" />)}</div>
@@ -238,7 +321,7 @@ export default function AdminDashboard() {
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                         o.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         o.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                        o.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        o.status === 'completed' || o.status === 'picked_up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>{STATUS_LABELS[o.status] || o.status}</span>
                     </td>
                     <td className="py-2.5">
@@ -255,7 +338,32 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <AdvisorWidget />
+      {/* ==================== 3-LAYER ASSISTANT ==================== */}
+
+      {/* Layer 1: Urgent Alerts */}
+      <UrgentAlertsLayer alerts={urgentAlerts} onRefresh={refreshAll} onLogAction={logAction} />
+
+      {/* Layer 2: Daily Summary */}
+      <DailySummaryLayer summary={summary} onRefresh={refreshSummary} loading={summaryLoading} />
+
+      {/* Layer 3: Opportunities */}
+      <OpportunitiesLayer
+        insights={insights}
+        running={analysisRunning}
+        onAnalyze={runAnalysis}
+        onDismiss={dismissInsight}
+        onLogAction={logAction}
+        onRefresh={refreshAll}
+      />
+
+      {/* Action History Link */}
+      <div className="text-center mt-2 mb-8">
+        <button onClick={() => setShowHistory(true)} className="text-sm text-warm-gray underline underline-offset-2 hover:text-espresso transition-colors">
+          📜 Historial de acciones
+        </button>
+      </div>
+
+      <ActionHistoryModal open={showHistory} onClose={() => setShowHistory(false)} />
     </div>
   );
 }
