@@ -471,6 +471,8 @@ export default function AdminProductos() {
           onClose={() => setShowCategoryManager(false)}
         />
       )}
+
+      <PromoDraftsModal open={showPromoDrafts} onClose={() => setShowPromoDrafts(false)} />
     </div>
   );
 }
