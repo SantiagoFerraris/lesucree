@@ -8,6 +8,8 @@ const SETTING_FIELDS = [
   { key: 'business_name', label: 'Nombre del negocio', placeholder: 'Le Sucrée' },
   { key: 'whatsapp_number', label: 'Número de WhatsApp', placeholder: '5493412741229' },
   { key: 'address', label: 'Dirección', placeholder: 'Rosario, Santa Fe, Argentina' },
+  { key: 'alias', label: 'Alias de pago (transferencia)', placeholder: 'lesucree.mp', required: true },
+  { key: 'pickup_address', label: 'Dirección de retiro', placeholder: 'Calle 123, Rosario, Santa Fe', required: true },
   { key: 'business_hours', label: 'Horarios', placeholder: 'Mañana: 9:00 - 12:00 / Tarde: 12:00 - 18:00' },
   { key: 'hero_title', label: 'Título del Hero', placeholder: 'Le Sucrée' },
   { key: 'hero_subtitle', label: 'Subtítulo del Hero', placeholder: 'Pastelería' },

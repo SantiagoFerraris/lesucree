@@ -78,6 +78,17 @@ function getStatusBorder(status: string): string {
 export default function AdminPedidos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+
+  // Fetch site settings for WhatsApp templates
+  const { data: siteConfig } = useQuery({
+    queryKey: ['site-settings-config'],
+    queryFn: async () => {
+      const { data } = await supabase.from('site_settings').select('key, value');
+      const map: Record<string, string> = {};
+      data?.forEach((r: any) => { map[r.key] = r.value || ''; });
+      return map;
+    },
+  });
   const [statusFilter, setStatusFilter] = useState('todos');
   const [dateFilter, setDateFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('retiro-asc');
@@ -257,10 +268,12 @@ export default function AdminPedidos() {
 
   const getWhatsAppMessages = (o: any) => {
     const products = (o.items as any[]).map((i: any) => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity}`).join('\n');
+    const alias = siteConfig?.alias || '';
+    const pickupAddress = siteConfig?.pickup_address || '';
     return {
-      confirm: `¡Hola ${o.customer_name}! 🎂 Confirmamos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPrice(o.total)}\n📅 Retiro: ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
-      remind: `¡Hola ${o.customer_name}! 🎂 Te recordamos que tu pedido de Le Sucrée está listo para retirar:\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
-      ready: `¡Hola ${o.customer_name}! 🎂 Tu pedido de Le Sucrée está listo para retirar.\n\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
+      confirm: `¡Hola ${o.customer_name}! 🎂\nRecibimos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPrice(o.total)}\n💳 Seña (50%): ${formatPrice(o.total / 2)}\n\nPara reservar tu pedido, te pedimos una seña del 50% por transferencia:\n🔑 Alias: ${alias}\n\n📅 Retiro: ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\nUna vez realizada, envianos el comprobante 😊\n¡Gracias! 🤎`,
+      remind: `¡Hola ${o.customer_name}! 💖\nRecibimos tu seña correctamente, ¡gracias!\n\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\n${pickupAddress}\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n\n¡Te esperamos! 🤎`,
+      ready: `¡Hola ${o.customer_name}! 🎉\nTu pedido de Le Sucrée está listo para retirar.\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n\n📍 ${pickupAddress}\n\n¡Te esperamos! 🤎`,
     };
   };
 
@@ -569,12 +582,12 @@ export default function AdminPedidos() {
                           {o.status === 'pending' && (
                             <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                              <MessageCircle size={13} className="text-green-600" /> Confirmar
+                              <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
                             </a>
                           )}
                           <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                            <MessageCircle size={13} className="text-green-600" /> Recordar Retiro
+                            <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
                           </a>
                           <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
