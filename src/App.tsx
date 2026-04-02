@@ -29,9 +29,10 @@ const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 2 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
+      gcTime: 10 * 60 * 1000,
     },
   },
 });
