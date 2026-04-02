@@ -4,6 +4,7 @@ import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
+import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import type { Tables } from '@/integrations/supabase/types';
