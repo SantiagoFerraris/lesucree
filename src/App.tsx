@@ -23,6 +23,7 @@ const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminClientes = lazy(() => import("./pages/AdminClientes"));
+const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
