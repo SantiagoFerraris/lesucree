@@ -4,6 +4,7 @@ import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
+import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import type { Tables } from '@/integrations/supabase/types';
@@ -57,6 +58,7 @@ export default function Catalogo() {
 
   return (
     <section className="pt-[72px]">
+      <SEOHead title="Catálogo | Le Sucrée Pastelería" description="Explorá nuestro catálogo de tortas, cookies, boxes y postres artesanales. Pedidos con 48hs de anticipación en Rosario." path="/catalogo" />
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
           <h1 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center">Nuestro Catálogo</h1>

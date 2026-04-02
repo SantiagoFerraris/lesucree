@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
@@ -22,6 +23,7 @@ const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
 const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminClientes = lazy(() => import("./pages/AdminClientes"));
+const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +48,7 @@ const AdminSuspense = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => (
+  <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Sonner />
@@ -74,7 +77,7 @@ const App = () => (
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
                   <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
                   <Route path="clientes" element={<AdminSuspense><AdminClientes /></AdminSuspense>} />
-
+                  <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
@@ -85,6 +88,7 @@ const App = () => (
       </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

@@ -1,5 +1,6 @@
 import { Heart, Leaf, ChefHat } from 'lucide-react';
 import SectionDivider from '@/components/SectionDivider';
+import SEOHead from '@/components/SEOHead';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import tiramisuImg from '@/assets/torta_1_tiramisu.jpg';
 
@@ -15,6 +16,7 @@ export default function Nosotros() {
 
   return (
     <section className="pt-[72px]">
+      <SEOHead title="Nosotros | Le Sucrée Pastelería" description="Conocé la historia de Le Sucrée, pastelería artesanal en Rosario. Elaboramos cada pieza con ingredientes seleccionados y mucho amor." path="/nosotros" />
       {/* Hero */}
       <div className="bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4">
         <div className="container text-center">

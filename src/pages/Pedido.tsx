@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import { WHATSAPP_NOTIFICATION_NUMBER, WHATSAPP_NUMBER } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
+import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
@@ -177,6 +178,7 @@ export default function Pedido() {
 
   return (
     <section className="pt-[72px]">
+      <SEOHead title="Pedido | Le Sucrée Pastelería" description="Confirmá tu pedido de tortas, cookies y postres artesanales. Retiro en Rosario con 48hs de anticipación." path="/pedido" />
       <div className="py-16 md:py-20 px-4">
         <div className="container">
           <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Confirmar tu Pedido</h1>
