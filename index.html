@@ -1,61 +1,79 @@
 <!doctype html>
 <html lang="es">
-    <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com;" />
-      <link rel="icon" href="/favicon.png" type="image/png" />
-      <link rel="preconnect" href="https://qrspfsejotzfajwklocm.supabase.co" crossorigin />
-      <link rel="preload" as="image" href="https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/hero/hero-bg.jpg" fetchpriority="high" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-      <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" />
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" media="print" onload="this.media='all'" />
-      <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@300;400;600&family=Playfair+Display:wght@400;700&display=swap" /></noscript>
-		<meta name="theme-color" content="#8B6F4E" />
-                <link rel="manifest" href="/manifest.json" />
-                <link rel="apple-touch-icon" href="/favicon.png" />
-          <title>Le Sucrée Pastelería Artesanal | Rosario</title>
-        <meta name="description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
-        <meta name="author" content="Le Sucrée Pastelería" />
-        <link rel="canonical" href="https://lesucree.pages.dev/" />
-        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-    
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Le Sucrée Pastelería Artesanal | Rosario">
-        <meta property="og:description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
-        <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2de54a67-f9fe-40dc-a501-4a8a742ddb59/id-preview-0b9c121b--0cbc8354-6e87-4916-9a04-5da38e685be2.lovable.app-1774098171584.png">
-    
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@LeSuccreePasteleria" />
-        <meta name="twitter:title" content="Le Sucrée Pastelería Artesanal | Rosario">
-        <meta name="twitter:description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
-        <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2de54a67-f9fe-40dc-a501-4a8a742ddb59/id-preview-0b9c121b--0cbc8354-6e87-4916-9a04-5da38e685be2.lovable.app-1774098171584.png">
-    
-        <script type="application/ld+json">
-            {
-              "@context": "https://schema.org",
-              "@type": "Bakery",
-              "name": "Le Sucrée Pastelería",
-              "description": "Pastelería artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes.",
-              "url": "https://lesucree.pages.dev",
-              "telephone": "+5493412741229",
-              "address": {
-                "@type": "PostalAddress",
-                "addressLocality": "Rosario",
-                "addressRegion": "Santa Fe",
-                "addressCountry": "AR"
-              },
-              "priceRange": "$$",
-              "servesCuisine": "Pastelería artesanal",
-              "sameAs": [
-                "https://www.instagram.com/pasteleria.lesucree/"
-              ]
-            }
-        </script>
-    </head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com;" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+
+    <!-- DNS prefetch and preconnect for critical origins -->
+    <link rel="dns-prefetch" href="https://qrspfsejotzfajwklocm.supabase.co" />
+    <link rel="preconnect" href="https://qrspfsejotzfajwklocm.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload hero image for LCP -->
+    <link rel="preload" as="image" href="https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/hero/hero-bg.webp" fetchpriority="high" type="image/webp" />
+    <link rel="preload" as="image" href="https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/hero/hero-bg.jpg" fetchpriority="high" />
+
+    <!-- Fonts: load only essential weights, defer non-critical -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" /></noscript>
+
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+      #root{min-height:100vh}
+      .hero-section{position:relative;min-height:80vh;display:flex;align-items:center;overflow:hidden}
+      .hero-section img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    </style>
+
+    <meta name="theme-color" content="#8B6F4E" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <title>Le Sucrée Pastelería Artesanal | Rosario</title>
+    <meta name="description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
+    <meta name="author" content="Le Sucrée Pastelería" />
+    <link rel="canonical" href="https://lesucree.vercel.app/" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Le Sucrée Pastelería Artesanal | Rosario">
+    <meta property="og:description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
+    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2de54a67-f9fe-40dc-a501-4a8a742ddb59/id-preview-0b9c121b--0cbc8354-6e87-4916-9a04-5da38e685be2.lovable.app-1774098171584.png">
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@LeSuccreePasteleria" />
+    <meta name="twitter:title" content="Le Sucrée Pastelería Artesanal | Rosario">
+    <meta name="twitter:description" content="Le Sucrée Pastelería Artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes. Pedidos con 48hs de anticipación.">
+    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2de54a67-f9fe-40dc-a501-4a8a742ddb59/id-preview-0b9c121b--0cbc8354-6e87-4916-9a04-5da38e685be2.lovable.app-1774098171584.png">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Bakery",
+      "name": "Le Sucrée Pastelería",
+      "description": "Pastelería artesanal en Rosario. Tortas, cookies, boxes y postres individuales hechos a mano con los mejores ingredientes.",
+      "url": "https://lesucree.vercel.app",
+      "telephone": "+5493412741229",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Rosario",
+        "addressRegion": "Santa Fe",
+        "addressCountry": "AR"
+      },
+      "priceRange": "$$",
+      "servesCuisine": "Pastelería artesanal",
+      "sameAs": [
+        "https://www.instagram.com/pasteleria.lesucree/"
+      ]
+    }
+    </script>
+  </head>
   <body>
-        <div id="root"></div>
-        <script type="module" src="/src/main.tsx"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
