@@ -34,9 +34,9 @@ interface Variant {
 
 /* ─── HERO ─── */
 function HeroSection() {
-  const { data: heroImageUrl } = useHeroImageUrl();
+  const { data: heroImageUrl, isLoading: heroLoading } = useHeroImageUrl();
   const { data: settings } = useSiteSettings();
-  const bgImage = heroImageUrl || heroImg;
+  const bgImage = heroImageUrl || null;
   const heroTitle = settings?.hero_title || 'Le Sucrée';
   const heroSubtitle = settings?.hero_subtitle || 'Pastelería';
   const heroText = settings?.hero_text || 'Endulzamos tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
