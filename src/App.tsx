@@ -77,7 +77,7 @@ const App = () => (
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
                   <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
                   <Route path="clientes" element={<AdminSuspense><AdminClientes /></AdminSuspense>} />
-
+                  <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
