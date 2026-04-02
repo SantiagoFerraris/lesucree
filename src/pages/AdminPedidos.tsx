@@ -329,7 +329,8 @@ export default function AdminPedidos() {
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                           {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
                         </span>
-                        {isOverdue && <span className="text-xs text-red-600 font-semibold">⚠️ Retiro vencido</span>}
+                        {isOverdue && <span className="text-xs text-red-600 font-semibold animate-urgency-blink">⚠️ Retiro vencido</span>}
+                        {o.desired_date === todayStr && o.status === 'pending' && !isOverdue && <span className="text-xs text-red-600 font-semibold animate-urgency-blink">🔴 HOY - Pendiente</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
