@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { DollarSign, ShoppingBag, Clock, MessageSquare } from 'lucide-react';
+import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -9,19 +9,11 @@ import {
 import AdvisorWidget from '@/components/admin/AdvisorWidget';
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendiente',
-  confirmed: 'Confirmado',
-  completed: 'Completado',
-  cancelled: 'Cancelado',
+  pending: 'Pendiente', confirmed: 'Confirmado', completed: 'Completado', cancelled: 'Cancelado',
 };
-
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#D4A574',
-  confirmed: '#8B6F47',
-  completed: '#5D4E37',
-  cancelled: '#D4B896',
+  pending: '#D4A574', confirmed: '#8B6F47', completed: '#5D4E37', cancelled: '#D4B896',
 };
-
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: string; value: string; loading: boolean }) {
@@ -33,11 +25,7 @@ function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: stri
         </div>
         <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">{label}</span>
       </div>
-      {loading ? (
-        <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
-      ) : (
-        <p className="text-2xl font-bold text-espresso font-display">{value}</p>
-      )}
+      {loading ? <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" /> : <p className="text-2xl font-bold text-espresso font-display">{value}</p>}
     </div>
   );
 }
@@ -66,16 +54,21 @@ export default function AdminDashboard() {
     },
   });
 
-  // KPI calculations
-  const monthlyRevenue = orders?.filter(o => o.status === 'completed' && o.created_at >= monthStart).reduce((s, o) => s + Number(o.total), 0) ?? 0;
+  // FIX Bug 2: Monthly sales includes completed + confirmed with seña_recibida/pagado_completo
+  const monthlyRevenue = orders?.filter(o => {
+    if (o.created_at < monthStart) return false;
+    if (o.status === 'completed') return true;
+    if (o.status === 'confirmed' && (o.payment_status === 'seña_recibida' || o.payment_status === 'pagado_completo')) return true;
+    return false;
+  }).reduce((s, o) => s + Number(o.total), 0) ?? 0;
+
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
   const todayPickups = orders?.filter(o => o.desired_date === todayStr && o.status !== 'cancelled').length ?? 0;
   const unreadCount = unreadMessages?.length ?? 0;
 
   // Last 7 days chart
   const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - (6 - i));
+    const d = new Date(today); d.setDate(d.getDate() - (6 - i));
     const dateStr = d.toISOString().split('T')[0];
     const count = orders?.filter(o => o.created_at?.startsWith(dateStr)).length ?? 0;
     return { name: DAY_NAMES[d.getDay()], pedidos: count };
@@ -83,9 +76,7 @@ export default function AdminDashboard() {
 
   // Status distribution
   const statusCounts = ['pending', 'confirmed', 'completed', 'cancelled'].map(s => ({
-    name: STATUS_LABELS[s],
-    value: orders?.filter(o => o.status === s).length ?? 0,
-    color: STATUS_COLORS[s],
+    name: STATUS_LABELS[s], value: orders?.filter(o => o.status === s).length ?? 0, color: STATUS_COLORS[s],
   })).filter(s => s.value > 0);
 
   // Upcoming pickups
@@ -96,7 +87,13 @@ export default function AdminDashboard() {
 
   const tomorrowStr = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
 
-  const formatDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+  const formatDate = (d: string) => {
+    if (!d) return '—';
+    // Handle both date-only and full timestamp strings
+    const dateObj = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
+    if (isNaN(dateObj.getTime())) return '—';
+    return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+  };
 
   const getPickupBadge = (date: string) => {
     if (date === todayStr) return <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold">HOY</span>;
@@ -112,14 +109,40 @@ export default function AdminDashboard() {
   };
 
   const PAYMENT_LABELS: Record<string, string> = {
-    pendiente: 'Pago Pendiente',
-    'seña_recibida': 'Seña Recibida',
-    'pagado_completo': 'Pagado',
+    pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
   };
+
+  // Today's Prep view — products for today + tomorrow pickups
+  const prepOrders = orders?.filter(o =>
+    (o.desired_date === todayStr || o.desired_date === tomorrowStr) && o.status !== 'cancelled'
+  ) ?? [];
+  const prepItems: Record<string, { name: string; qty: number; date: string }> = {};
+  prepOrders.forEach(o => {
+    (o.items as any[])?.forEach((item: any) => {
+      const key = `${item.productName}${item.variantLabel ? ` (${item.variantLabel})` : ''}`;
+      if (!prepItems[key]) prepItems[key] = { name: key, qty: 0, date: o.desired_date };
+      prepItems[key].qty += item.quantity || 1;
+    });
+  });
+  const prepList = Object.values(prepItems).sort((a, b) => b.qty - a.qty);
 
   return (
     <div>
       <h2 className="font-display text-2xl font-bold text-espresso mb-6">Dashboard</h2>
+
+      {/* Pending orders alert */}
+      {!isLoading && pendingCount > 0 && (
+        <div
+          className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:bg-amber-100 transition-colors"
+          onClick={() => navigate('/admin/pedidos')}
+        >
+          <AlertTriangle size={20} className="text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-800 font-semibold">
+            Tenés {pendingCount} {pendingCount === 1 ? 'pedido pendiente' : 'pedidos pendientes'} por confirmar
+          </p>
+          <span className="ml-auto text-xs text-amber-600 font-semibold">Ver →</span>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -129,14 +152,26 @@ export default function AdminDashboard() {
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
       </div>
 
+      {/* Today's Prep */}
+      {prepList.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+          <h3 className="text-sm font-semibold text-espresso mb-3">🧁 Preparar para Hoy y Mañana</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {prepList.map(item => (
+              <div key={item.name} className="flex items-center justify-between bg-cream/50 rounded-lg px-3 py-2">
+                <span className="text-sm text-espresso">{item.name}</span>
+                <span className="text-sm font-bold text-espresso">x{item.qty}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Bar chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <h3 className="text-sm font-semibold text-espresso mb-4">Pedidos — Últimos 7 Días</h3>
-          {isLoading ? (
-            <div className="h-48 bg-gray-200 animate-pulse rounded" />
-          ) : (
+          {isLoading ? <div className="h-48 bg-gray-200 animate-pulse rounded" /> : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={last7Days}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0ece8" />
@@ -148,21 +183,15 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           )}
         </div>
-
-        {/* Pie chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <h3 className="text-sm font-semibold text-espresso mb-4">Pedidos por Estado</h3>
-          {isLoading ? (
-            <div className="h-48 bg-gray-200 animate-pulse rounded" />
-          ) : statusCounts.length === 0 ? (
+          {isLoading ? <div className="h-48 bg-gray-200 animate-pulse rounded" /> : statusCounts.length === 0 ? (
             <p className="text-warm-gray text-sm pt-8 text-center">Sin datos</p>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={statusCounts} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                  {statusCounts.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
+                  {statusCounts.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e0db' }} />
               </PieChart>
@@ -171,8 +200,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap gap-3 mt-2 justify-center">
             {statusCounts.map(s => (
               <div key={s.name} className="flex items-center gap-1.5 text-xs text-warm-gray">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                {s.name} ({s.value})
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} /> {s.name} ({s.value})
               </div>
             ))}
           </div>
@@ -183,9 +211,7 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <h3 className="text-sm font-semibold text-espresso mb-4">Próximos Retiros</h3>
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-200 animate-pulse rounded" />)}
-          </div>
+          <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-200 animate-pulse rounded" />)}</div>
         ) : upcoming.length === 0 ? (
           <p className="text-warm-gray text-sm">No hay retiros próximos.</p>
         ) : (
@@ -203,35 +229,23 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {upcoming.map(o => (
-                  <tr
-                    key={o.id}
-                    className="border-b border-gray-50 hover:bg-cream/30 cursor-pointer transition-colors"
-                    onClick={() => navigate('/admin/pedidos')}
-                  >
+                  <tr key={o.id} className="border-b border-gray-50 hover:bg-cream/30 cursor-pointer transition-colors" onClick={() => navigate('/admin/pedidos')}>
                     <td className="py-2.5 pr-3 text-espresso font-medium">{o.customer_name}</td>
                     <td className="py-2.5 pr-3 text-warm-gray truncate max-w-[160px]">{getProductSummary(o.items as any[])}</td>
-                    <td className="py-2.5 pr-3 text-espresso whitespace-nowrap">
-                      {formatDate(o.desired_date)} {getPickupBadge(o.desired_date)}
-                    </td>
+                    <td className="py-2.5 pr-3 text-espresso whitespace-nowrap">{formatDate(o.desired_date)} {getPickupBadge(o.desired_date)}</td>
                     <td className="py-2.5 pr-3 text-warm-gray">{o.preferred_time}</td>
                     <td className="py-2.5 pr-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                         o.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         o.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                        o.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {STATUS_LABELS[o.status] || o.status}
-                      </span>
+                        o.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>{STATUS_LABELS[o.status] || o.status}</span>
                     </td>
                     <td className="py-2.5">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                         o.payment_status === 'pagado_completo' ? 'bg-espresso text-white' :
-                        o.payment_status === 'seña_recibida' ? 'bg-amber-100 text-amber-800' :
-                        'bg-gray-100 text-warm-gray'
-                      }`}>
-                        {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
-                      </span>
+                        o.payment_status === 'seña_recibida' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-warm-gray'
+                      }`}>{PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}</span>
                     </td>
                   </tr>
                 ))}
@@ -241,7 +255,6 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* AI Advisor Widget */}
       <AdvisorWidget />
     </div>
   );
