@@ -1,5 +1,6 @@
 import { Heart, Leaf, ChefHat } from 'lucide-react';
 import SectionDivider from '@/components/SectionDivider';
+import SEOHead from '@/components/SEOHead';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import tiramisuImg from '@/assets/torta_1_tiramisu.jpg';
 
