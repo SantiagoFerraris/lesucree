@@ -14,12 +14,14 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
   confirmed: 'Confirmado',
   completed: 'Completado',
+  picked_up: 'Retirado',
   cancelled: 'Cancelado',
 };
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
   completed: 'bg-green-100 text-green-800',
+  picked_up: 'bg-emerald-100 text-emerald-800',
   cancelled: 'bg-red-100 text-red-800',
 };
 const PAYMENT_LABELS: Record<string, string> = {
