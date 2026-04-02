@@ -15,7 +15,7 @@ import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import type { Tables } from "@/integrations/supabase/types";
 
-import heroImg from "@/assets/hero-patisserie.jpg";
+
 import tiramisuImg from "@/assets/torta_1_tiramisu.jpg";
 import pistachoImg from "@/assets/torta_2_pistacho_chocolate_blanco.jpg";
 import pavlovaImg from "@/assets/torta_3_pavlova.jpg";
