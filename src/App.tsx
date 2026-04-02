@@ -88,7 +88,7 @@ const App = () => (
                   <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
                 </Route>
 
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<PublicSuspense><NotFound /></PublicSuspense>} />
               </Routes>
             </ErrorBoundary>
           </BrowserRouter>

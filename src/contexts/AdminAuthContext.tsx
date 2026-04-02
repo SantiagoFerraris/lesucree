@@ -26,20 +26,22 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) {
+      if (session && isAdminRoute) {
         checkAdminRole().finally(() => setLoading(false));
       } else {
-        setIsAdmin(false);
+        if (!session) setIsAdmin(false);
         setLoading(false);
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
+      if (session && isAdminRoute) {
         checkAdminRole().finally(() => setLoading(false));
       } else {
         setLoading(false);
@@ -47,7 +49,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isAdminRoute]);
 
   const login = async (email: string, password: string): Promise<string | null> => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

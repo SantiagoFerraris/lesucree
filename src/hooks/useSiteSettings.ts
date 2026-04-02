@@ -29,15 +29,18 @@ export function useHeroImageUrl() {
   return useQuery({
     queryKey: ['hero-image-url'],
     queryFn: async () => {
-      // Check if hero image exists in storage
-      const { data } = await supabase.storage.from('site-images').list('hero');
-      const heroFile = data?.find(f => f.name.startsWith('hero-bg'));
-      if (heroFile) {
-        const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(`hero/${heroFile.name}`);
-        return `${urlData.publicUrl}?t=${heroFile.updated_at}`;
+      const url = `${supabaseUrl}/storage/v1/object/public/site-images/hero/hero-bg.jpg`;
+      try {
+        const res = await fetch(url, { method: 'HEAD' });
+        if (res.ok) {
+          return `${url}?t=${Date.now()}`;
+        }
+      } catch {
+        // Fall through
       }
-      return null; // Will fall back to default
+      return null;
     },
-    staleTime: 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }

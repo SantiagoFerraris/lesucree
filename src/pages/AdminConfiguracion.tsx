@@ -86,7 +86,7 @@ export default function AdminConfiguracion() {
       await supabase.storage.from('site-images').remove(existingFiles.map(f => `hero/${f.name}`));
     }
 
-    const { error } = await supabase.storage.from('site-images').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from('site-images').upload(path, optimizedFile, { upsert: true });
     if (error) {
       toast.error(`Error al subir imagen: ${error.message}`);
       setHeroUploading(false);

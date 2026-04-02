@@ -45,9 +45,10 @@ function HeroSection() {
     <section
       className="relative min-h-[70vh] flex items-center"
       style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundImage: bgImage ? `url(${bgImage})` : 'none',
+        backgroundColor: '#fdf6f0',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       {/* Gradient overlay */}
