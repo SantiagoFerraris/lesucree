@@ -36,6 +36,16 @@ export default function AdminProductos() {
   const [page, setPage] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showPromoDrafts, setShowPromoDrafts] = useState(false);
+
+  const { data: promoDraftCount } = useQuery({
+    queryKey: ['promo-draft-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase.from('promotions').select('*', { count: 'exact', head: true }).eq('status', 'draft') as any;
+      if (error) return 0;
+      return count || 0;
+    },
+  });
 
   const { data: categories = [] } = useCategories();
   const categoryLabels = buildCategoryLabels(categories);
