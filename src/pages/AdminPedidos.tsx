@@ -276,7 +276,7 @@ export default function AdminPedidos() {
       </div>
 
       {/* Count */}
-      <p className="text-xs text-warm-gray mb-3">Mostrando {filtered?.length ?? 0} pedidos</p>
+      <p className="text-xs text-warm-gray mb-3">Mostrando {filtered?.length ?? 0} {(filtered?.length ?? 0) === 1 ? 'pedido' : 'pedidos'}</p>
 
       {isLoading ? (
         <div className="space-y-3">
