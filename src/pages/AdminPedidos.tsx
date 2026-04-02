@@ -78,6 +78,17 @@ function getStatusBorder(status: string): string {
 export default function AdminPedidos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+
+  // Fetch site settings for WhatsApp templates
+  const { data: siteConfig } = useQuery({
+    queryKey: ['site-settings-config'],
+    queryFn: async () => {
+      const { data } = await supabase.from('site_settings').select('key, value');
+      const map: Record<string, string> = {};
+      data?.forEach((r: any) => { map[r.key] = r.value || ''; });
+      return map;
+    },
+  });
   const [statusFilter, setStatusFilter] = useState('todos');
   const [dateFilter, setDateFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('retiro-asc');
