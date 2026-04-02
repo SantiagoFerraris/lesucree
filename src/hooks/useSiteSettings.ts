@@ -33,7 +33,7 @@ export function useHeroImageUrl() {
       try {
         const res = await fetch(url, { method: 'HEAD' });
         if (res.ok) {
-          return `${url}?t=${Date.now()}`;
+          return url;
         }
       } catch {
         // Fall through

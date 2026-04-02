@@ -34,7 +34,7 @@ export default function Navbar() {
       <nav className={`fixed top-0 left-0 right-0 z-50 h-[72px] md:h-[72px] flex items-center bg-cream/95 backdrop-blur-[10px] transition-shadow duration-300 ${scrolled ? 'shadow-sm' : ''}`}>
         <div className="container flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={logoImg} alt="Le Sucrée Pastelería" className="h-10 sm:h-12 rounded-full mix-blend-multiply" />
+            <img src={logoImg} alt="Le Sucrée Pastelería" className="h-10 sm:h-12 rounded-full mix-blend-multiply" width={48} height={48} />
           </Link>
 
           {/* Desktop links */}
