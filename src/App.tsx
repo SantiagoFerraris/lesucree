@@ -49,6 +49,12 @@ const AdminSuspense = ({ children }: { children: React.ReactNode }) => (
   </Suspense>
 );
 
+const PublicSuspense = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><p className="text-muted-foreground">Cargando...</p></div>}>
+    {children}
+  </Suspense>
+);
+
 const App = () => (
   <HelmetProvider>
   <QueryClientProvider client={queryClient}>
