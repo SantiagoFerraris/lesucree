@@ -10,11 +10,12 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PublicLayout from "@/components/PublicLayout";
 import CartSidebar from "@/components/CartSidebar";
 import Index from "./pages/Index";
-import Catalogo from "./pages/Catalogo";
-import Nosotros from "./pages/Nosotros";
-import Contacto from "./pages/Contacto";
-import Pedido from "./pages/Pedido";
-import NotFound from "./pages/NotFound";
+
+const Catalogo = lazy(() => import("./pages/Catalogo"));
+const Nosotros = lazy(() => import("./pages/Nosotros"));
+const Contacto = lazy(() => import("./pages/Contacto"));
+const Pedido = lazy(() => import("./pages/Pedido"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
