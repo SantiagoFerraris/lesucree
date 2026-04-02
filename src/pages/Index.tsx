@@ -34,11 +34,18 @@ interface Variant {
 
 /* ─── HERO ─── */
 function HeroSection() {
+  const { data: heroImageUrl } = useHeroImageUrl();
+  const { data: settings } = useSiteSettings();
+  const bgImage = heroImageUrl || heroImg;
+  const heroTitle = settings?.hero_title || 'Le Sucrée';
+  const heroSubtitle = settings?.hero_subtitle || 'Pastelería';
+  const heroText = settings?.hero_text || 'Endulzamos tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
+
   return (
     <section
       className="relative min-h-[70vh] flex items-center"
       style={{
-        backgroundImage: `url(${heroImg})`,
+        backgroundImage: `url(${bgImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -56,14 +63,14 @@ function HeroSection() {
         <div className="max-w-xl">
           <h1 className="text-espresso">
             <span className="font-script text-[3rem] sm:text-[3.5rem] md:text-[4rem] leading-none block">
-              Le Sucrée
+              {heroTitle}
             </span>
             <span className="font-body text-[1rem] sm:text-[1.1rem] md:text-[1.2rem] uppercase tracking-[0.2em] text-espresso mt-2 block">
-              Pastelería
+              {heroSubtitle}
             </span>
           </h1>
           <p className="font-body text-base md:text-lg text-espresso/80 mt-6 max-w-[500px] leading-relaxed">
-            Endulzamos tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes
+            {heroText}
           </p>
           <Link
             to="/catalogo"
