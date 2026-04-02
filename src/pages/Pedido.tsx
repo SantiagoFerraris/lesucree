@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import { WHATSAPP_NOTIFICATION_NUMBER, WHATSAPP_NUMBER } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
+import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
