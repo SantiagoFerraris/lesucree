@@ -42,7 +42,7 @@
     --dusty-pink: 14 30% 72%;
     --mauve: 10 25% 65%;
     --espresso: 14 27% 19%;
-    --warm-gray: 18 12% 38%;
+    --warm-gray: 18 18% 36%;
     --soft-white: 30 50% 99%;
     --gold-accent: 33 30% 64%;
     --sage: 110 15% 73%;
@@ -65,17 +65,20 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+    color: hsl(14 27% 19%);
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-[0.02em];
     text-wrap: balance;
+    color: hsl(14 27% 19%);
   }
 
   p {
     @apply tracking-[0.01em];
     text-wrap: pretty;
     overflow-wrap: break-word;
+    color: hsl(18 18% 36%);
   }
 }
 
@@ -144,6 +147,25 @@
   animation: fadeIn 0.4s ease forwards;
 }
 
+/* WhatsApp pulse animation */
+@keyframes whatsappPulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
+  70% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+.animate-whatsapp-pulse {
+  animation: whatsappPulse 2.5s ease-in-out infinite;
+}
+
+/* Urgency blink */
+@keyframes urgencyBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-urgency-blink {
+  animation: urgencyBlink 1.2s ease-in-out infinite;
+}
 
 /* ===== Mobile Optimization ===== */
 

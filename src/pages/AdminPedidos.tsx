@@ -14,12 +14,14 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
   confirmed: 'Confirmado',
   completed: 'Completado',
+  picked_up: 'Retirado',
   cancelled: 'Cancelado',
 };
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
   completed: 'bg-green-100 text-green-800',
+  picked_up: 'bg-emerald-100 text-emerald-800',
   cancelled: 'bg-red-100 text-red-800',
 };
 const PAYMENT_LABELS: Record<string, string> = {
@@ -130,7 +132,12 @@ export default function AdminPedidos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const formatDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const formatDate = (d: string) => {
+    if (!d) return '—';
+    const dateObj = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
+    if (isNaN(dateObj.getTime())) return '—';
+    return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
 
   const getProductSummary = (items: any[]) => {
     if (!items?.length) return '';
@@ -271,7 +278,7 @@ export default function AdminPedidos() {
       </div>
 
       {/* Count */}
-      <p className="text-xs text-warm-gray mb-3">Mostrando {filtered?.length ?? 0} pedidos</p>
+      <p className="text-xs text-warm-gray mb-3">Mostrando {filtered?.length ?? 0} {(filtered?.length ?? 0) === 1 ? 'pedido' : 'pedidos'}</p>
 
       {isLoading ? (
         <div className="space-y-3">
@@ -324,7 +331,8 @@ export default function AdminPedidos() {
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                           {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
                         </span>
-                        {isOverdue && <span className="text-xs text-red-600 font-semibold">⚠️ Retiro vencido</span>}
+                        {isOverdue && <span className="text-xs text-red-600 font-semibold animate-urgency-blink">⚠️ Retiro vencido</span>}
+                        {o.desired_date === todayStr && o.status === 'pending' && !isOverdue && <span className="text-xs text-red-600 font-semibold animate-urgency-blink">🔴 HOY - Pendiente</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -369,6 +377,7 @@ export default function AdminPedidos() {
                             <option value="pending">Pendiente</option>
                             <option value="confirmed">Confirmado</option>
                             <option value="completed">Completado</option>
+                            <option value="picked_up">Retirado</option>
                             <option value="cancelled">Cancelado</option>
                           </select>
                         </div>
@@ -385,21 +394,25 @@ export default function AdminPedidos() {
                           </select>
                         </div>
                       </div>
-                      {/* WhatsApp actions */}
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
-                          <MessageCircle size={13} className="text-green-600" /> Confirmar
-                        </a>
-                        <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
-                          <MessageCircle size={13} className="text-green-600" /> Recordar Retiro
-                        </a>
-                        <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
-                          <MessageCircle size={13} className="text-green-600" /> Pedido Listo
-                        </a>
-                      </div>
+                      {/* WhatsApp actions — contextual */}
+                      {o.status !== 'completed' && o.status !== 'picked_up' && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {o.status === 'pending' && (
+                            <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
+                              <MessageCircle size={13} className="text-green-600" /> Confirmar
+                            </a>
+                          )}
+                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
+                            <MessageCircle size={13} className="text-green-600" /> Recordar Retiro
+                          </a>
+                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors">
+                            <MessageCircle size={13} className="text-green-600" /> Pedido Listo
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
