@@ -253,7 +253,7 @@ function InstagramSection() {
           Seguinos en Instagram
         </h2>
         <SectionDivider />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1 mt-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-3 gap-1 mt-6 max-w-4xl mx-auto">
           {INSTAGRAM_GRID.map((post, i) => (
             <a
               key={i}
