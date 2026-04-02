@@ -258,9 +258,9 @@ export default function AdminPedidos() {
   const getWhatsAppMessages = (o: any) => {
     const products = (o.items as any[]).map((i: any) => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity}`).join('\n');
     return {
-      confirm: `¡Hola ${o.customer_name}! 🎂\n\nRecibimos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPrice(o.total)}\n\n💳 Seña (50%): ${formatPrice(o.total / 2)}\n\nPara reservar tu pedido, te pedimos una seña del 50% por transferencia:\n\n🔑 Alias: ${ALIAS}\n\n📅 Retiro: ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\nUna vez realizada, envianos el comprobante 😊\n\n¡Gracias! 🤎`,
-      remind: `¡Hola ${o.customer_name}! 💖\n\nRecibimos tu seña correctamente, ¡gracias!\n\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\nCatamarca 1473, piso 1 "B" (Rosario)\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n\n¡Te esperamos! 🤎`,
-      ready: `¡Hola ${o.customer_name}! 🎉\n\nTu pedido de Le Sucrée está listo para retirar.\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
+      confirm: `¡Hola ${o.customer_name}! 🎂 Confirmamos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPrice(o.total)}\n📅 Retiro: ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
+      remind: `¡Hola ${o.customer_name}! 🎂 Te recordamos que tu pedido de Le Sucrée está listo para retirar:\n\n📅 ${formatDate(o.desired_date)} — ${o.preferred_time}\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
+      ready: `¡Hola ${o.customer_name}! 🎂 Tu pedido de Le Sucrée está listo para retirar.\n\n📍 Rosario, Santa Fe\n\n¡Te esperamos! 🤎`,
     };
   };
 
