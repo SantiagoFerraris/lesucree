@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
-import { WHATSAPP_NOTIFICATION_NUMBER } from '@/lib/constants';
+import { WHATSAPP_NOTIFICATION_NUMBER, WHATSAPP_NUMBER } from '@/lib/constants';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
 import HoneypotField from '@/components/HoneypotField';
@@ -21,33 +21,27 @@ function getMinDate() {
 }
 
 export default function Pedido() {
-  const { items, getCartTotal, clearCart } = useCart();
+  const { items, getCartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const [form, setForm] = useState({
     name: '', phone: '', email: '', date: '', time: 'Mañana (9-12)', notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{ id: string; name: string; date: string; time: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [honeypot, setHoneypot] = useState('');
   const formLoadedAt = useRef(Date.now());
 
-  useEffect(() => {
-    formLoadedAt.current = Date.now();
-  }, []);
+  useEffect(() => { formLoadedAt.current = Date.now(); }, []);
 
-  // Warn before closing/refreshing when cart has items
   const shouldBlock = items.length > 0 && !success;
-
   useEffect(() => {
     if (!shouldBlock) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [shouldBlock]);
-
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -66,27 +60,21 @@ export default function Pedido() {
     return Object.keys(e).length === 0;
   };
 
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validate();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({ name: true, phone: true, email: true, date: true });
 
-    // Anti-spam checks
-    if (isHoneypotFilled(honeypot)) {
-      toast.success('¡Pedido enviado con éxito!');
-      return;
-    }
-    if (isSubmissionTooFast(formLoadedAt.current)) {
-      toast.error('Por favor esperá un momento antes de enviar.');
-      return;
-    }
-    if (!checkRateLimit('order')) {
-      toast.error('Demasiados envíos. Por favor esperá un momento.');
-      return;
-    }
-
+    if (isHoneypotFilled(honeypot)) { toast.success('¡Pedido enviado con éxito!'); return; }
+    if (isSubmissionTooFast(formLoadedAt.current)) { toast.error('Por favor esperá un momento antes de enviar.'); return; }
+    if (!checkRateLimit('order')) { toast.error('Demasiados envíos. Por favor esperá un momento.'); return; }
     if (!validate() || items.length === 0) return;
 
     setLoading(true);
-    // Submit order via secure edge function (server-side price validation)
     const { data: orderResult, error } = await supabase.functions.invoke('create-order', {
       body: {
         customerName: form.name.trim(),
@@ -95,16 +83,11 @@ export default function Pedido() {
         desiredDate: form.date,
         preferredTime: form.time,
         notes: form.notes.trim(),
-        items: items.map(i => ({
-          productId: i.productId,
-          variantId: i.variantId || undefined,
-          quantity: i.quantity,
-        })),
+        items: items.map(i => ({ productId: i.productId, variantId: i.variantId || undefined, quantity: i.quantity })),
       },
     });
 
     if (error || !orderResult?.success) {
-      console.error('Order error:', error || orderResult?.error);
       toast.error(orderResult?.error || 'Error al enviar el pedido. Intentá de nuevo.');
       setLoading(false);
       return;
@@ -114,7 +97,6 @@ export default function Pedido() {
     const serverItems = orderResult.items;
     const serverTotal = orderResult.total;
 
-    // Send email notification via edge function
     try {
       await supabase.functions.invoke('send-order-notification', {
         body: {
@@ -129,9 +111,7 @@ export default function Pedido() {
           total: serverTotal,
         },
       });
-    } catch {
-      // Non-blocking — order is saved even if email fails
-    }
+    } catch { /* non-blocking */ }
 
     const itemsList = (serverItems as any[]).map((i: any) => `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.unitPrice * i.quantity)}`).join('\n');
     const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(serverTotal)}`;
@@ -139,25 +119,34 @@ export default function Pedido() {
 
     clearCart();
     setHoneypot('');
-    setSuccess(orderId.slice(0, 8).toUpperCase());
+    setSuccess({ id: orderId.slice(0, 8).toUpperCase(), name: form.name.trim(), date: form.date, time: form.time });
     setCooldown(30);
     setLoading(false);
   };
 
   if (success) {
+    const waMsg = `¡Hola! Acabo de hacer el pedido #${success.id} en la web. Mi nombre es ${success.name}. Retiro el ${success.date} en horario ${success.time}.`;
     return (
       <section className="pt-[72px]">
         <div className="py-20 px-4">
           <div className="container max-w-lg text-center">
             <div className="text-5xl mb-4">🎉</div>
             <h1 className="font-display text-3xl font-bold text-espresso">¡Pedido enviado con éxito!</h1>
-            <p className="text-warm-gray mt-4">Pedido #{success}</p>
-            <p className="text-warm-gray mt-2 leading-relaxed">
+            <p className="text-espresso/70 mt-4">Pedido #{success.id}</p>
+            <p className="text-espresso/70 mt-2 leading-relaxed">
               Te contactaremos por WhatsApp o teléfono para confirmar tu pedido y coordinar el pago.
             </p>
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#25D366] text-white px-8 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-[#1da851] transition-all active:scale-95"
+            >
+              💬 Enviar mensaje por WhatsApp
+            </a>
             <Link
               to="/"
-              className="inline-block mt-8 rounded-full bg-dusty-pink text-white px-8 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-mauve transition-all active:scale-95"
+              className="block mt-4 text-dusty-pink hover:text-mauve font-semibold transition-colors"
             >
               Volver al Inicio
             </Link>
@@ -173,7 +162,7 @@ export default function Pedido() {
         <div className="py-20 px-4 text-center">
           <ShoppingBag size={64} className="mx-auto text-warm-gray/30 mb-4" />
           <h1 className="font-display text-3xl font-bold text-espresso">Tu carrito está vacío</h1>
-          <p className="text-warm-gray mt-3">Agregá productos desde nuestro catálogo para armar tu pedido.</p>
+          <p className="text-espresso/70 mt-3">Agregá productos desde nuestro catálogo para armar tu pedido.</p>
           <Link to="/catalogo" className="inline-block mt-6 text-dusty-pink hover:text-mauve font-semibold transition-colors">
             Ver catálogo →
           </Link>
@@ -182,19 +171,17 @@ export default function Pedido() {
     );
   }
 
-  const inputClass = 'w-full rounded-xl border border-input bg-soft-white px-4 py-3 text-sm text-espresso placeholder:text-warm-gray/60 focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 transition-all';
+  const inputBase = 'w-full rounded-xl border bg-soft-white px-4 py-3 text-sm text-espresso placeholder:text-warm-gray/60 focus:outline-none focus:ring-2 transition-all';
+  const getInputClass = (field: string) =>
+    `${inputBase} ${touched[field] && errors[field] ? 'border-red-400 focus:ring-red-300/30' : 'border-input focus:ring-dusty-pink/30'}`;
 
   return (
     <section className="pt-[72px]">
-
       <div className="py-16 md:py-20 px-4">
         <div className="container">
           <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Confirmar tu Pedido</h1>
           <SectionDivider />
-
-          <p className="text-center text-sm text-warm-gray mt-4 mb-12">
-            Retiro en local — Rosario, Santa Fe
-          </p>
+          <p className="text-center text-sm text-espresso/60 mt-4 mb-12">Retiro en local — Rosario, Santa Fe</p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {/* Form */}
@@ -202,34 +189,34 @@ export default function Pedido() {
               <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
               <div>
                 <label htmlFor="pedido-name" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nombre completo *</label>
-                <input id="pedido-name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputClass} maxLength={100} />
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                <input id="pedido-name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} onBlur={() => handleBlur('name')} className={getInputClass('name')} maxLength={100} />
+                {touched.name && errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
               <div>
                 <label htmlFor="pedido-phone" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Teléfono *</label>
-                <input id="pedido-phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} placeholder="+54 341..." maxLength={20} />
-                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+                <input id="pedido-phone" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} onBlur={() => handleBlur('phone')} className={getInputClass('phone')} placeholder="+54 341..." maxLength={20} />
+                {touched.phone && errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
               </div>
               <div>
                 <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email *</label>
-                <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputClass} maxLength={255} />
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} onBlur={() => handleBlur('email')} className={getInputClass('email')} maxLength={255} />
+                {touched.email && errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
               </div>
               <div>
                 <label htmlFor="pedido-date" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Fecha de retiro *</label>
-                <input id="pedido-date" type="date" min={getMinDate()} value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className={inputClass} />
-                {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
+                <input id="pedido-date" type="date" min={getMinDate()} value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} onBlur={() => handleBlur('date')} className={getInputClass('date')} />
+                {touched.date && errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
               </div>
               <div>
                 <label htmlFor="pedido-time" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Horario preferido *</label>
-                <select id="pedido-time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} className={inputClass}>
+                <select id="pedido-time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))} className={`${inputBase} border-input focus:ring-dusty-pink/30`}>
                   <option>Mañana (9-12)</option>
                   <option>Tarde (12-18)</option>
                 </select>
               </div>
               <div>
                 <label htmlFor="pedido-notes" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Notas adicionales</label>
-                <textarea id="pedido-notes" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputClass} min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
+                <textarea id="pedido-notes" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputBase} border-input focus:ring-dusty-pink/30 min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
                 <span className="text-xs text-warm-gray/50">{form.notes.length}/500</span>
               </div>
               <button
@@ -241,29 +228,42 @@ export default function Pedido() {
               </button>
             </form>
 
-            {/* Order summary */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-blush h-fit">
-              <h3 className="font-display text-lg font-bold text-espresso mb-4">Resumen del Pedido</h3>
-              <div className="space-y-3">
-                {items.map(item => (
-                  <div key={`${item.productId}-${item.variantId || ''}`} className="flex gap-3">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                      <ProductImage src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+            {/* Order summary - sticky */}
+            <div className="lg:sticky lg:top-[100px] self-start">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-blush">
+                <h3 className="font-display text-lg font-bold text-espresso mb-4">Resumen del Pedido</h3>
+                <div className="space-y-3">
+                  {items.map(item => (
+                    <div key={`${item.productId}-${item.variantId || ''}`} className="flex gap-3">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                        <ProductImage src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-espresso truncate">{item.productName}</p>
+                        {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
+                        <div className="flex items-center gap-2 mt-1">
+                          <button onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)} className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors">
+                            <Minus size={10} />
+                          </button>
+                          <span className="text-xs font-semibold text-espresso w-4 text-center">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)} className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors">
+                            <Plus size={10} />
+                          </button>
+                          <button onClick={() => removeFromCart(item.productId, item.variantId)} className="ml-auto p-1 text-warm-gray/40 hover:text-red-500 transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-espresso truncate">{item.productName}</p>
-                      {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
-                      <p className="text-xs text-warm-gray">x{item.quantity}</p>
-                    </div>
-                    <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="border-t border-blush mt-4 pt-4 flex items-center justify-between">
+                  <span className="font-body font-semibold text-warm-gray">Subtotal</span>
+                  <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
+                </div>
+                <p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p>
               </div>
-              <div className="border-t border-blush mt-4 pt-4 flex items-center justify-between">
-                <span className="font-body font-semibold text-warm-gray">Subtotal</span>
-                <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
-              </div>
-              <p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p>
             </div>
           </div>
         </div>
