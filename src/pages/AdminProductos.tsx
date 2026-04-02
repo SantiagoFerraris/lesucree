@@ -252,6 +252,11 @@ export default function AdminProductos() {
           <button onClick={() => setShowCategoryManager(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
             <Settings2 size={16} /> Categorías
           </button>
+          {(promoDraftCount ?? 0) > 0 && (
+            <button onClick={() => setShowPromoDrafts(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
+              📋 Borradores de promos ({promoDraftCount})
+            </button>
+          )}
           <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
             <Plus size={16} /> Agregar Producto
           </button>
