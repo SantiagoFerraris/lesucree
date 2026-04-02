@@ -320,6 +320,11 @@ function WhatsAppCTA() {
 export default function Index() {
   return (
     <>
+      <SEOHead
+        title="Le Sucrée Pastelería | Tortas Artesanales en Rosario"
+        description="Pastelería artesanal en Rosario. Tortas, tartas, cookies y boxes hechos a mano con ingredientes seleccionados. Pedidos con 48hs de anticipación."
+        path="/"
+      />
       <HeroSection />
       <TrustBadges />
       <FeaturedSection />

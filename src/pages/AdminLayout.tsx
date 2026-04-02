@@ -15,6 +15,7 @@ const navItems = [
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare, badgeKey: 'unreadMessages' as const },
   { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3, badgeKey: null },
   { to: '/admin/clientes', label: 'Clientes', icon: Users, badgeKey: null },
+  { to: '/admin/configuracion', label: 'Configuración', icon: Settings, badgeKey: null },
 ];
 
 export default function AdminLayout() {
