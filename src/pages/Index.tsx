@@ -5,11 +5,13 @@ import { Instagram, Clock, Truck, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/ProductCard";
 import SectionDivider from "@/components/SectionDivider";
+import SEOHead from "@/components/SEOHead";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
 import { useCart } from "@/contexts/CartContext";
+import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import type { Tables } from "@/integrations/supabase/types";
 
