@@ -117,6 +117,17 @@ export default function AdminMensajes() {
                             >
                               <Mail size={13} /> Responder por Email
                             </a>
+                            {(m as any).phone && (
+                              <a
+                                href={`https://wa.me/${cleanPhone((m as any).phone)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
+                              >
+                                <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
+                              </a>
+                            )}
                           </div>
                         </>
                       )}

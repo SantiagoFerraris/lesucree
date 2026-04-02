@@ -66,6 +66,7 @@ export default function Contacto() {
 
   return (
     <section className="pt-[72px]">
+      <SEOHead title="Contacto | Le Sucrée Pastelería" description="Contactanos por WhatsApp, Instagram o el formulario. Pedidos con 48hs de anticipación. Rosario, Santa Fe." path="/contacto" />
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
           <h1 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center">Contactanos</h1>
