@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_URL, WHATSAPP_NUMBER, WHATSAPP_NOTIFICATION_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
 import SectionDivider from '@/components/SectionDivider';
+import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
