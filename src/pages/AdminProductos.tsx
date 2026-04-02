@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
 import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
