@@ -375,6 +375,7 @@ export default function AdminPedidos() {
                             <option value="pending">Pendiente</option>
                             <option value="confirmed">Confirmado</option>
                             <option value="completed">Completado</option>
+                            <option value="picked_up">Retirado</option>
                             <option value="cancelled">Cancelado</option>
                           </select>
                         </div>
