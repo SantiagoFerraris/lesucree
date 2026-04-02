@@ -130,7 +130,12 @@ export default function AdminPedidos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const formatDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const formatDate = (d: string) => {
+    if (!d) return '—';
+    const dateObj = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
+    if (isNaN(dateObj.getTime())) return '—';
+    return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
 
   const getProductSummary = (items: any[]) => {
     if (!items?.length) return '';
