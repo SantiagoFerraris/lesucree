@@ -67,10 +67,12 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
 
-        {/* Price display */}
-        <p className="font-body text-base font-semibold text-espresso mt-2">
-          {minVariantPrice !== null ? `Desde ${formatPrice(minVariantPrice)}` : formatPrice(product.price)}
-        </p>
+        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) */}
+        {!compact && (
+          <p className="font-body text-base font-semibold text-espresso mt-2">
+            {minVariantPrice !== null ? `Desde ${formatPrice(minVariantPrice)}` : formatPrice(product.price)}
+          </p>
+        )}
 
         {!compact && hasVariants && (
           <div className="mt-3">
