@@ -61,34 +61,40 @@ export default function AdminAnalytics() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
 
-  const periodOrders = useMemo(() => period > 0 ? orders?.filter(o => o.created_at >= periodStart) || [] : orders || [], [orders, period, periodStart]);
-  const completedPeriod = periodOrders.filter(o => o.status === 'completed');
-  const thisMonthOrders = orders?.filter(o => o.created_at >= monthStart) || [];
-  const lastMonthOrders = orders?.filter(o => o.created_at >= lastMonthStart && o.created_at <= lastMonthEnd) || [];
-  const thisMonthCompleted = thisMonthOrders.filter(o => o.status === 'completed');
-  const lastMonthCompleted = lastMonthOrders.filter(o => o.status === 'completed');
+  // FIX BUG 1 & 3: Include all non-cancelled orders for revenue (not just completed)
+  const periodOrders = useMemo(() => {
+    const base = orders?.filter(o => o.status !== 'cancelled') || [];
+    return period > 0 ? base.filter(o => o.created_at >= periodStart) : base;
+  }, [orders, period, periodStart]);
 
-  const monthRevenue = thisMonthCompleted.reduce((s, o) => s + Number(o.total), 0);
-  const avgTicket = thisMonthCompleted.length > 0 ? monthRevenue / thisMonthCompleted.length : 0;
-  const completionRate = thisMonthOrders.length > 0 ? Math.round((thisMonthCompleted.length / thisMonthOrders.length) * 100) : 0;
-  const lastMonthRevenue = lastMonthCompleted.reduce((s, o) => s + Number(o.total), 0);
+  const thisMonthOrders = useMemo(() => orders?.filter(o => o.created_at >= monthStart && o.status !== 'cancelled') || [], [orders, monthStart]);
+  const lastMonthOrders = useMemo(() => orders?.filter(o => o.created_at >= lastMonthStart && o.created_at <= lastMonthEnd && o.status !== 'cancelled') || [], [orders, lastMonthStart, lastMonthEnd]);
+
+  const monthRevenue = thisMonthOrders.reduce((s, o) => s + Number(o.total), 0);
+  const avgTicket = thisMonthOrders.length > 0 ? monthRevenue / thisMonthOrders.length : 0;
+
+  const allMonthOrders = orders?.filter(o => o.created_at >= monthStart) || [];
+  const completedThisMonth = allMonthOrders.filter(o => o.status === 'completed' || o.status === 'picked_up').length;
+  const completionRate = allMonthOrders.length > 0 ? Math.round((completedThisMonth / allMonthOrders.length) * 100) : 0;
+
+  const lastMonthRevenue = lastMonthOrders.reduce((s, o) => s + Number(o.total), 0);
   const revChange = lastMonthRevenue > 0 ? Math.round(((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : 0;
 
-  // Revenue chart (daily)
+  // Revenue chart (daily) - all non-cancelled
   const revenueChart = useMemo(() => {
     const days = period > 0 ? period : 90;
     return Array.from({ length: Math.min(days, 60) }, (_, i) => {
       const d = new Date(now); d.setDate(d.getDate() - (days - 1 - i));
       const dateStr = d.toISOString().split('T')[0];
-      const rev = completedPeriod.filter(o => o.created_at?.startsWith(dateStr)).reduce((s, o) => s + Number(o.total), 0);
+      const rev = periodOrders.filter(o => o.created_at?.startsWith(dateStr)).reduce((s, o) => s + Number(o.total), 0);
       return { date: d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }), ingresos: rev };
     });
-  }, [completedPeriod, period]);
+  }, [periodOrders, period]);
 
   // Top products
   const topProducts = useMemo(() => {
     const map: Record<string, { name: string; count: number }> = {};
-    periodOrders.filter(o => o.status !== 'cancelled').forEach(o => {
+    periodOrders.forEach(o => {
       (o.items as any[])?.forEach((item: any) => {
         const key = item.productName || 'Desconocido';
         if (!map[key]) map[key] = { name: key, count: 0 };
@@ -101,7 +107,7 @@ export default function AdminAnalytics() {
   // Category distribution
   const categoryDist = useMemo(() => {
     const map: Record<string, number> = {};
-    periodOrders.filter(o => o.status !== 'cancelled').forEach(o => {
+    periodOrders.forEach(o => {
       (o.items as any[])?.forEach((item: any) => {
         const p = products?.find(pr => pr.id === item.productId);
         const cat = p?.category || 'otros';
@@ -226,7 +232,7 @@ export default function AdminAnalytics() {
           {isLoading ? <div className="h-8 w-24 mx-auto bg-gray-200 animate-pulse rounded" /> : (
             <>
               <p className="text-2xl font-bold text-espresso font-display">{formatPrice(monthRevenue)}</p>
-              <p className="text-xs text-warm-gray mt-1">{thisMonthOrders.length} pedidos</p>
+              <p className="text-xs text-warm-gray mt-1">{thisMonthOrders.length} {thisMonthOrders.length === 1 ? 'pedido' : 'pedidos'}</p>
             </>
           )}
         </div>
@@ -243,7 +249,7 @@ export default function AdminAnalytics() {
           {isLoading ? <div className="h-8 w-24 mx-auto bg-gray-200 animate-pulse rounded" /> : (
             <>
               <p className="text-2xl font-bold text-espresso font-display">{formatPrice(lastMonthRevenue)}</p>
-              <p className="text-xs text-warm-gray mt-1">{lastMonthOrders.length} pedidos</p>
+              <p className="text-xs text-warm-gray mt-1">{lastMonthOrders.length} {lastMonthOrders.length === 1 ? 'pedido' : 'pedidos'}</p>
             </>
           )}
         </div>

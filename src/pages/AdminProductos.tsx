@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
 import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +36,16 @@ export default function AdminProductos() {
   const [page, setPage] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showPromoDrafts, setShowPromoDrafts] = useState(false);
+
+  const { data: promoDraftCount } = useQuery({
+    queryKey: ['promo-draft-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase.from('promotions').select('*', { count: 'exact', head: true }).eq('status', 'draft') as any;
+      if (error) return 0;
+      return count || 0;
+    },
+  });
 
   const { data: categories = [] } = useCategories();
   const categoryLabels = buildCategoryLabels(categories);
@@ -241,6 +252,11 @@ export default function AdminProductos() {
           <button onClick={() => setShowCategoryManager(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
             <Settings2 size={16} /> Categorías
           </button>
+          {(promoDraftCount ?? 0) > 0 && (
+            <button onClick={() => setShowPromoDrafts(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
+              📋 Borradores de promos ({promoDraftCount})
+            </button>
+          )}
           <button onClick={openNew} className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95">
             <Plus size={16} /> Agregar Producto
           </button>
@@ -455,6 +471,8 @@ export default function AdminProductos() {
           onClose={() => setShowCategoryManager(false)}
         />
       )}
+
+      <PromoDraftsModal open={showPromoDrafts} onClose={() => setShowPromoDrafts(false)} />
     </div>
   );
 }

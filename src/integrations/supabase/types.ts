@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_actions_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Relationships: []
+      }
       business_insights: {
         Row: {
           action_label: string | null
@@ -273,6 +303,45 @@ export type Database = {
           last_price_sync?: string | null
           name?: string
           price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          description: string | null
+          discount_type: string
+          discount_value: number | null
+          id: string
+          name: string
+          product_ids: string[] | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          id?: string
+          name: string
+          product_ids?: string[] | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          id?: string
+          name?: string
+          product_ids?: string[] | null
+          status?: string
           updated_at?: string | null
         }
         Relationships: []
