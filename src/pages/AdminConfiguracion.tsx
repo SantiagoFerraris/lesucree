@@ -76,8 +76,9 @@ export default function AdminConfiguracion() {
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Solo JPG, PNG o WebP'); return; }
 
     setHeroUploading(true);
-    const ext = file.name.split('.').pop();
-    const path = `hero/hero-bg.${ext}`;
+    const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+    const optimizedFile = await resizeImageBeforeUpload(file, 1920);
+    const path = `hero/hero-bg.jpg`;
 
     // Delete existing hero images
     const { data: existingFiles } = await supabase.storage.from('site-images').list('hero');
