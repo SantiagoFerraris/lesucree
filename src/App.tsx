@@ -70,10 +70,10 @@ const App = () => (
                 {/* Public routes */}
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<Index />} />
-                  <Route path="/catalogo" element={<Catalogo />} />
-                  <Route path="/nosotros" element={<Nosotros />} />
-                  <Route path="/contacto" element={<Contacto />} />
-                  <Route path="/pedido" element={<Pedido />} />
+                  <Route path="/catalogo" element={<PublicSuspense><Catalogo /></PublicSuspense>} />
+                  <Route path="/nosotros" element={<PublicSuspense><Nosotros /></PublicSuspense>} />
+                  <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
+                  <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
                 </Route>
 
                 {/* Admin routes */}
