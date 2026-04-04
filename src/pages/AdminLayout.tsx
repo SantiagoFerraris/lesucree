@@ -96,7 +96,7 @@ export default function AdminLayout() {
       {/* Sidebar - desktop */}
       <aside className="hidden md:flex w-56 flex-col bg-espresso text-blush fixed inset-y-0 left-0">
         <div className="p-6">
-          <span className="font-script text-xl">Le Sucrée</span>
+          <span className="font-display uppercase tracking-[0.25em] text-xl">Le Sucrée</span>
           <p className="text-xs opacity-60 mt-1">Panel de Administración</p>
         </div>
         <nav className="flex-1 px-3 space-y-1">
@@ -136,7 +136,7 @@ export default function AdminLayout() {
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-espresso flex items-center justify-between px-4">
-        <span className="font-script text-lg text-blush">Le Sucrée</span>
+        <span className="font-display uppercase tracking-[0.25em] text-lg text-blush">Le Sucrée</span>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-blush p-1">
           {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
         </button>

@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="container py-10 sm:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-12">
           <div>
-            <span className="font-script text-3xl sm:text-4xl">Le Sucrée</span>
+            <span className="font-display uppercase tracking-[0.25em] text-3xl sm:text-4xl">Le Sucrée</span>
             <p className="font-body text-sm mt-2 opacity-80">Pastelería Artesanal</p>
           </div>
           <div className="flex flex-col gap-3">
