@@ -209,7 +209,7 @@ function AboutPreview() {
           </div>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Historia</span>
-            <h2 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso mt-3 leading-tight">
+            <h2 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso mt-3 leading-tight">
               Hecho a mano, con pasión
             </h2>
             <p className="text-espresso/70 mt-4 leading-relaxed">
