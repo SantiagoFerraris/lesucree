@@ -63,7 +63,7 @@ function HeroSection() {
       <div className="container relative z-10 py-24 md:py-32 px-4">
         <div className="max-w-xl">
           <h1 className="text-espresso">
-            <span className="font-display uppercase tracking-[0.25em] text-[3rem] sm:text-[3.5rem] md:text-[4rem] leading-none block">
+            <span className="font-script text-[3rem] sm:text-[3.5rem] md:text-[4rem] leading-none block">
               {heroTitle}
             </span>
             <span className="font-body text-[1rem] sm:text-[1.1rem] md:text-[1.2rem] uppercase tracking-[0.2em] text-espresso mt-2 block">
