@@ -16,7 +16,7 @@ export default function Nosotros() {
 
   return (
     <section className="pt-[72px]">
-      <SEOHead title="Nosotros | Le Sucrée Pastelería" description="Conocé la historia de Le Sucrée, pastelería artesanal en Rosario. Elaboramos cada pieza con ingredientes seleccionados y mucho amor." path="/nosotros" />
+      <SEOHead title="Historia | Le Sucrée Pastelería" description="Conocé la historia de Le Sucrée, pastelería artesanal en Rosario. Elaboramos cada pieza con ingredientes seleccionados y mucho amor." path="/nosotros" />
       {/* Hero */}
       <div className="bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4">
         <div className="container text-center">
