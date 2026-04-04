@@ -251,7 +251,7 @@ function InstagramSection() {
         <h2
           className={`font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          Seguinos en Instagram
+          Seguime en Instagram
         </h2>
         <SectionDivider />
         <div className="grid grid-cols-3 gap-1 mt-6 max-w-4xl mx-auto">
