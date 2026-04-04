@@ -102,10 +102,10 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
             </span>
             <button
               onClick={handleAdd}
-              className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95 ${
+              className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-5 py-2.5 rounded-full border-[1.5px] transition-all duration-300 active:scale-95 ${
                 added
-                  ? 'bg-sage text-white'
-                  : 'bg-dusty-pink/10 text-dusty-pink hover:bg-dusty-pink hover:text-white'
+                  ? 'bg-sage text-white border-sage'
+                  : 'border-espresso text-espresso hover:bg-espresso hover:text-white'
               }`}
             >
                             {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
