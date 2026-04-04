@@ -38,7 +38,7 @@ function HeroSection() {
   const { data: settings } = useSiteSettings();
   const bgImage = heroImageUrl || null;
   const heroTitle = settings?.hero_title || 'Le Sucrée';
-  const heroSubtitle = settings?.hero_subtitle || 'Pastelería';
+  const heroSubtitle = settings?.hero_subtitle || 'Pastelería Artesanal';
   const heroText = settings?.hero_text || 'Endulzar tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
 
   return (
