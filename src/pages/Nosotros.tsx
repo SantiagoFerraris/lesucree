@@ -20,7 +20,7 @@ export default function Nosotros() {
       {/* Hero */}
       <div className="bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4">
         <div className="container text-center">
-          <h1 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso">Nuestra Historia</h1>
+          <h1 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso">Historia</h1>
           <SectionDivider />
         </div>
       </div>
