@@ -297,9 +297,9 @@ function WhatsAppCTA() {
   return (
     <section ref={reveal.ref} className="py-16 md:py-20 px-4 bg-blush">
       <div className={`container text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-        <h2 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso">¿Necesitás algo especial?</h2>
+        <h2 className="font-script text-[28px] sm:text-[36px] md:text-[48px] text-espresso">¿Querés hacer un pedido o tenés alguna consulta?</h2>
         <p className="font-body text-base text-espresso/70 mt-3 max-w-lg mx-auto">
-          Tortas personalizadas, pedidos especiales o consultas — escribinos y te ayudamos
+          Tortas personalizadas, pedidos especiales o consultas — Escribime por WhatsApp y te respondo lo antes posible.
         </p>
         <a
           href={WHATSAPP_URL}
