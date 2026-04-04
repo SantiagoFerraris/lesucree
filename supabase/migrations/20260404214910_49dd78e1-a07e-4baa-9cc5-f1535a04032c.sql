@@ -1,0 +1,2 @@
+UPDATE site_settings SET value = 'Pastelería Artesanal' WHERE key = 'hero_subtitle';
+UPDATE site_settings SET value = 'Endulzar tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes' WHERE key = 'hero_text';
