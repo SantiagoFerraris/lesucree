@@ -146,7 +146,7 @@ function FeaturedSection() {
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Favoritos
         </h2>
