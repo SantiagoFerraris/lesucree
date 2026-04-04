@@ -113,7 +113,7 @@ export default function Contacto() {
         
               <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
                       <div className="container">
-                                <h1 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center">Contactanos</h1>
+                                <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Contacto</h1>
                                 <SectionDivider />
                       
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 mt-8 sm:mt-12 max-w-4xl mx-auto">
