@@ -6,8 +6,8 @@ import tiramisuImg from '@/assets/torta_1_tiramisu.jpg';
 
 const values = [
   { icon: ChefHat, title: 'Artesanal', desc: 'Cada creación es elaborada a mano, con dedicación y atención al detalle.' },
-  { icon: Heart, title: 'Con Amor', desc: 'Ponemos pasión en cada receta, porque creemos que se siente en cada bocado.' },
-  { icon: Leaf, title: 'Ingredientes Naturales', desc: 'Seleccionamos los mejores ingredientes para garantizar calidad y frescura.' },
+  { icon: Heart, title: 'Con Amor', desc: 'En cada receta dejo un pedacito de mí, porque sé que mis tortas acompañan momentos únicos y especiales.' },
+  { icon: Leaf, title: 'Ingredientes Naturales', desc: 'Elijo uno a uno ingredientes frescos y nobles, para que cada bocado se sienta como un abrazo dulce.' },
 ];
 
 export default function Nosotros() {

@@ -7,7 +7,7 @@ import logoImg from '@/assets/logo_lesucree.png';
 const links = [
   { to: '/', label: 'Inicio' },
   { to: '/catalogo', label: 'Catálogo' },
-  { to: '/nosotros', label: 'Nosotros' },
+  { to: '/nosotros', label: 'Historia' },
   { to: '/contacto', label: 'Contacto' },
 ];
 
