@@ -38,7 +38,7 @@ function HeroSection() {
   const { data: settings } = useSiteSettings();
   const bgImage = heroImageUrl || null;
   const heroTitle = settings?.hero_title || 'Le Sucrée';
-  const heroSubtitle = settings?.hero_subtitle || 'Pastelería';
+  const heroSubtitle = settings?.hero_subtitle || 'Pastelería Artesanal';
   const heroText = settings?.hero_text || 'Endulzar tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
 
   return (
@@ -63,7 +63,7 @@ function HeroSection() {
       <div className="container relative z-10 py-24 md:py-32 px-4">
         <div className="max-w-xl">
           <h1 className="text-espresso">
-            <span className="font-display uppercase tracking-[0.25em] text-[3rem] sm:text-[3.5rem] md:text-[4rem] leading-none block">
+            <span className="font-script text-[3rem] sm:text-[3.5rem] md:text-[4rem] leading-none block">
               {heroTitle}
             </span>
             <span className="font-body text-[1rem] sm:text-[1.1rem] md:text-[1.2rem] uppercase tracking-[0.2em] text-espresso mt-2 block">
@@ -146,7 +146,7 @@ function FeaturedSection() {
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
           Favoritos
         </h2>
@@ -209,7 +209,7 @@ function AboutPreview() {
           </div>
           <div>
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Historia</span>
-            <h2 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso mt-3 leading-tight">
+            <h2 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso mt-3 leading-tight">
               Hecho a mano, con pasión
             </h2>
             <p className="text-espresso/70 mt-4 leading-relaxed">
@@ -249,9 +249,9 @@ function InstagramSection() {
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
         <h2
-          className={`font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+          className={`font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          Seguime en Instagram
+          Seguinos en Instagram
         </h2>
         <SectionDivider />
         <div className="grid grid-cols-3 gap-1 mt-6 max-w-4xl mx-auto">
@@ -297,7 +297,7 @@ function WhatsAppCTA() {
   return (
     <section ref={reveal.ref} className="py-16 md:py-20 px-4 bg-blush">
       <div className={`container text-center ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-        <h2 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso">¿Querés hacer un pedido o tenés alguna consulta?</h2>
+        <h2 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso">¿Querés hacer un pedido o tenés alguna consulta?</h2>
         <p className="font-body text-base text-espresso/70 mt-3 max-w-lg mx-auto">
           Tortas personalizadas, pedidos especiales o consultas — Escribime por WhatsApp y te respondo lo antes posible.
         </p>
