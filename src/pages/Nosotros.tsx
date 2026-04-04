@@ -6,8 +6,8 @@ import tiramisuImg from '@/assets/torta_1_tiramisu.jpg';
 
 const values = [
   { icon: ChefHat, title: 'Artesanal', desc: 'Cada creación es elaborada a mano, con dedicación y atención al detalle.' },
-  { icon: Heart, title: 'Con Amor', desc: 'Ponemos pasión en cada receta, porque creemos que se siente en cada bocado.' },
-  { icon: Leaf, title: 'Ingredientes Naturales', desc: 'Seleccionamos los mejores ingredientes para garantizar calidad y frescura.' },
+  { icon: Heart, title: 'Con Amor', desc: 'En cada receta dejo un pedacito de mí, porque sé que mis tortas acompañan momentos únicos y especiales.' },
+  { icon: Leaf, title: 'Ingredientes Naturales', desc: 'Elijo uno a uno ingredientes frescos y nobles, para que cada bocado se sienta como un abrazo dulce.' },
 ];
 
 export default function Nosotros() {
@@ -16,11 +16,11 @@ export default function Nosotros() {
 
   return (
     <section className="pt-[72px]">
-      <SEOHead title="Nosotros | Le Sucrée Pastelería" description="Conocé la historia de Le Sucrée, pastelería artesanal en Rosario. Elaboramos cada pieza con ingredientes seleccionados y mucho amor." path="/nosotros" />
+      <SEOHead title="Historia | Le Sucrée Pastelería" description="Conocé la historia de Le Sucrée, pastelería artesanal en Rosario. Elaboramos cada pieza con ingredientes seleccionados y mucho amor." path="/nosotros" />
       {/* Hero */}
       <div className="bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4">
         <div className="container text-center">
-          <h1 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso">Nuestra Historia</h1>
+          <h1 className="font-display uppercase tracking-[0.25em] text-[28px] sm:text-[36px] md:text-[48px] text-espresso">Historia</h1>
           <SectionDivider />
         </div>
       </div>

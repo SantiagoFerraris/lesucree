@@ -16,7 +16,7 @@ export default function Footer() {
             {[
               { to: '/', label: 'Inicio' },
               { to: '/catalogo', label: 'Catálogo' },
-              { to: '/nosotros', label: 'Nosotros' },
+              { to: '/nosotros', label: 'Historia' },
               { to: '/contacto', label: 'Contacto' },
             ].map(l => (
               <Link key={l.to} to={l.to} className="text-sm opacity-80 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded">
