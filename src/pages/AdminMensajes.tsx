@@ -210,18 +210,14 @@ export default function AdminMensajes() {
                               <Copy size={12} />
                               Copiar respuesta
                             </button>
-                            {m.email && (
-                              <a
-                                href={`https://wa.me/${cleanPhone(m.email)}?text=${encodeURIComponent(suggestion.text)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={e => e.stopPropagation()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#25D366] text-white text-xs font-semibold hover:bg-[#20BD5A] transition-colors"
-                              >
-                                <MessageCircle size={12} />
-                                Abrir WhatsApp
-                              </a>
-                            )}
+                            <a
+                              href={`mailto:${m.email}?subject=Re: Tu consulta en Le Sucrée&body=${encodeURIComponent(suggestion.text)}`}
+                              onClick={e => e.stopPropagation()}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-espresso/20 text-espresso text-xs font-semibold hover:bg-cream transition-colors"
+                            >
+                              <Mail size={12} />
+                              Responder por email
+                            </a>
                           </div>
                         </div>
                       )}
