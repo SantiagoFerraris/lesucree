@@ -183,6 +183,9 @@ export default function AdminDashboard() {
         dismissed: dismissedIds[i.id] && (now - dismissedIds[i.id]) < 7 * 86400000,
       }));
       setInsights(filtered);
+      // Generate retention insights
+      const retention = generateRetentionInsights(orders, products, new Date());
+      setRetentionInsights(retention);
       setAnalysisRunning(false);
       setHasAnalyzed(true);
     }, 500);
