@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, RefreshCw, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw, X, CalendarDays } from 'lucide-react';
 import type { SmartInsight } from '@/lib/insightEngine';
 import ActionConfirmModal from './ActionConfirmModal';
 
