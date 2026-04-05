@@ -4,7 +4,7 @@ import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lu
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
-import { generateUrgentAlerts, generateDailySummary, generateInsights } from '@/lib/insightEngine';
+import { generateUrgentAlerts, generateDailySummary, generateInsights, generateSeasonAlerts } from '@/lib/insightEngine';
 import type { SmartInsight } from '@/lib/insightEngine';
 import UrgentAlertsLayer from '@/components/admin/UrgentAlerts';
 import DailySummaryLayer from '@/components/admin/DailySummary';
@@ -170,7 +170,9 @@ export default function AdminDashboard() {
     if (!orders || !products) return;
     setAnalysisRunning(true);
     setTimeout(() => {
-      const newInsights = generateInsights(orders, products, unreadMessages || [], new Date());
+      const baseInsights = generateInsights(orders, products, unreadMessages || [], new Date());
+      const seasonalInsights = generateSeasonAlerts(new Date());
+      const newInsights = [...baseInsights, ...seasonalInsights];
       // Restore dismissed state from localStorage
       const dismissedIds = JSON.parse(localStorage.getItem('dismissed_insights') || '{}');
       const now = Date.now();
