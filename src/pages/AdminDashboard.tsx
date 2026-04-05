@@ -170,7 +170,9 @@ export default function AdminDashboard() {
     if (!orders || !products) return;
     setAnalysisRunning(true);
     setTimeout(() => {
-      const newInsights = generateInsights(orders, products, unreadMessages || [], new Date());
+      const baseInsights = generateInsights(orders, products, unreadMessages || [], new Date());
+      const seasonalInsights = generateSeasonAlerts(new Date());
+      const newInsights = [...baseInsights, ...seasonalInsights];
       // Restore dismissed state from localStorage
       const dismissedIds = JSON.parse(localStorage.getItem('dismissed_insights') || '{}');
       const now = Date.now();

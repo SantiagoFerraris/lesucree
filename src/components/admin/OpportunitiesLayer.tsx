@@ -77,7 +77,11 @@ export default function OpportunitiesLayer({ insights, running, onAnalyze, onDis
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-xs" title={priority.text} aria-label={`Prioridad: ${priority.text}`}>{priority.emoji}</span>
+                            {insight.isSeasonal ? (
+                              <CalendarDays size={13} className="text-espresso flex-shrink-0" />
+                            ) : (
+                              <span className="text-xs" title={priority.text} aria-label={`Prioridad: ${priority.text}`}>{priority.emoji}</span>
+                            )}
                             <p className="text-xs font-semibold text-espresso leading-tight">{insight.title}</p>
                           </div>
                           <p className="text-[11px] text-warm-gray leading-relaxed">{insight.description}</p>
