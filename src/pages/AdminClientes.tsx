@@ -267,15 +267,16 @@ export default function AdminClientes() {
                   <div className="flex items-center justify-between p-4 hover:bg-cream/30 transition-colors">
                     <div className="flex items-center gap-3 flex-wrap min-w-0">
                       <Checkbox checked={selected.has(key)} onCheckedChange={() => toggleSelect(key)} onClick={e => e.stopPropagation()} />
-                      <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
-                        <span className="font-semibold text-sm text-espresso">{c.name}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
-                        <span className="text-xs text-warm-gray">{c.email}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
-                          {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
-                        </span>
-                        <span className="font-semibold text-sm text-espresso">{formatPrice(c.totalSpent)}</span>
-                      </div>
+                       <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
+                         <span className="font-semibold text-sm text-espresso">{c.name}</span>
+                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
+                         <span className="text-xs text-warm-gray">{c.email}</span>
+                         <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
+                           {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
+                         </span>
+                         <span className="font-semibold text-sm text-espresso">{formatPrice(c.totalSpent)}</span>
+                         <span className="text-[10px] text-warm-gray/70">Última compra: {formatDate(c.lastOrder)}</span>
+                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button onClick={e => { e.stopPropagation(); handleDeleteClick(c); }} className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar cliente">
