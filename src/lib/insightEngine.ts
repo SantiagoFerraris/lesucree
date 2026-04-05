@@ -680,3 +680,100 @@ function formatDateShort(d: string): string {
   if (isNaN(dateObj.getTime())) return '—';
   return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 }
+
+// ==================== RETENTION INSIGHTS ====================
+export interface RetentionInsight {
+  id: string;
+  type: 'first_timer_followup' | 'inactive_client' | 'frequent_client';
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  product: string;
+  daysSince: number;
+  orderCount: number;
+  totalSpent: number;
+  whatsappMessage: string;
+}
+
+export function generateRetentionInsights(orders: any[], products: any[], today: Date): RetentionInsight[] {
+  const insights: RetentionInsight[] = [];
+  const thirtyDaysAgo = today.getTime() - 30 * 86400000;
+  const sevenDaysAgo = today.getTime() - 7 * 86400000;
+
+  // Build client map
+  const clientMap: Record<string, { name: string; phone: string; email: string; orders: any[]; lastOrderDate: number; firstOrderDate: number; totalSpent: number }> = {};
+  orders.filter(o => o.status !== 'cancelled').forEach(o => {
+    const key = o.customer_email;
+    const ts = new Date(o.created_at).getTime();
+    if (!clientMap[key]) {
+      clientMap[key] = { name: o.customer_name, phone: o.customer_phone, email: o.customer_email, orders: [], lastOrderDate: ts, firstOrderDate: ts, totalSpent: 0 };
+    }
+    clientMap[key].orders.push(o);
+    clientMap[key].totalSpent += Number(o.total);
+    if (ts > clientMap[key].lastOrderDate) clientMap[key].lastOrderDate = ts;
+    if (ts < clientMap[key].firstOrderDate) clientMap[key].firstOrderDate = ts;
+  });
+
+  // Find a featured product name for suggestion messages
+  const featuredProduct = products.find(p => p.featured && p.active)?.name || products.find(p => p.active)?.name || 'nuestras novedades';
+
+  for (const client of Object.values(clientMap)) {
+    const daysSinceLast = Math.floor((today.getTime() - client.lastOrderDate) / 86400000);
+    const lastOrder = client.orders.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+    const lastProduct = lastOrder ? ((lastOrder.items as any[])?.[0]?.productName || 'tu pedido') : 'tu pedido';
+
+    // First-timer follow-up: 1 order, first order > 7 days ago, hasn't ordered again
+    if (client.orders.length === 1 && client.firstOrderDate < sevenDaysAgo && daysSinceLast > 7 && daysSinceLast <= 30) {
+      insights.push({
+        id: `retention-first-${client.email}`,
+        type: 'first_timer_followup',
+        clientName: client.name,
+        clientPhone: client.phone,
+        clientEmail: client.email,
+        product: lastProduct,
+        daysSince: daysSinceLast,
+        orderCount: 1,
+        totalSpent: client.totalSpent,
+        whatsappMessage: `¡Hola ${client.name}! Soy de Le Sucrée 🧁 ¿Qué tal estuvo tu ${lastProduct}? Te cuento que esta semana tenemos ${featuredProduct}. ¡Te esperamos!`,
+      });
+    }
+
+    // Inactive client: 1 order, > 30 days ago
+    if (client.orders.length === 1 && daysSinceLast > 30) {
+      insights.push({
+        id: `retention-inactive-${client.email}`,
+        type: 'inactive_client',
+        clientName: client.name,
+        clientPhone: client.phone,
+        clientEmail: client.email,
+        product: lastProduct,
+        daysSince: daysSinceLast,
+        orderCount: 1,
+        totalSpent: client.totalSpent,
+        whatsappMessage: `¡Hola ${client.name}! Desde Le Sucrée te extrañamos 🤎 Hace un tiempo probaste ${lastProduct}. Tenemos novedades que te van a encantar. ¡Escribinos para tu próximo pedido!`,
+      });
+    }
+
+    // Frequent client badge: 2+ orders (just for display, not a "problem")
+    if (client.orders.length >= 2) {
+      insights.push({
+        id: `retention-frequent-${client.email}`,
+        type: 'frequent_client',
+        clientName: client.name,
+        clientPhone: client.phone,
+        clientEmail: client.email,
+        product: lastProduct,
+        daysSince: daysSinceLast,
+        orderCount: client.orders.length,
+        totalSpent: client.totalSpent,
+        whatsappMessage: `¡Hola ${client.name}! Desde Le Sucrée queremos agradecerte por elegirnos siempre 🤎 ¡Sos parte de la familia! Para tu próximo pedido consultanos por ${featuredProduct}.`,
+      });
+    }
+  }
+
+  // Sort: first_timer_followup first, then inactive, then frequent
+  const typeOrder = { first_timer_followup: 0, inactive_client: 1, frequent_client: 2 };
+  insights.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
+
+  return insights;
+}

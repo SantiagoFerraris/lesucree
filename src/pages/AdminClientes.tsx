@@ -16,23 +16,23 @@ const PAGE_SIZE = 10;
 
 type Segment = 'all' | 'loyal' | 'recurring' | 'new' | 'inactive';
 const SEGMENT_OPTIONS: { value: Segment; label: string }[] = [
-  { value: 'all', label: 'Todos los segmentos' },
-  { value: 'loyal', label: 'Fieles' },
-  { value: 'recurring', label: 'Recurrentes' },
+  { value: 'all', label: 'Todos' },
   { value: 'new', label: 'Nuevos' },
+  { value: 'recurring', label: 'Frecuentes' },
+  { value: 'loyal', label: 'Fieles' },
   { value: 'inactive', label: 'Inactivos' },
 ];
 const SEGMENT_STYLES: Record<string, string> = {
-  loyal: 'bg-green-100 text-green-700',
-  recurring: 'bg-blue-100 text-blue-700',
-  new: 'bg-gray-100 text-gray-600',
-  inactive: 'bg-yellow-100 text-yellow-700',
+  loyal: 'bg-amber-100 text-amber-700',
+  recurring: 'bg-amber-100 text-amber-700',
+  new: 'bg-green-100 text-green-700',
+  inactive: 'bg-red-100 text-red-700',
 };
 const SEGMENT_LABELS: Record<string, string> = {
-  loyal: '🟢 Fiel',
-  recurring: '🔵 Recurrente',
-  new: '⚪ Nuevo',
-  inactive: '🟡 Inactivo',
+  loyal: '⭐ Fiel',
+  recurring: '🔁 Frecuente',
+  new: '🟢 Nuevo',
+  inactive: '🔴 Inactivo',
 };
 
 const MSG_TEMPLATES = [
@@ -267,15 +267,16 @@ export default function AdminClientes() {
                   <div className="flex items-center justify-between p-4 hover:bg-cream/30 transition-colors">
                     <div className="flex items-center gap-3 flex-wrap min-w-0">
                       <Checkbox checked={selected.has(key)} onCheckedChange={() => toggleSelect(key)} onClick={e => e.stopPropagation()} />
-                      <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
-                        <span className="font-semibold text-sm text-espresso">{c.name}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
-                        <span className="text-xs text-warm-gray">{c.email}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
-                          {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
-                        </span>
-                        <span className="font-semibold text-sm text-espresso">{formatPrice(c.totalSpent)}</span>
-                      </div>
+                       <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
+                         <span className="font-semibold text-sm text-espresso">{c.name}</span>
+                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
+                         <span className="text-xs text-warm-gray">{c.email}</span>
+                         <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
+                           {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
+                         </span>
+                         <span className="font-semibold text-sm text-espresso">{formatPrice(c.totalSpent)}</span>
+                         <span className="text-[10px] text-warm-gray/70">Última compra: {formatDate(c.lastOrder)}</span>
+                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button onClick={e => { e.stopPropagation(); handleDeleteClick(c); }} className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar cliente">

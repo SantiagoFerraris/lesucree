@@ -4,11 +4,12 @@ import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lu
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
-import { generateUrgentAlerts, generateDailySummary, generateInsights, generateSeasonAlerts } from '@/lib/insightEngine';
-import type { SmartInsight } from '@/lib/insightEngine';
+import { generateUrgentAlerts, generateDailySummary, generateInsights, generateSeasonAlerts, generateRetentionInsights } from '@/lib/insightEngine';
+import type { SmartInsight, RetentionInsight } from '@/lib/insightEngine';
 import UrgentAlertsLayer from '@/components/admin/UrgentAlerts';
 import DailySummaryLayer from '@/components/admin/DailySummary';
 import OpportunitiesLayer from '@/components/admin/OpportunitiesLayer';
+import RetentionLayer from '@/components/admin/RetentionLayer';
 import ActionHistoryModal from '@/components/admin/ActionHistoryModal';
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -141,6 +142,7 @@ export default function AdminDashboard() {
 
   // ==================== SMART ASSISTANT ====================
   const [insights, setInsights] = useState<SmartInsight[]>([]);
+  const [retentionInsights, setRetentionInsights] = useState<RetentionInsight[]>([]);
   const [analysisRunning, setAnalysisRunning] = useState(false);
   const [summary, setSummary] = useState<ReturnType<typeof generateDailySummary> | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -181,6 +183,9 @@ export default function AdminDashboard() {
         dismissed: dismissedIds[i.id] && (now - dismissedIds[i.id]) < 7 * 86400000,
       }));
       setInsights(filtered);
+      // Generate retention insights
+      const retention = generateRetentionInsights(orders, products, new Date());
+      setRetentionInsights(retention);
       setAnalysisRunning(false);
       setHasAnalyzed(true);
     }, 500);
@@ -357,6 +362,9 @@ export default function AdminDashboard() {
         onLogAction={logAction}
         onRefresh={refreshAll}
       />
+
+      {/* Layer 4: Client Retention */}
+      <RetentionLayer insights={retentionInsights} />
 
       {/* Action History Link */}
       <div className="text-center mt-2 mb-8">
