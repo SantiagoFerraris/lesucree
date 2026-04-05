@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2, Search, CheckCircle, Circle, Mail, MessageCircle } from 'lucide-react';
+import { Trash2, Search, CheckCircle, Circle, Mail, MessageCircle, Lightbulb, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { generateReplySuggestion } from '@/lib/messageHelper';
+import { buildWhatsAppUrl } from '@/lib/insightEngine';
 
 function cleanPhone(phone: string): string {
   const digits = phone.replace(/[\s\-()]/g, '');
@@ -14,6 +16,7 @@ function cleanPhone(phone: string): string {
 export default function AdminMensajes() {
   const qc = useQueryClient();
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [suggestionOpen, setSuggestionOpen] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -25,6 +28,15 @@ export default function AdminMensajes() {
       const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ['admin-messages-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) throw error;
+      return data as any[];
     },
   });
 
@@ -60,6 +72,22 @@ export default function AdminMensajes() {
 
   const unreadCount = messages?.filter(m => !(m as any).read).length ?? 0;
 
+  const toggleSuggestion = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSuggestionOpen(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleCopyReply = (text: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    toast.success('Respuesta copiada al portapapeles ✓', { duration: 3000 });
+  };
+
   return (
     <div>
       <h2 className="font-display text-2xl font-bold text-espresso mb-2">Mensajes</h2>
@@ -80,66 +108,125 @@ export default function AdminMensajes() {
           <div className="space-y-3">
             {paginated.map(m => {
               const isRead = (m as any).read;
+              const isExpanded = expanded === m.id;
+              const isSuggestionVisible = suggestionOpen.has(m.id);
+              const suggestion = isExpanded && products ? generateReplySuggestion(m.message, products) : null;
+
               return (
                 <div
                   key={m.id}
-                  className={`bg-white rounded-xl p-4 shadow-sm border cursor-pointer hover:shadow-md transition-shadow ${isRead ? 'border-gray-100' : 'border-dusty-pink/30 bg-blush/10'}`}
+                  className={`bg-white rounded-xl shadow-sm border cursor-pointer hover:shadow-md transition-shadow ${isRead ? 'border-gray-100' : 'border-dusty-pink/30 bg-blush/10'}`}
                   onClick={() => {
-                    setExpanded(expanded === m.id ? null : m.id);
+                    setExpanded(isExpanded ? null : m.id);
                     if (!isRead) toggleReadMutation.mutate({ id: m.id, read: true });
                   }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={e => { e.stopPropagation(); toggleReadMutation.mutate({ id: m.id, read: !isRead }); }}
-                          className="text-warm-gray hover:text-dusty-pink transition-colors flex-shrink-0"
-                          title={isRead ? 'Marcar como no leído' : 'Marcar como leído'}
-                        >
-                          {isRead ? <CheckCircle size={16} className="text-sage" /> : <Circle size={16} />}
-                        </button>
-                        <span className={`font-semibold text-sm ${isRead ? 'text-warm-gray' : 'text-espresso'}`}>{m.name}</span>
-                        <span className="text-xs text-warm-gray">{m.email}</span>
-                      </div>
-                      <p className="text-sm text-warm-gray mt-1 truncate ml-7">
-                        {expanded === m.id ? '' : m.message.slice(0, 100) + (m.message.length > 100 ? '...' : '')}
-                      </p>
-                      {expanded === m.id && (
-                        <>
-                          <p className="text-sm text-espresso mt-2 whitespace-pre-wrap ml-7">{m.message}</p>
-                          {/* Reply buttons */}
-                          <div className="flex gap-2 ml-7 mt-3">
-                            <a
-                              href={`mailto:${m.email}?subject=Re: Mensaje de contacto - Le Sucrée`}
-                              onClick={e => e.stopPropagation()}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
-                            >
-                              <Mail size={13} /> Responder por Email
-                            </a>
-                            {(m as any).phone && (
+                  <div className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={e => { e.stopPropagation(); toggleReadMutation.mutate({ id: m.id, read: !isRead }); }}
+                            className="text-warm-gray hover:text-dusty-pink transition-colors flex-shrink-0"
+                            title={isRead ? 'Marcar como no leído' : 'Marcar como leído'}
+                          >
+                            {isRead ? <CheckCircle size={16} className="text-sage" /> : <Circle size={16} />}
+                          </button>
+                          <span className={`font-semibold text-sm ${isRead ? 'text-warm-gray' : 'text-espresso'}`}>{m.name}</span>
+                          <span className="text-xs text-warm-gray">{m.email}</span>
+                        </div>
+                        <p className="text-sm text-warm-gray mt-1 truncate ml-7">
+                          {isExpanded ? '' : m.message.slice(0, 100) + (m.message.length > 100 ? '...' : '')}
+                        </p>
+                        {isExpanded && (
+                          <>
+                            <p className="text-sm text-espresso mt-2 whitespace-pre-wrap ml-7">{m.message}</p>
+                            {/* Reply buttons */}
+                            <div className="flex gap-2 ml-7 mt-3">
                               <a
-                                href={`https://wa.me/${cleanPhone((m as any).phone)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href={`mailto:${m.email}?subject=Re: Mensaje de contacto - Le Sucrée`}
                                 onClick={e => e.stopPropagation()}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
                               >
-                                <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
+                                <Mail size={13} /> Responder por Email
+                              </a>
+                              {(m as any).phone && (
+                                <a
+                                  href={`https://wa.me/${cleanPhone((m as any).phone)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
+                                >
+                                  <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
+                                </a>
+                              )}
+                            </div>
+                          </>
+                        )}
+                        <span className="text-xs text-warm-gray/60 mt-2 block ml-7">{formatDate(m.created_at)}</span>
+                      </div>
+                      <button
+                        onClick={e => { e.stopPropagation(); setDeleteConfirm(m.id); }}
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-warm-gray hover:text-red-500 transition-colors ml-3"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Smart Reply Suggestion */}
+                  {isExpanded && suggestion && (
+                    <div className="border-t border-gray-100 mx-4 mb-3">
+                      <button
+                        onClick={e => toggleSuggestion(m.id, e)}
+                        className="flex items-center gap-1.5 py-2.5 text-xs font-semibold text-espresso/70 hover:text-espresso transition-colors w-full text-left"
+                      >
+                        <Lightbulb size={13} className="text-amber-500" />
+                        <span>Sugerencia de respuesta</span>
+                        <span className="text-[10px] text-warm-gray/60 ml-1">— {suggestion.reason}</span>
+                        {isSuggestionVisible ? <ChevronUp size={13} className="ml-auto" /> : <ChevronDown size={13} className="ml-auto" />}
+                      </button>
+
+                      {isSuggestionVisible && (
+                        <div className="bg-cream/30 rounded-lg p-3 mb-2 animate-fade-in">
+                          <p className="text-xs text-espresso whitespace-pre-wrap leading-relaxed">{suggestion.text}</p>
+
+                          {suggestion.matchedProducts.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {suggestion.matchedProducts.slice(0, 5).map(p => (
+                                <span key={p.id} className="text-[10px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-warm-gray">
+                                  {p.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={e => handleCopyReply(suggestion.text, e)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-espresso/20 text-espresso text-xs font-semibold hover:bg-cream transition-colors"
+                            >
+                              <Copy size={12} />
+                              Copiar respuesta
+                            </button>
+                            {m.email && (
+                              <a
+                                href={`https://wa.me/${cleanPhone(m.email)}?text=${encodeURIComponent(suggestion.text)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#25D366] text-white text-xs font-semibold hover:bg-[#20BD5A] transition-colors"
+                              >
+                                <MessageCircle size={12} />
+                                Abrir WhatsApp
                               </a>
                             )}
                           </div>
-                        </>
+                        </div>
                       )}
-                      <span className="text-xs text-warm-gray/60 mt-2 block ml-7">{formatDate(m.created_at)}</span>
                     </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); setDeleteConfirm(m.id); }}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-warm-gray hover:text-red-500 transition-colors ml-3"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
+                  )}
                 </div>
               );
             })}
