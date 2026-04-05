@@ -143,6 +143,7 @@ export default function AdminDashboard() {
   // ==================== SMART ASSISTANT ====================
   const [insights, setInsights] = useState<SmartInsight[]>([]);
   const [retentionInsights, setRetentionInsights] = useState<RetentionInsight[]>([]);
+  const [analysisRunning, setAnalysisRunning] = useState(false);
   const [summary, setSummary] = useState<ReturnType<typeof generateDailySummary> | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
