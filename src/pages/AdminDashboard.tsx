@@ -363,6 +363,9 @@ export default function AdminDashboard() {
         onRefresh={refreshAll}
       />
 
+      {/* Layer 4: Client Retention */}
+      <RetentionLayer insights={retentionInsights} />
+
       {/* Action History Link */}
       <div className="text-center mt-2 mb-8">
         <button onClick={() => setShowHistory(true)} className="text-sm text-warm-gray underline underline-offset-2 hover:text-espresso transition-colors">
