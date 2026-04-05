@@ -16,23 +16,23 @@ const PAGE_SIZE = 10;
 
 type Segment = 'all' | 'loyal' | 'recurring' | 'new' | 'inactive';
 const SEGMENT_OPTIONS: { value: Segment; label: string }[] = [
-  { value: 'all', label: 'Todos los segmentos' },
-  { value: 'loyal', label: 'Fieles' },
-  { value: 'recurring', label: 'Recurrentes' },
+  { value: 'all', label: 'Todos' },
   { value: 'new', label: 'Nuevos' },
+  { value: 'recurring', label: 'Frecuentes' },
+  { value: 'loyal', label: 'Fieles' },
   { value: 'inactive', label: 'Inactivos' },
 ];
 const SEGMENT_STYLES: Record<string, string> = {
-  loyal: 'bg-green-100 text-green-700',
-  recurring: 'bg-blue-100 text-blue-700',
-  new: 'bg-gray-100 text-gray-600',
-  inactive: 'bg-yellow-100 text-yellow-700',
+  loyal: 'bg-amber-100 text-amber-700',
+  recurring: 'bg-amber-100 text-amber-700',
+  new: 'bg-green-100 text-green-700',
+  inactive: 'bg-red-100 text-red-700',
 };
 const SEGMENT_LABELS: Record<string, string> = {
-  loyal: '🟢 Fiel',
-  recurring: '🔵 Recurrente',
-  new: '⚪ Nuevo',
-  inactive: '🟡 Inactivo',
+  loyal: '⭐ Fiel',
+  recurring: '🔁 Frecuente',
+  new: '🟢 Nuevo',
+  inactive: '🔴 Inactivo',
 };
 
 const MSG_TEMPLATES = [
