@@ -5,10 +5,11 @@ export interface SmartInsight {
   priority: 'high' | 'medium' | 'low';
   title: string;
   description: string;
-  actionType: 'whatsapp' | 'product_actions' | 'promo_draft' | 'production_list' | 'navigate';
+  actionType: 'whatsapp' | 'product_actions' | 'promo_draft' | 'production_list' | 'navigate' | 'seasonal';
   actionLabel: string;
   actionData?: any;
   dismissed?: boolean;
+  isSeasonal?: boolean;
 }
 
 export interface UrgentAlert {
@@ -124,16 +125,36 @@ export function generateUrgentAlerts(orders: any[], messages: any[], now: Date):
   return alerts;
 }
 
+// ==================== HELPER: Early stage detection ====================
+function isEarlyStage(orders: any[], now: Date): boolean {
+  const nonCancelled = orders.filter(o => o.status !== 'cancelled');
+  if (nonCancelled.length === 0) return true;
+
+  // Fewer than 10 unique clients
+  const uniqueClients = new Set(nonCancelled.map(o => o.customer_email));
+  if (uniqueClients.size < 10) return true;
+
+  // Fewer than 2 weeks of order data
+  const dates = nonCancelled.map(o => new Date(o.created_at).getTime()).filter(t => !isNaN(t));
+  if (dates.length === 0) return true;
+  const oldest = Math.min(...dates);
+  const daysSinceFirst = (now.getTime() - oldest) / 86400000;
+  if (daysSinceFirst < 14) return true;
+
+  return false;
+}
+
 // ==================== LAYER 2: DAILY SUMMARY ====================
 export function generateDailySummary(orders: any[], products: any[], now: Date): DailySummaryData {
   const todayStr = now.toISOString().split('T')[0];
   const hour = now.getHours();
-  const greeting = hour < 12 ? 'Buenos días ☀️' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const greeting = hour >= 6 && hour < 12 ? 'Buenos días ☀️' : hour >= 12 && hour < 19 ? 'Buenas tardes 🌤️' : 'Buenas noches 🌙';
 
   if (!orders || orders.length === 0) {
     return { greeting, paragraph: `${greeting} ¡Bienvenido! Todavía no tenés pedidos. Cuando llegue el primero, acá vas a ver tu resumen diario.`, updatedAt: now };
   }
 
+  const earlyStage = isEarlyStage(orders, now);
   const phrases: string[] = [greeting];
 
   // Phrase 2: Today's pickups
@@ -151,15 +172,36 @@ export function generateDailySummary(orders: any[], products: any[], now: Date):
     phrases.push(`Hay ${pending.length} pedido${pending.length > 1 ? 's' : ''} pendiente${pending.length > 1 ? 's' : ''} de confirmación.`);
   }
 
-  // Phrase 4: Weekly summary
+  // Phrase 4: Weekly summary with week-over-week comparison
   const weekStart = new Date(now); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekStartStr = weekStart.toISOString().split('T')[0];
   const weekOrders = orders.filter(o => o.created_at >= weekStartStr && o.status !== 'cancelled');
   const weekTotal = weekOrders.reduce((s, o) => s + Number(o.total), 0);
+
   if (now.getDay() === 1 && weekOrders.length === 0) {
     phrases.push('La semana recién empieza.');
   } else {
-    phrases.push(`Esta semana llevás ${weekOrders.length} pedido${weekOrders.length !== 1 ? 's' : ''} por ${formatPrice(weekTotal)}.`);
+    let weekPhrase = `Esta semana llevás ${weekOrders.length} pedido${weekOrders.length !== 1 ? 's' : ''} por ${formatPrice(weekTotal)}.`;
+
+    // Week-over-week comparison (only if not early stage)
+    if (!earlyStage) {
+      const lastWeekStart = new Date(weekStart); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+      const lastWeekStartStr = lastWeekStart.toISOString().split('T')[0];
+      const lastWeekOrders = orders.filter(o => o.created_at >= lastWeekStartStr && o.created_at < weekStartStr && o.status !== 'cancelled');
+      const lastWeekTotal = lastWeekOrders.reduce((s, o) => s + Number(o.total), 0);
+
+      if (lastWeekTotal > 0 && weekTotal > 0) {
+        const change = Math.round(((weekTotal - lastWeekTotal) / lastWeekTotal) * 100);
+        if (change > 0) {
+          weekPhrase = `Esta semana facturaste ${formatPrice(weekTotal)}, un ${change}% más que la semana pasada 📈`;
+        } else if (change < 0) {
+          weekPhrase = `Esta semana llevás ${formatPrice(weekTotal)}, un ${Math.abs(change)}% menos que la semana pasada.`;
+        } else {
+          weekPhrase = `Esta semana llevás ${formatPrice(weekTotal)}, igual que la semana pasada.`;
+        }
+      }
+    }
+    phrases.push(weekPhrase);
   }
 
   // Phrase 5: Star product this week
@@ -178,11 +220,10 @@ export function generateDailySummary(orders: any[], products: any[], now: Date):
     }
   }
 
-  // Phrase 6: Contextual (pick most relevant)
+  // Phrase 6: Contextual
   const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-  // Check peak day
   const dayCounts = Array(7).fill(0);
   orders.forEach(o => { if (o.status !== 'cancelled') dayCounts[new Date(o.created_at).getDay()]++; });
   const peakDay = dayCounts.indexOf(Math.max(...dayCounts));
@@ -190,20 +231,21 @@ export function generateDailySummary(orders: any[], products: any[], now: Date):
   if (tomorrow.getDay() === peakDay && Math.max(...dayCounts) > 0) {
     phrases.push(`Mañana es ${DAY_NAMES_FULL[peakDay]}, tu día más activo. Revisá todo para estar listo.`);
   } else {
-    // Check unpaid with upcoming pickup
     const unpaidSoon = orders.filter(o => o.payment_status === 'pendiente' && o.status !== 'cancelled' && o.desired_date >= todayStr && o.desired_date <= tomorrowStr);
     if (unpaidSoon.length > 0) {
       phrases.push(`Ojo: ${unpaidSoon[0].customer_name} retira pronto y no pagó la seña.`);
     } else {
-      // Check repeat client this week
       const weekCustomers: Record<string, number> = {};
       weekOrders.forEach(o => { weekCustomers[o.customer_email] = (weekCustomers[o.customer_email] || 0) + 1; });
       const repeater = Object.entries(weekCustomers).find(([, count]) => count > 1);
       if (repeater) {
         const name = weekOrders.find(o => o.customer_email === repeater[0])?.customer_name;
         if (name) phrases.push(`¡${name} volvió a pedir esta semana! Cliente fiel 🤎`);
+      } else if (earlyStage) {
+        // Early stage: motivational instead of alarming
+        const activeProducts = products.filter(p => p.active);
+        phrases.push(`Tu catálogo tiene ${activeProducts.length} producto${activeProducts.length !== 1 ? 's' : ''} listo${activeProducts.length !== 1 ? 's' : ''}. A medida que lleguen más pedidos vas a poder ver cuáles son los favoritos.`);
       } else {
-        // Check products without sales
         const activeProducts = products.filter(p => p.active);
         const soldIds = new Set<string>();
         const sixtyDaysAgo = new Date(now.getTime() - 60 * 86400000).toISOString();
@@ -223,40 +265,195 @@ export function generateDailySummary(orders: any[], products: any[], now: Date):
   return { greeting, paragraph: phrases.join(' '), updatedAt: now };
 }
 
+// ==================== SEASONAL ALERTS ====================
+function getEasterDate(year: number): Date {
+  // Computus algorithm for Easter Sunday
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function getThirdSundayOfOctober(year: number): Date {
+  const oct1 = new Date(year, 9, 1); // October 1st
+  const firstSunday = oct1.getDay() === 0 ? 1 : 8 - oct1.getDay();
+  return new Date(year, 9, firstSunday + 14); // 3rd Sunday
+}
+
+function daysBetween(a: Date, b: Date): number {
+  return Math.floor((b.getTime() - a.getTime()) / 86400000);
+}
+
+export function generateSeasonAlerts(today: Date): SmartInsight[] {
+  const insights: SmartInsight[] = [];
+  const year = today.getFullYear();
+
+  // Easter (30 days before)
+  const easter = getEasterDate(year);
+  const daysToEaster = daysBetween(today, easter);
+  if (daysToEaster > 0 && daysToEaster <= 30) {
+    insights.push({
+      id: `seasonal-easter-${year}`,
+      priority: daysToEaster <= 10 ? 'high' : 'medium',
+      title: '🐣 Se acercan las Pascuas',
+      description: `Faltan ${daysToEaster} días para Pascuas. ¿Querés activar huevos de chocolate o una promo especial?`,
+      actionType: 'navigate',
+      actionLabel: 'Ver productos',
+      actionData: { route: '/admin/productos' },
+      isSeasonal: true,
+    });
+  }
+
+  // Mother's Day - 3rd Sunday of October in Argentina (30 days before)
+  const mothersDay = getThirdSundayOfOctober(year);
+  const daysToMothers = daysBetween(today, mothersDay);
+  if (daysToMothers > 0 && daysToMothers <= 30) {
+    insights.push({
+      id: `seasonal-mothers-${year}`,
+      priority: daysToMothers <= 10 ? 'high' : 'medium',
+      title: '💐 Día de la Madre',
+      description: `El Día de la Madre se acerca (en ${daysToMothers} días). Es la fecha más fuerte para pastelerías. ¡Preparate con tortas especiales y combos!`,
+      actionType: 'navigate',
+      actionLabel: 'Ver productos',
+      actionData: { route: '/admin/productos' },
+      isSeasonal: true,
+    });
+  }
+
+  // Valentine's Day - Feb 14 (20 days before)
+  let valentines = new Date(year, 1, 14);
+  if (valentines < today) valentines = new Date(year + 1, 1, 14);
+  const daysToValentines = daysBetween(today, valentines);
+  if (daysToValentines > 0 && daysToValentines <= 20) {
+    insights.push({
+      id: `seasonal-valentines-${valentines.getFullYear()}`,
+      priority: daysToValentines <= 7 ? 'high' : 'medium',
+      title: '💝 San Valentín',
+      description: `San Valentín viene en ${daysToValentines} días. Ideal para boxes románticas o tortas temáticas.`,
+      actionType: 'navigate',
+      actionLabel: 'Ver productos',
+      actionData: { route: '/admin/productos' },
+      isSeasonal: true,
+    });
+  }
+
+  // Christmas / New Year (15 days before)
+  let christmas = new Date(year, 11, 25);
+  if (christmas < today) christmas = new Date(year + 1, 11, 25);
+  const daysToChristmas = daysBetween(today, christmas);
+  if (daysToChristmas > 0 && daysToChristmas <= 15) {
+    insights.push({
+      id: `seasonal-christmas-${christmas.getFullYear()}`,
+      priority: daysToChristmas <= 5 ? 'high' : 'medium',
+      title: '🎄 Temporada de fiestas',
+      description: `¡Faltan ${daysToChristmas} días para Navidad! ¿Tenés pan dulce o postres navideños en el catálogo?`,
+      actionType: 'navigate',
+      actionLabel: 'Ver catálogo',
+      actionData: { route: '/admin/productos' },
+      isSeasonal: true,
+    });
+  }
+
+  // Día del Amigo - July 20 (7 days before)
+  let diaAmigo = new Date(year, 6, 20);
+  if (diaAmigo < today) diaAmigo = new Date(year + 1, 6, 20);
+  const daysToDiaAmigo = daysBetween(today, diaAmigo);
+  if (daysToDiaAmigo > 0 && daysToDiaAmigo <= 7) {
+    insights.push({
+      id: `seasonal-amigo-${diaAmigo.getFullYear()}`,
+      priority: 'medium',
+      title: '🤝 Día del Amigo',
+      description: `Se viene el Día del Amigo en ${daysToDiaAmigo} días. Ideal para promocionar boxes y cookies.`,
+      actionType: 'navigate',
+      actionLabel: 'Crear promo',
+      actionData: { route: '/admin/productos' },
+      isSeasonal: true,
+    });
+  }
+
+  return insights;
+}
+
 // ==================== LAYER 3: INSIGHTS ====================
 export function generateInsights(orders: any[], products: any[], messages: any[], now: Date): SmartInsight[] {
   const insights: SmartInsight[] = [];
   const todayStr = now.toISOString().split('T')[0];
   const sixtyDaysAgo = new Date(now.getTime() - 60 * 86400000).toISOString();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000).toISOString();
+  const earlyStage = isEarlyStage(orders, now);
 
-  // 🔴 HIGH: Products with no sales in 60 days
+  // 🔴 HIGH: Products with no sales in 60 days (smarter version)
   const recentOrders = orders.filter(o => o.created_at >= sixtyDaysAgo && o.status !== 'cancelled');
   const soldIds = new Set<string>();
+  const soldByCategory: Record<string, number> = {};
   recentOrders.forEach(o => {
-    (o.items as any[])?.forEach((item: any) => { if (item.productId) soldIds.add(item.productId); });
+    (o.items as any[])?.forEach((item: any) => {
+      if (item.productId) {
+        soldIds.add(item.productId);
+        const p = products.find(pr => pr.id === item.productId);
+        if (p) soldByCategory[p.category] = (soldByCategory[p.category] || 0) + 1;
+      }
+    });
   });
   const activeProducts = products.filter(p => p.active);
   const noSalesProducts = activeProducts.filter(p => !soldIds.has(p.id));
 
-  if (noSalesProducts.length > 0) {
-    const names = noSalesProducts.map(p => p.name).join(', ');
-    // Find a product in the same category that DOES sell
-    const firstNoSale = noSalesProducts[0];
-    const sameCatSeller = activeProducts.find(p => p.category === firstNoSale.category && soldIds.has(p.id));
-    let desc = `Tenés ${noSalesProducts.length} producto${noSalesProducts.length > 1 ? 's' : ''} activo${noSalesProducts.length > 1 ? 's' : ''} sin ventas en 60 días: ${names}.`;
-    if (sameCatSeller) desc += ` El más relevante es ${firstNoSale.name} porque está en la categoría que sí tiene ventas (${sameCatSeller.name}).`;
-    const noImage = noSalesProducts.filter(p => !p.image_url);
-    if (noImage.length > 0) desc += ` Además, ${noImage.map(p => p.name).join(', ')} no tiene${noImage.length > 1 ? 'n' : ''} foto cargada.`;
+  if (noSalesProducts.length > 0 && !earlyStage) {
+    // Rank by relevance: products in categories that DO sell are more relevant
+    const ranked = [...noSalesProducts].sort((a, b) => {
+      const aSales = soldByCategory[a.category] || 0;
+      const bSales = soldByCategory[b.category] || 0;
+      return bSales - aSales; // Higher sales in category = more relevant
+    });
+
+    const topRelevant = noSalesProducts.length > 5 ? ranked.slice(0, 3) : ranked;
+    const names = topRelevant.map(p => p.name).join(', ');
+
+    let desc: string;
+    if (noSalesProducts.length > 5) {
+      desc = `${topRelevant.length} productos en categorías populares no se vendieron aún: ${names}. ¿Los promocionamos o los pausamos?`;
+      if (noSalesProducts.length > topRelevant.length) {
+        desc += ` (${noSalesProducts.length - topRelevant.length} más en otras categorías)`;
+      }
+    } else {
+      desc = `${noSalesProducts.length} producto${noSalesProducts.length > 1 ? 's' : ''} activo${noSalesProducts.length > 1 ? 's' : ''} sin ventas en 60 días: ${names}. ¿Los destacamos, les hacemos descuento o los pausamos?`;
+    }
+
+    const noImage = topRelevant.filter(p => !p.image_url);
+    if (noImage.length > 0) desc += ` Ojo: ${noImage.map(p => p.name).join(', ')} no tiene${noImage.length > 1 ? 'n' : ''} foto cargada.`;
 
     insights.push({
       id: 'no-sales-products',
       priority: 'high',
-      title: `${noSalesProducts.length} producto${noSalesProducts.length > 1 ? 's' : ''} sin ventas`,
+      title: noSalesProducts.length > 5
+        ? `${noSalesProducts.length} productos sin ventas`
+        : `${noSalesProducts.length} producto${noSalesProducts.length > 1 ? 's' : ''} sin ventas`,
       description: desc,
       actionType: 'product_actions',
       actionLabel: 'Sugerir acciones',
-      actionData: { products: noSalesProducts.map(p => ({ id: p.id, name: p.name, category: p.category, image_url: p.image_url })) },
+      actionData: { products: topRelevant.map(p => ({ id: p.id, name: p.name, category: p.category, image_url: p.image_url })) },
+    });
+  } else if (noSalesProducts.length > 0 && earlyStage) {
+    // Early stage: motivational tone
+    insights.push({
+      id: 'no-sales-products-early',
+      priority: 'low',
+      title: 'Catálogo listo para despegar',
+      description: `Tu catálogo tiene ${activeProducts.length} productos listos. A medida que lleguen más pedidos vas a poder ver cuáles son los favoritos y ajustar tu oferta.`,
+      actionType: 'navigate',
+      actionLabel: 'Ver catálogo',
+      actionData: { route: '/admin/productos' },
     });
   }
 
@@ -269,7 +466,7 @@ export function generateInsights(orders: any[], products: any[], messages: any[]
     if (!customerMap[k].lastOrderDate || o.created_at > customerMap[k].lastOrderDate) customerMap[k].lastOrderDate = o.created_at;
   });
   const inactiveClients = Object.values(customerMap).filter(c => c.orders.length >= 1 && c.lastOrderDate < thirtyDaysAgo);
-  if (inactiveClients.length > 0) {
+  if (inactiveClients.length > 0 && !earlyStage) {
     const sorted = inactiveClients.sort((a, b) => b.lastOrderDate.localeCompare(a.lastOrderDate));
     const names = sorted.slice(0, 3).map(c => c.name).join(', ');
     const mostRecent = sorted[0];
@@ -335,7 +532,6 @@ export function generateInsights(orders: any[], products: any[], messages: any[]
   const nonCancelledOrders = orders.filter(o => o.status !== 'cancelled');
   if (nonCancelledOrders.length >= 5) {
     const avgTicket = nonCancelledOrders.reduce((s, o) => s + Number(o.total), 0) / nonCancelledOrders.length;
-    // Category averages
     const catTotals: Record<string, { sum: number; count: number }> = {};
     nonCancelledOrders.forEach(o => {
       (o.items as any[])?.forEach((item: any) => {
@@ -368,7 +564,6 @@ export function generateInsights(orders: any[], products: any[], messages: any[]
     const peakDayIdx = dayCounts.indexOf(Math.max(...dayCounts));
     const avgPeak = Math.round(dayCounts[peakDayIdx] / 4);
 
-    // Top products for peak day
     const peakProducts: Record<string, { name: string; count: number }> = {};
     last4WeeksOrders.filter(o => new Date(o.created_at).getDay() === peakDayIdx).forEach(o => {
       (o.items as any[])?.forEach((item: any) => {
@@ -438,7 +633,7 @@ export function generateInsights(orders: any[], products: any[], messages: any[]
             actionLabel: 'Ver productos de la categoría',
             actionData: { route: '/admin/productos', filter: cat },
           });
-          break; // Only one emerging category
+          break;
         }
       }
     }
