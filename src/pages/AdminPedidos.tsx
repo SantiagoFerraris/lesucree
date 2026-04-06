@@ -622,6 +622,9 @@ export default function AdminPedidos() {
         </>
       )}
 
+      <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
+      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={orders || []} />
+
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
         <AlertDialogContent>
