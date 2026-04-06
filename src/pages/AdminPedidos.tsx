@@ -80,7 +80,8 @@ function getStatusBorder(status: string): string {
 export default function AdminPedidos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
-
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [showExcelImport, setShowExcelImport] = useState(false);
   // Fetch site settings for WhatsApp templates
   const { data: siteConfig } = useQuery({
     queryKey: ['site-settings-config'],
