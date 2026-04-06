@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload } from 'lucide-react';
+import ManualOrderModal from '@/components/admin/ManualOrderModal';
+import ExcelImportModal from '@/components/admin/ExcelImportModal';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
