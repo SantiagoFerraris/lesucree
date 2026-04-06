@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload } from 'lucide-react';
+import ManualOrderModal from '@/components/admin/ManualOrderModal';
+import ExcelImportModal from '@/components/admin/ExcelImportModal';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -78,7 +80,8 @@ function getStatusBorder(status: string): string {
 export default function AdminPedidos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
-
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [showExcelImport, setShowExcelImport] = useState(false);
   // Fetch site settings for WhatsApp templates
   const { data: siteConfig } = useQuery({
     queryKey: ['site-settings-config'],
@@ -368,12 +371,18 @@ export default function AdminPedidos() {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {selected.size > 0 && (
             <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 font-semibold hover:bg-red-100 transition-colors">
               <Trash2 size={14} /> Eliminar ({selected.size})
             </button>
           )}
+          <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3B2617] text-sm text-white font-semibold hover:bg-[#3B2617]/90 transition-colors">
+            <Plus size={14} /> Nuevo Pedido
+          </button>
+          <button onClick={() => setShowExcelImport(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+            <Upload size={14} /> Importar Excel
+          </button>
           <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
             <Download size={14} /> Exportar CSV
           </button>
@@ -612,6 +621,9 @@ export default function AdminPedidos() {
           )}
         </>
       )}
+
+      <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
+      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={orders || []} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
