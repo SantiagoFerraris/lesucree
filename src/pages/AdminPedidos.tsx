@@ -100,6 +100,7 @@ export default function AdminPedidos() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkActionKey, setBulkActionKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
 
   const today = new Date();
@@ -169,6 +170,7 @@ export default function AdminPedidos() {
     },
     onSuccess: () => {
       toast.success('Estado actualizado en todos los pedidos seleccionados');
+      setBulkActionKey(k => k + 1);
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
     },
@@ -187,6 +189,7 @@ export default function AdminPedidos() {
     },
     onSuccess: () => {
       toast.success('Estado de pago actualizado en todos los pedidos seleccionados');
+      setBulkActionKey(k => k + 1);
       setSelected(new Set());
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
     },
@@ -412,12 +415,11 @@ export default function AdminPedidos() {
           {selected.size > 0 && (<>
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm">
               <span className="text-xs font-semibold text-[#9B8578] uppercase whitespace-nowrap">Estado:</span>
-              <select
+              <select key={bulkActionKey}
                 defaultValue=""
                 onChange={(e) => {
                   if (e.target.value) {
                     bulkUpdateStatus.mutate({ ids: Array.from(selected), status: e.target.value });
-                    e.target.value = '';
                   }
                 }}
                 className="rounded-lg border border-[#E8DDD4] bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
@@ -432,12 +434,11 @@ export default function AdminPedidos() {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm">
               <span className="text-xs font-semibold text-[#9B8578] uppercase whitespace-nowrap">Pago:</span>
-              <select
+              <select key={bulkActionKey}
                 defaultValue=""
                 onChange={(e) => {
                   if (e.target.value) {
                     bulkUpdatePayment.mutate({ ids: Array.from(selected), payment_status: e.target.value });
-                    e.target.value = '';
                   }
                 }}
                 className="rounded-lg border border-[#E8DDD4] bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
