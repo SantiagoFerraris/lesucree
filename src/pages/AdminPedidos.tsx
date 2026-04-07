@@ -158,6 +158,43 @@ export default function AdminPedidos() {
     },
   });
 
+
+  const bulkUpdateStatus = useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status } as any)
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Estado actualizado en todos los pedidos seleccionados');
+      setSelected(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: () => {
+      toast.error('Error al actualizar estados.');
+    },
+  });
+
+  const bulkUpdatePayment = useMutation({
+    mutationFn: async ({ ids, payment_status }: { ids: string[]; payment_status: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status } as any)
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Estado de pago actualizado en todos los pedidos seleccionados');
+      setSelected(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: () => {
+      toast.error('Error al actualizar pagos.');
+    },
+  });
+
   const overdueCount = useMemo(() => {
     return orders?.filter(o => o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled').length ?? 0;
   }, [orders, todayStr]);
@@ -373,6 +410,44 @@ export default function AdminPedidos() {
 
         <div className="flex gap-2 flex-wrap">
           {selected.size > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm">
+              <span className="text-xs font-semibold text-[#9B8578] uppercase whitespace-nowrap">Estado:</span>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    bulkUpdateStatus.mutate({ ids: Array.from(selected), status: e.target.value });
+                    e.target.value = '';
+                  }
+                }}
+                className="rounded-lg border border-[#E8DDD4] bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+              >
+                <option value="" disabled>Cambiar...</option>
+                <option value="pending">Pendiente</option>
+                <option value="confirmed">Confirmado</option>
+                <option value="completed">Completado</option>
+                <option value="picked_up">Retirado</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm">
+              <span className="text-xs font-semibold text-[#9B8578] uppercase whitespace-nowrap">Pago:</span>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    bulkUpdatePayment.mutate({ ids: Array.from(selected), payment_status: e.target.value });
+                    e.target.value = '';
+                  }
+                }}
+                className="rounded-lg border border-[#E8DDD4] bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+              >
+                <option value="" disabled>Cambiar...</option>
+                <option value="pendiente">Pago Pendiente</option>
+                <option value="seña_recibida">Seña Recibida</option>
+                <option value="pagado_completo">Pagado Completo</option>
+              </select>
+            </div>
             <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 font-semibold hover:bg-red-100 transition-colors">
               <Trash2 size={14} /> Eliminar ({selected.size})
             </button>
