@@ -174,7 +174,7 @@ export default function AdminPedidos() {
       toast.success('Estado actualizado en todos los pedidos seleccionados');
       setBulkActionKey(k => k + 1);
       setSelected(new Set());
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      qc.invalidateQueries({ queryKey: ['admin-orders'] });
     },
     onError: () => {
       toast.error('Error al actualizar estados.');
@@ -195,7 +195,7 @@ export default function AdminPedidos() {
       toast.success('Estado de pago actualizado en todos los pedidos seleccionados');
       setBulkActionKey(k => k + 1);
       setSelected(new Set());
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      qc.invalidateQueries({ queryKey: ['admin-orders'] });
     },
     onError: () => {
       toast.error('Error al actualizar pagos.');
