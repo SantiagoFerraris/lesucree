@@ -409,7 +409,7 @@ export default function AdminPedidos() {
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {selected.size > 0 && (
+          {selected.size > 0 && (<>
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm">
               <span className="text-xs font-semibold text-[#9B8578] uppercase whitespace-nowrap">Estado:</span>
               <select
@@ -451,7 +451,7 @@ export default function AdminPedidos() {
             <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 font-semibold hover:bg-red-100 transition-colors">
               <Trash2 size={14} /> Eliminar ({selected.size})
             </button>
-          )}
+          </>)}
           <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3B2617] text-sm text-white font-semibold hover:bg-[#3B2617]/90 transition-colors">
             <Plus size={14} /> Nuevo Pedido
           </button>
