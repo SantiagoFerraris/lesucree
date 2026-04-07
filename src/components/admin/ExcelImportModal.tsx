@@ -198,7 +198,7 @@ export default function ExcelImportModal({ open, onOpenChange, existingOrders }:
 
         return {
           customer_name: r.cliente,
-          customer_email: 'importado@lesucree.com',
+          customer_email: '',
           customer_phone: r.contacto || '',
           items: [{ productName: r.producto, variantLabel: r.tamaño || null, quantity: 1 }],
           created_at: r.fechaEncargue ? new Date(ddmmyyyyToISO(r.fechaEncargue) + 'T12:00:00').toISOString() : new Date().toISOString(),
