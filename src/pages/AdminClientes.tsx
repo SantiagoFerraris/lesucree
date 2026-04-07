@@ -385,9 +385,9 @@ export default function AdminClientes() {
               <p className="text-xs font-semibold text-warm-gray mb-1">Destinatarios ({selectedClients.length}):</p>
               <div className="space-y-1 max-h-32 overflow-y-auto">
                 {selectedClients.map(c => (
-                  <div key={c.email} className="flex items-center justify-between text-xs">
+                  <div key={clientKey(c)} className="flex items-center justify-between text-xs">
                     <span className="text-espresso">{c.name} — {c.phone}</span>
-                    <button onClick={() => toggleSelect(c.email || c.name)} className="text-red-400 hover:text-red-600">✕</button>
+                    <button onClick={() => toggleSelect(clientKey(c))} className="text-red-400 hover:text-red-600">✕</button>
                   </div>
                 ))}
               </div>
