@@ -70,9 +70,10 @@ export default function AdminClientes() {
   const customers = useMemo(() => {
     if (!orders) return [];
     const map: Record<string, { name: string; email: string; phone: string; orders: any[]; totalSpent: number; lastOrder: string; firstOrder: string }> = {};
+    const getKey = (o: any) => (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : o.customer_name;
     orders.forEach(o => {
-      const key = o.customer_email || o.customer_name;
-      if (!map[key]) map[key] = { name: o.customer_name, email: o.customer_email, phone: o.customer_phone, orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
+      const key = getKey(o);
+      if (!map[key]) map[key] = { name: o.customer_name, email: (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : '', phone: o.customer_phone, orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
       map[key].orders.push(o);
       if (o.status !== 'cancelled') map[key].totalSpent += Number(o.total);
       if (o.created_at > map[key].lastOrder) map[key].lastOrder = o.created_at;
@@ -135,10 +136,14 @@ export default function AdminClientes() {
   };
 
   const deleteCustomers = useMutation({
-    mutationFn: async (emails: string[]) => {
-      for (const email of emails) {
-        await supabase.from('orders').delete().eq('customer_email', email);
-        await supabase.from('contact_messages').delete().eq('email', email);
+    mutationFn: async (keys: { email: string; name: string }[]) => {
+      for (const k of keys) {
+        if (k.email) {
+          await supabase.from('orders').delete().eq('customer_email', k.email);
+          await supabase.from('contact_messages').delete().eq('email', k.email);
+        } else {
+          await supabase.from('orders').delete().eq('customer_name', k.name).eq('customer_email', '');
+        }
       }
     },
     onSuccess: () => {
@@ -149,20 +154,21 @@ export default function AdminClientes() {
     onError: () => toast.error('Error al eliminar. Intentá de nuevo.'),
   });
 
+  const clientKey = (c: { email: string; name: string }) => c.email || c.name;
   const handleDeleteClick = (customer: typeof customers[0]) => {
-    const key = customer.email || customer.name;
+    const key = clientKey(customer);
     setDeleteTarget({ keys: [key], emails: [customer.email], names: [customer.name] });
   };
   const handleBulkDelete = () => {
-    const targets = filtered.filter(c => selected.has(c.email || c.name));
-    setDeleteTarget({ keys: targets.map(c => c.email || c.name), emails: targets.map(c => c.email), names: targets.map(c => c.name) });
+    const targets = filtered.filter(c => selected.has(clientKey(c)));
+    setDeleteTarget({ keys: targets.map(c => clientKey(c)), emails: targets.map(c => c.email), names: targets.map(c => c.name) });
   };
-  const confirmDelete = () => { if (deleteTarget) deleteCustomers.mutate(deleteTarget.emails); };
+  const confirmDelete = () => { if (deleteTarget) deleteCustomers.mutate(deleteTarget.emails.map((e, i) => ({ email: e, name: deleteTarget.names[i] }))); };
   const toggleSelect = (key: string) => { setSelected(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; }); };
-  const toggleSelectAll = () => { if (selected.size === paginated.length) setSelected(new Set()); else setSelected(new Set(paginated.map(c => c.email || c.name))); };
-  const allPageSelected = paginated.length > 0 && paginated.every(c => selected.has(c.email || c.name));
+  const toggleSelectAll = () => { if (selected.size === paginated.length) setSelected(new Set()); else setSelected(new Set(paginated.map(c => clientKey(c)))); };
+  const allPageSelected = paginated.length > 0 && paginated.every(c => selected.has(clientKey(c)));
 
-  const selectedClients = filtered.filter(c => selected.has(c.email || c.name));
+  const selectedClients = filtered.filter(c => selected.has(clientKey(c)));
 
   const handleGroupSend = () => {
     selectedClients.forEach((c, i) => {
@@ -257,7 +263,7 @@ export default function AdminClientes() {
           </div>
           <div className="space-y-3">
             {paginated.map(c => {
-              const key = c.email || c.name;
+              const key = clientKey(c);
               const isExpanded = expanded === key;
               const segment = getSegment(c);
               const lastOrder = c.orders[0];
@@ -270,7 +276,7 @@ export default function AdminClientes() {
                        <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
                          <span className="font-semibold text-sm text-espresso">{c.name}</span>
                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
-                         <span className="text-xs text-warm-gray">{c.email}</span>
+                         <span className="text-xs text-warm-gray">{c.email || 'Sin email'}</span>
                          <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
                            {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
                          </span>
