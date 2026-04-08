@@ -19,6 +19,7 @@ export default function Catalogo() {
   const [page, setPage] = useState(1);
   const reveal = useScrollReveal();
   const gridRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: dbCategories = [] } = useCategories(true); // only visible
   const filterOptions = [{ value: 'todos', label: 'Todos' }, ...dbCategories.map(c => ({ value: c.value, label: c.label }))];
@@ -56,6 +57,16 @@ export default function Catalogo() {
     }
   };
 
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 200;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <section className="pt-[72px]">
       <SEOHead title="Catálogo | Le Sucrée Pastelería" description="Explorá nuestro catálogo de tortas, cookies, boxes y postres artesanales. Pedidos con 48hs de anticipación en Rosario." path="/catalogo" />
@@ -64,17 +75,38 @@ export default function Catalogo() {
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Catálogo</h1>
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
 
-          <div className="flex gap-1.5 sm:gap-2 md:gap-3 mt-6 sm:mt-10 overflow-x-auto pb-2 justify-start md:justify-center scrollbar-hide -mx-1 px-1">
-            {filterOptions.map(c => (
-              <button
-                key={c.value}
-                onClick={() => { setCategory(c.value); setPage(1); }}
-                aria-pressed={category === c.value}
-                className={`whitespace-nowrap rounded-full px-2.5 sm:px-3 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
-              >
-                {c.label}
-              </button>
-            ))}
+          <div className="relative mt-6 sm:mt-10">
+            <button
+              onClick={() => scrollCategories('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
+              aria-label="Scroll izquierda"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            <div
+              ref={scrollRef}
+              className="flex gap-1.5 sm:gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide mx-10 px-1"
+            >
+              {filterOptions.map(c => (
+                <button
+                  key={c.value}
+                  onClick={() => { setCategory(c.value); setPage(1); }}
+                  aria-pressed={category === c.value}
+                  className={`whitespace-nowrap rounded-full px-2.5 sm:px-3 md:px-6 py-1.5 sm:py-2 md:py-2.5 text-[11px] sm:text-xs md:text-sm font-semibold uppercase tracking-[0.06em] transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none ${category === c.value ? 'bg-dusty-pink text-white' : 'border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white'}`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => scrollCategories('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
+              aria-label="Scroll derecha"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
 
           <div ref={gridRef}>
