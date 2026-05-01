@@ -228,7 +228,7 @@ export default function Pedido() {
                         <div className="container">
                                   <h1 className="font-display text-[32px] md:text-[40px] font-bold text-espresso text-center">Confirmar tu Pedido</h1>
                                   <SectionDivider />
-                                  <p className="text-center text-sm text-espresso/60 mt-4 mb-12">Retiro en local — {pickupAddress}</p>
+                                  <p className="text-center text-sm text-espresso/60 mt-4 mb-12">Retiro en el local</p>
                         
                                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
                                     {/* Form */}
