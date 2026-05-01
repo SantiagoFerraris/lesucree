@@ -31,13 +31,10 @@ export default function Nosotros() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
               <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80">
-                Le Sucrée nació de un sueño simple: compartir el arte de la pastelería hecha con amor. Desde nuestro pequeño taller en Rosario, cada día nos levantamos con la misma ilusión de crear piezas que hagan especiales los momentos de quienes nos eligen.
+                Le Sucrée nació de un sueño simple: compartir el arte de la pastelería hecha con amor. Desde mi taller en Rosario, cada día creo piezas únicas que hacen especiales tus momentos.
               </p>
               <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80 mt-6">
-                Creemos en lo artesanal, en tomarnos el tiempo necesario para que cada capa de bizcochuelo, cada relleno y cada decoración estén perfectos. No seguimos recetas de producción masiva — cada creación es pensada y elaborada con dedicación.
-              </p>
-              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80 mt-6">
-                Nuestros ingredientes son cuidadosamente seleccionados, priorizando la calidad y la frescura. Porque sabemos que la diferencia está en los detalles, y que un buen postre puede transformar cualquier momento en un recuerdo inolvidable.
+                Cada capa de bizcochuelo, cada relleno y cada decoración son elaborados a mano con ingredientes seleccionados. Porque un buen postre puede transformar cualquier momento en un recuerdo inolvidable.
               </p>
             </div>
             <div className="rounded-lg overflow-hidden shadow-lg">
