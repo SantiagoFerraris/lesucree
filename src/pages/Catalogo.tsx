@@ -73,7 +73,7 @@ export default function Catalogo() {
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Catálogo</h1>
-          <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación — Rosario y Roldán</p>
+          <p className="text-center text-sm text-warm-gray mt-2">Producción artesanal limitada · Pedidos con 48hs de anticipación</p>
 
           <div className="relative mt-6 sm:mt-10">
             <button
