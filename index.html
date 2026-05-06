@@ -6,7 +6,6 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com;" />
     <link rel="icon" href="/favicon.png" type="image/png" />
 
-    <!-- DNS prefetch and preconnect for critical origins -->
     <link rel="dns-prefetch" href="https://qrspfsejotzfajwklocm.supabase.co" />
     <link rel="preconnect" href="https://qrspfsejotzfajwklocm.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -14,16 +13,13 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Preload hero image for LCP -->
     <link rel="preload" as="image" href="https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/hero/hero-bg.webp" fetchpriority="high" type="image/webp" />
     <link rel="preload" as="image" href="https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/hero/hero-bg.jpg" fetchpriority="high" />
 
-    <!-- Fonts: load only essential weights, defer non-critical -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lato:wght@400;600&family=Playfair+Display:wght@700&display=swap" /></noscript>
 
-    <!-- Critical CSS for above-the-fold content -->
     <style>
       #root{min-height:100vh}
       .hero-section{position:relative;min-height:80vh;display:flex;align-items:center;overflow:hidden}
@@ -71,14 +67,16 @@
       ]
     }
     </script>
-  </head>
-  <script>
+
+    <script type="text/javascript">
       (function(l) {
         if (l.search[1] === '/' ) {
           var decoded = l.search.slice(1).split('&').map(function(s) { 
             return s.replace(/~and~/g, '&')
           }).join('?');
-          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
         }
       }(window.location))
     </script>
