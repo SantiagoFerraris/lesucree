@@ -139,7 +139,7 @@ export default function AdminProductos() {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: 'featured' | 'active'; value: boolean }) => {
-      const { error } = await supabase.from('products').update({ [field]: value }).eq('id', id);
+      const { error } = await supabase.from('products').update({ [field]: value } as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: (_, vars) => {

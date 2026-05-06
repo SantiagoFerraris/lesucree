@@ -71,7 +71,7 @@ const App = () => (
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/catalogo" element={<PublicSuspense><Catalogo /></PublicSuspense>} />
-                  <Route path="/nosotros" element={<PublicSuspense><Nosotros /></PublicSuspense>} />
+                  <Route path="/historia" element={<PublicSuspense><Nosotros /></PublicSuspense>} />
                   <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
                   <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
                 </Route>

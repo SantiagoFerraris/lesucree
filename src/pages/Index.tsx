@@ -245,7 +245,7 @@ function AboutPreview() {
               Desde Rosario, elaboro cada pieza a mano con ingredientes seleccionados. Cada torta, cookie y box está pensada para hacer tus momentos más dulces.
             </p>
             <Link
-              to="/nosotros"
+              to="/historia"
               className="inline-flex items-center justify-center mt-6 rounded-full border-[1.5px] border-espresso text-espresso px-6 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-espresso hover:text-white transition-all duration-300 active:scale-95"
             >
               Conoceme →
