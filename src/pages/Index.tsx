@@ -156,7 +156,7 @@ function FeaturedSection() {
           Favoritos
         </h2>
         <p className={`text-center text-sm text-espresso/60 mt-1 ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-          Nuestros productos más elegidos por nuestros clientes
+          Productos más elegidos por nuestros clientes
         </p>
         <SectionDivider />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
