@@ -1,36 +1,20 @@
 
+## Cambios a realizar
 
-## Plan: Add Pagination to Catálogo + Fix Build Error
+### 1. Corregir SEOHead en Nosotros.tsx
+- Cambiar `path="/nosotros"` → `path="/historia"` en el componente SEOHead de `src/pages/Nosotros.tsx` (línea 19)
+- La ruta en App.tsx y Navbar ya apuntan correctamente a `/historia`
 
-### Fix: Build error in sync-prices-from-sheet
-The `catch (e)` block uses `e.message` but `e` is typed as `unknown` in TypeScript. Change line 171 to cast: `(e instanceof Error ? e.message : String(e))`.
+### 2. WhatsApp CTA en Index.tsx (sección inferior)
+- Cambiar el título a: *"¿Querés hacer un pedido o tenés alguna consulta?"*
+- Cambiar la descripción a: *"Tortas personalizadas, pedidos especiales o consultas — Escribime por WhatsApp y te respondo lo antes posible."*
+- Cambiar el texto del botón de "Pedí por WhatsApp" → **"CHATEAR"** (con ícono de WhatsApp)
+- Eliminar el texto de "Producción limitada..." debajo del botón
 
-### Pagination in Catalogo.tsx
+### 3. Contacto: botón WhatsApp
+- Si existe un botón "CHATEÁ CON NOSOTROS", cambiar el texto a solo **"CHATEAR"**
+- En el código actual el botón dice "Pedí por WhatsApp" — se cambiará a "Chatear"
 
-**Changes to `src/pages/Catalogo.tsx` only — no other files modified.**
-
-1. **Add state**: `const [page, setPage] = useState(1);` with `ITEMS_PER_PAGE = 9` constant.
-
-2. **Reset page on category change**: Update the category button onClick to also `setPage(1)`.
-
-3. **Paginate products**: Derive `totalPages`, `paginatedProducts` from `products` array using slice.
-
-4. **Render only `paginatedProducts`** in the grid instead of all `products`.
-
-5. **Add pagination controls** below the product grid (after the grid div, before the empty-state check):
-   - Previous arrow button (disabled on page 1)
-   - Numbered page buttons (1, 2, 3…)
-   - Next arrow button (disabled on last page)
-   - Styled with the same rounded-full pill buttons matching the category filter style (dusty-pink active, outlined inactive)
-   - On click: set page and `window.scrollTo({ top: gridRef position, behavior: 'smooth' })`
-
-6. **Add a ref** to the grid container for smooth scroll targeting.
-
-7. Only show pagination when `totalPages > 1`.
-
-### Technical Details
-- Uses `ChevronLeft` and `ChevronRight` from lucide-react (already imported via ProductDetailModal dependencies)
-- Active page: `bg-dusty-pink text-white` (matches active category button)
-- Inactive page: `border border-dusty-pink text-dusty-pink hover:bg-dusty-pink hover:text-white` (matches inactive category button)
-- Arrow buttons use same outlined style, disabled state with `opacity-50 cursor-not-allowed`
-
+### No se modifica nada más
+- No se toca el catálogo, la página de pedidos, ni el admin
+- No se cambian estilos, colores ni layout
