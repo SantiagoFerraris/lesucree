@@ -102,7 +102,7 @@ function HeroSection() {
 function TrustBadges() {
   const reveal = useScrollReveal();
   const badges = [
-    { icon: Clock, text: "Disponibilidad limitada — Pedí con 48hs de anticipación" },
+    { icon: Clock, text: "Pedí con 48hs de anticipación" },
     { icon: Truck, text: "Retiro en Rosario y Roldán" },
     { icon: Heart, text: "100% artesanal, hecho a mano" },
   ];
