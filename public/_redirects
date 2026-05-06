@@ -1,0 +1,8 @@
+# Redirigir pages.dev → dominio nuevo
+https://lesucree.pages.dev/* https://lesucreepasteleria.com.ar/:splat 301
+
+# Redirigir www → sin www
+https://www.lesucreepasteleria.com.ar/* https://lesucreepasteleria.com.ar/:splat 301
+
+# Redirección interna (opcional)
+/nosotros /historia 301
