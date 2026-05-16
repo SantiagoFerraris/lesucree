@@ -37,7 +37,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Seguinos</span>
+            <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Seguime</span>
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="Instagram de Le Sucrée">
               <Instagram size={16} /> {INSTAGRAM_HANDLE}
             </a>
