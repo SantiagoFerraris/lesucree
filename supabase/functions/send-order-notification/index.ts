@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
           <thead><tr style="background:#F5E6DA"><th style="padding:8px;text-align:left">Producto</th><th style="padding:8px;text-align:center">Cant.</th><th style="padding:8px;text-align:right">Precio</th></tr></thead>
           <tbody>${itemsHtml}</tbody>
         </table>
-        <p style="font-size:18px;font-weight:bold;color:#3E2723;margin-top:16px;text-align:right">Total: $${total.toLocaleString('es-AR')}</p>
+        <p style="font-size:18px;font-weight:bold;color:#3E2723;margin-top:16px;text-align:right">Total: $${dbTotal.toLocaleString('es-AR')}</p>
       </div>
     `;
 
