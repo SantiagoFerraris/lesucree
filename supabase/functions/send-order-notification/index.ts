@@ -50,14 +50,21 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from('rate_limits').insert({ identifier: customerEmail, action_type: 'order' });
     }
 
-    // Validate that the order actually exists in the database
-    const { data: order } = await supabaseAdmin.from('orders').select('id, notified_at').eq('id', orderId).single();
+    // Validate that the order actually exists in the database, and pull items/total from DB
+    // (never trust the request body for these values)
+    const { data: order } = await supabaseAdmin
+      .from('orders')
+      .select('id, notified_at, items, total')
+      .eq('id', orderId)
+      .single();
     let resolvedOrderId = order?.id;
+    let dbItems: any[] = (order?.items as any[]) || [];
+    let dbTotal: number = Number(order?.total ?? 0);
 
     if (!order) {
       const { data: orderByName } = await supabaseAdmin
         .from('orders')
-        .select('id, notified_at')
+        .select('id, notified_at, items, total')
         .eq('customer_name', customerName)
         .eq('customer_email', customerEmail)
         .order('created_at', { ascending: false })
@@ -71,6 +78,8 @@ Deno.serve(async (req) => {
         });
       }
       resolvedOrderId = orderByName.id;
+      dbItems = (orderByName.items as any[]) || [];
+      dbTotal = Number(orderByName.total ?? 0);
 
       if (orderByName.notified_at) {
         return new Response(JSON.stringify({ success: true, skipped: true }), {
@@ -93,8 +102,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const itemsHtml = items.map((i: any) =>
-      `<tr><td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(i.productName)}${i.variantLabel ? ` — ${escapeHtml(i.variantLabel)}` : ''}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(String(i.quantity))}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">$${(i.unitPrice * i.quantity).toLocaleString('es-AR')}</td></tr>`
+    const itemsHtml = dbItems.map((i: any) =>
+      `<tr><td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(i.productName)}${i.variantLabel ? ` — ${escapeHtml(i.variantLabel)}` : ''}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(String(i.quantity))}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">$${(Number(i.unitPrice) * Number(i.quantity)).toLocaleString('es-AR')}</td></tr>`
     ).join('');
 
     const html = `
