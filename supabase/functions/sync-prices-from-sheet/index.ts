@@ -38,6 +38,15 @@ Deno.serve(async (req) => {
                                    });
                        }
 
+                       // Verify the user has admin role before allowing bulk price sync
+                       const { data: isAdmin, error: adminError } = await userClient.rpc('is_admin');
+                       if (adminError || !isAdmin) {
+                                   return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                                                 status: 403,
+                                                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                                   });
+                       }
+
           const csvUrl = Deno.env.get('GOOGLE_SHEET_CSV_URL');
                        if (!csvUrl) {
                                    return new Response(
