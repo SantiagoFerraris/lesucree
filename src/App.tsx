@@ -18,6 +18,7 @@ const Pedido = lazy(() => import("./pages/Pedido"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
+const AdminResetPassword = lazy(() => import("./pages/AdminResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProductos = lazy(() => import("./pages/AdminProductos"));
 const AdminMensajes = lazy(() => import("./pages/AdminMensajes"));
@@ -75,6 +76,9 @@ const App = () => (
                   <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
                   <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
                 </Route>
+
+                {/* Admin password reset (public, must be outside AdminLayout auth gate) */}
+                <Route path="/admin/reset-password" element={<AdminSuspense><AdminResetPassword /></AdminSuspense>} />
 
                 {/* Admin routes */}
                 <Route path="/admin" element={<AdminSuspense><AdminLayout /></AdminSuspense>}>
