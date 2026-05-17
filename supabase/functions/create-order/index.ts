@@ -166,6 +166,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Server-side notification trigger (no PII in body, only the trusted orderId).
+    try {
+      await supabaseAdmin.functions.invoke('send-order-notification', {
+        body: { orderId },
+      });
+    } catch (e) {
+      console.error('Notification dispatch failed (non-blocking):', e);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       orderId,
