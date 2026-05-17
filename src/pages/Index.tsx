@@ -124,12 +124,12 @@ function FeaturedSection() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("id, name, description, price, category, image_url, featured, active")
         .eq("featured", true)
         .eq("active", true)
         .limit(6);
       if (error) throw error;
-      return data;
+      return data as Tables<"products">[];
     },
   });
 
