@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
@@ -14,7 +14,7 @@ interface Props {
   compact?: boolean;
 }
 
-export default function ProductCard({ product, index = 0, variants, compact = false }: Props) {
+function ProductCardImpl({ product, index = 0, variants, compact = false }: Props) {
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -116,3 +116,7 @@ export default function ProductCard({ product, index = 0, variants, compact = fa
     </div>
   );
 }
+
+const ProductCard = memo(ProductCardImpl);
+export default ProductCard;
+

@@ -27,11 +27,16 @@ export default function Catalogo() {
   const { data: products, isLoading, isError, refetch } = useQuery({
     queryKey: ['products', category],
     queryFn: async () => {
-      let q = supabase.from('products').select('*').eq('active', true).order('name');
+      let q = supabase
+        .from('products')
+        .select('id, name, description, price, category, image_url, featured, active')
+        .eq('active', true)
+        .order('name')
+        .limit(200);
       if (category !== 'todos') q = q.eq('category', category);
       const { data, error } = await q;
       if (error) throw error;
-      return data;
+      return data as Tables<'products'>[];
     },
   });
 
