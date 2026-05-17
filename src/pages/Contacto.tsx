@@ -80,11 +80,7 @@ export default function Contacto() {
         if (error || !result?.success) {
                 toast.error(result?.error || 'Error al enviar el mensaje');
         } else {
-                try {
-                          await supabase.functions.invoke('send-contact-notification', {
-                                      body: { name, email, message }
-                          });
-                } catch { /* non-blocking */ }
+                // Notification is dispatched server-side by create-contact-message.
 
           toast.success('¡Mensaje enviado! Te responderemos pronto.');
 

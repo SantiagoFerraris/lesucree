@@ -73,6 +73,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Server-side notification trigger (no PII in body, only the trusted messageId).
+    try {
+      await supabaseAdmin.functions.invoke('send-contact-notification', {
+        body: { messageId: msg.id },
+      });
+    } catch (e) {
+      console.error('Notification dispatch failed (non-blocking):', e);
+    }
+
     return new Response(JSON.stringify({ success: true, messageId: msg.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

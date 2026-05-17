@@ -141,21 +141,7 @@ export default function Pedido() {
         const serverItems = orderResult.items;
         const serverTotal = orderResult.total;
 
-        try {
-                await supabase.functions.invoke('send-order-notification', {
-                          body: {
-                                      orderId: orderId.slice(0, 8).toUpperCase(),
-                                      customerName: form.name.trim(),
-                                      customerPhone: form.phone.trim(),
-                                      customerEmail: form.email.trim(),
-                                      desiredDate: form.date,
-                                      preferredTime: form.time,
-                                      notes: form.notes.trim(),
-                                      items: serverItems,
-                                      total: serverTotal,
-                          },
-                });
-        } catch { /* non-blocking */ }
+        // Notification is dispatched server-side by create-order.
 
         const itemsList = (serverItems as any[]).map((i: any) =>
                 `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.unitPrice * i.quantity)}`
