@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://esm.sh/zod@3.25.76';
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -14,82 +15,40 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const GENERIC_OK = () => new Response(JSON.stringify({ success: true }), {
+  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
+
+const BodySchema = z.object({ orderId: z.string().uuid() });
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { orderId, customerName, customerPhone, customerEmail, desiredDate, preferredTime, notes, items, total } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const parsed = BodySchema.safeParse(body);
+    if (!parsed.success) {
+      // Generic response to prevent enumeration of valid order IDs.
+      return GENERIC_OK();
+    }
+    const { orderId } = parsed.data;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Cleanup old rate limit entries (non-blocking)
-    try { await supabaseAdmin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
-
-    // Server-side rate limiting: max 5 order notifications per email per 10 minutes
-    if (customerEmail) {
-      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-      const { count } = await supabaseAdmin
-        .from('rate_limits')
-        .select('*', { count: 'exact', head: true })
-        .eq('identifier', customerEmail)
-        .eq('action_type', 'order')
-        .gte('created_at', tenMinAgo);
-
-      if (count !== null && count >= 5) {
-        return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Record this request
-      await supabaseAdmin.from('rate_limits').insert({ identifier: customerEmail, action_type: 'order' });
-    }
-
-    // Validate that the order actually exists in the database, and pull items/total from DB
-    // (never trust the request body for these values)
+    // Fetch ALL order fields from the database. Never trust the caller for PII.
     const { data: order } = await supabaseAdmin
       .from('orders')
-      .select('id, notified_at, items, total')
+      .select('id, customer_name, customer_phone, customer_email, desired_date, preferred_time, notes, items, total, notified_at')
       .eq('id', orderId)
-      .single();
-    let resolvedOrderId = order?.id;
-    let dbItems: any[] = (order?.items as any[]) || [];
-    let dbTotal: number = Number(order?.total ?? 0);
+      .maybeSingle();
 
-    if (!order) {
-      const { data: orderByName } = await supabaseAdmin
-        .from('orders')
-        .select('id, notified_at, items, total')
-        .eq('customer_name', customerName)
-        .eq('customer_email', customerEmail)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!orderByName) {
-        return new Response(JSON.stringify({ error: 'Order not found' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      resolvedOrderId = orderByName.id;
-      dbItems = (orderByName.items as any[]) || [];
-      dbTotal = Number(orderByName.total ?? 0);
-
-      if (orderByName.notified_at) {
-        return new Response(JSON.stringify({ success: true, skipped: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-    } else if (order.notified_at) {
-      return new Response(JSON.stringify({ success: true, skipped: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Generic response whether or not the order exists / was already notified.
+    if (!order || order.notified_at) {
+      return GENERIC_OK();
     }
 
     const NOTIFICATION_EMAIL = Deno.env.get('ORDER_NOTIFICATION_EMAIL');
@@ -97,10 +56,12 @@ Deno.serve(async (req) => {
 
     if (!NOTIFICATION_EMAIL) {
       console.error('ORDER_NOTIFICATION_EMAIL not configured');
-      return new Response(JSON.stringify({ error: 'Email not configured' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return GENERIC_OK();
     }
+
+    const dbItems: any[] = (order.items as any[]) || [];
+    const dbTotal = Number(order.total ?? 0);
+    const shortId = String(order.id).slice(0, 8).toUpperCase();
 
     const itemsHtml = dbItems.map((i: any) =>
       `<tr><td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(i.productName)}${i.variantLabel ? ` — ${escapeHtml(i.variantLabel)}` : ''}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(String(i.quantity))}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">$${(Number(i.unitPrice) * Number(i.quantity)).toLocaleString('es-AR')}</td></tr>`
@@ -108,14 +69,14 @@ Deno.serve(async (req) => {
 
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
-        <h1 style="color:#3E2723;font-size:24px">Nuevo Pedido #${escapeHtml(String(orderId))}</h1>
+        <h1 style="color:#3E2723;font-size:24px">Nuevo Pedido #${escapeHtml(shortId)}</h1>
         <h3 style="color:#6D5D53">Datos del cliente</h3>
-        <p><strong>Nombre:</strong> ${escapeHtml(String(customerName))}</p>
-        <p><strong>Teléfono:</strong> ${escapeHtml(String(customerPhone))}</p>
-        <p><strong>Email:</strong> ${escapeHtml(String(customerEmail))}</p>
-        <p><strong>Fecha de retiro:</strong> ${escapeHtml(String(desiredDate))}</p>
-        <p><strong>Horario:</strong> ${escapeHtml(String(preferredTime))}</p>
-        ${notes ? `<p><strong>Notas:</strong> ${escapeHtml(String(notes))}</p>` : ''}
+        <p><strong>Nombre:</strong> ${escapeHtml(String(order.customer_name))}</p>
+        <p><strong>Teléfono:</strong> ${escapeHtml(String(order.customer_phone))}</p>
+        <p><strong>Email:</strong> ${escapeHtml(String(order.customer_email))}</p>
+        <p><strong>Fecha de retiro:</strong> ${escapeHtml(String(order.desired_date))}</p>
+        <p><strong>Horario:</strong> ${escapeHtml(String(order.preferred_time))}</p>
+        ${order.notes ? `<p><strong>Notas:</strong> ${escapeHtml(String(order.notes))}</p>` : ''}
         <h3 style="color:#6D5D53;margin-top:20px">Productos</h3>
         <table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:#F5E6DA"><th style="padding:8px;text-align:left">Producto</th><th style="padding:8px;text-align:center">Cant.</th><th style="padding:8px;text-align:right">Precio</th></tr></thead>
@@ -135,36 +96,27 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: 'Le Sucrée <onboarding@resend.dev>',
           to: [NOTIFICATION_EMAIL],
-          subject: `Nuevo Pedido #${orderId} - Le Sucrée`,
-          html: html,
+          subject: `Nuevo Pedido #${shortId} - Le Sucrée`,
+          html,
         }),
       });
 
       if (!resendRes.ok) {
         const errBody = await resendRes.text();
         console.error('Resend API error:', resendRes.status, errBody);
-        return new Response(JSON.stringify({ success: true, emailSent: false, reason: 'Resend error' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return GENERIC_OK();
       }
 
       console.log('Email sent successfully via Resend to', NOTIFICATION_EMAIL);
     } else {
-      console.log('RESEND_API_KEY not set. Order notification logged:', { orderId, customerName, NOTIFICATION_EMAIL });
+      console.log('RESEND_API_KEY not set. Order notification logged for', shortId);
     }
 
-    // Mark as notified
-    if (resolvedOrderId) {
-      await supabaseAdmin.from('orders').update({ notified_at: new Date().toISOString() }).eq('id', resolvedOrderId);
-    }
+    await supabaseAdmin.from('orders').update({ notified_at: new Date().toISOString() }).eq('id', order.id);
 
-    return new Response(JSON.stringify({ success: true, emailSent: !!RESEND_API_KEY }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return GENERIC_OK();
   } catch (error) {
     console.error('Edge function error:', error);
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return GENERIC_OK();
   }
 });
