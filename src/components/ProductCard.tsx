@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
