@@ -14,7 +14,7 @@ interface Props {
   compact?: boolean;
 }
 
-export default function ProductCard({ product, index = 0, variants, compact = false }: Props) {
+function ProductCardImpl({ product, index = 0, variants, compact = false }: Props) {
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
