@@ -116,3 +116,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
     </div>
   );
 }
+
+const ProductCard = memo(ProductCardImpl);
+export default ProductCard;
+
