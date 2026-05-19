@@ -26,14 +26,22 @@ const PAYMENT_LABELS: Record<string, string> = {
   pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
 };
 
-function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: string; value: string; loading: boolean }) {
+function KpiCard({ icon: Icon, label, value, loading, badge, onClick }: { icon: any; label: string; value: string; loading: boolean; badge?: string | null; onClick?: () => void }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-xl shadow-sm border border-gray-100 p-5 ${onClick ? 'cursor-pointer hover:border-gray-200 transition-colors' : ''}`}
+    >
       <div className="flex items-center gap-3 mb-2">
         <div className="w-9 h-9 rounded-lg bg-cream flex items-center justify-center">
           <Icon size={18} className="text-espresso" />
         </div>
-        <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider flex-1 truncate">{label}</span>
+        {badge && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold whitespace-nowrap">
+            {badge}
+          </span>
+        )}
       </div>
       {loading ? <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" /> : <p className="text-2xl font-bold text-espresso font-display">{value}</p>}
     </div>
