@@ -24,10 +24,8 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Scroll to top on route change
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [pathname]);
+  // Note: ScrollToTop in App.tsx already handles route-change scroll (instant).
+  // Avoid duplicate smooth-scroll here to prevent jank.
 
   return (
     <>
