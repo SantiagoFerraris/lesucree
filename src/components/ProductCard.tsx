@@ -76,8 +76,22 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
 
         {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) */}
         {!compact && (
-          <p className="font-body text-base font-semibold text-espresso mt-2">
-            {minVariantPrice !== null ? `Desde ${formatPrice(minVariantPrice)}` : formatPrice(product.price)}
+          <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
+            {minVariantPrice !== null ? (
+              <>
+                <span>Desde {formatPrice(minVariantPrice)}</span>
+                {minVariantOriginal !== null && minVariantPrice < minVariantOriginal && (
+                  <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(minVariantOriginal)}</span>
+                )}
+              </>
+            ) : (
+              <>
+                <span>{formatPrice(displayPrice)}</span>
+                {hasDiscount && (
+                  <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(basePrice)}</span>
+                )}
+              </>
+            )}
           </p>
         )}
 
@@ -104,8 +118,11 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
 
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
-            <span className="font-body text-lg font-semibold text-espresso">
+            <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
               {formatPrice(displayPrice)}
+              {hasDiscount && (
+                <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(basePrice)}</span>
+              )}
             </span>
             <button
               onClick={handleAdd}
