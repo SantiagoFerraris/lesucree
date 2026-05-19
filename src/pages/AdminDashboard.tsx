@@ -94,6 +94,36 @@ export default function AdminDashboard() {
     },
   });
 
+  const { data: activePromotions, isLoading: promotionsLoading } = useQuery({
+    queryKey: ['admin-dashboard-active-promotions'],
+    queryFn: async () => {
+      const nowIso = new Date().toISOString();
+      const { data: promos, error } = await supabase
+        .from('promotions')
+        .select('id, title, discount_type, discount_value, start_date, end_date')
+        .eq('is_active', true)
+        .or(`start_date.is.null,start_date.lte.${nowIso}`)
+        .or(`end_date.is.null,end_date.gte.${nowIso}`)
+        .order('end_date', { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      if (!promos || promos.length === 0) return [];
+
+      const ids = promos.map(p => p.id);
+      const { data: links } = await supabase
+        .from('promotion_products')
+        .select('promotion_id, product_id, products(name)')
+        .in('promotion_id', ids);
+
+      return promos.map(p => ({
+        ...p,
+        products: (links || [])
+          .filter((l: any) => l.promotion_id === p.id)
+          .map((l: any) => l.products?.name)
+          .filter(Boolean) as string[],
+      }));
+    },
+  });
+
   // FIX BUG 1: Monthly sales sums ALL non-cancelled orders in the current month
   const monthlyRevenue = orders?.filter(o => {
     if (o.created_at < monthStart) return false;
@@ -372,6 +402,72 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Active promotions */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-espresso">Promociones Activas</h3>
+          <button
+            onClick={() => navigate('/admin/promociones')}
+            className="text-xs text-warm-gray hover:text-espresso transition-colors"
+          >
+            Ver todas →
+          </button>
+        </div>
+        {promotionsLoading ? (
+          <div className="space-y-3">{[...Array(2)].map((_, i) => <div key={i} className="h-10 bg-gray-200 animate-pulse rounded" />)}</div>
+        ) : !activePromotions || activePromotions.length === 0 ? (
+          <p className="text-warm-gray text-sm">No hay promociones activas en este momento.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-warm-gray uppercase tracking-wider border-b border-gray-100">
+                  <th className="text-left py-2 pr-3">Promoción</th>
+                  <th className="text-left py-2 pr-3">Productos</th>
+                  <th className="text-left py-2 pr-3">Descuento</th>
+                  <th className="text-left py-2">Vence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activePromotions.map((p: any) => {
+                  const productsLabel =
+                    p.products.length === 0
+                      ? '—'
+                      : p.products.length === 1
+                        ? p.products[0]
+                        : `${p.products[0]} + ${p.products.length - 1} más`;
+                  const discountLabel =
+                    p.discount_type === 'percentage'
+                      ? `${Number(p.discount_value ?? 0)}%`
+                      : formatPrice(Number(p.discount_value ?? 0));
+                  return (
+                    <tr
+                      key={p.id}
+                      className="border-b border-gray-50 hover:bg-cream/30 cursor-pointer transition-colors"
+                      onClick={() => navigate('/admin/promociones')}
+                    >
+                      <td className="py-2.5 pr-3 text-espresso font-medium truncate max-w-[180px]">
+                        {p.title || 'Sin título'}
+                      </td>
+                      <td className="py-2.5 pr-3 text-warm-gray truncate max-w-[200px]">{productsLabel}</td>
+                      <td className="py-2.5 pr-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-cream text-espresso">
+                          -{discountLabel}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-espresso whitespace-nowrap">
+                        {p.end_date ? formatDate(p.end_date) : 'Sin vencimiento'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
 
       {/* ==================== 3-LAYER ASSISTANT ==================== */}
 
