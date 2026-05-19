@@ -52,8 +52,19 @@ export default function Catalogo() {
 
   const getVariants = (productId: string) => allVariants?.filter(v => v.product_id === productId) || [];
 
-  const totalPages = Math.ceil((products?.length || 0) / ITEMS_PER_PAGE);
-  const paginatedProducts = products?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  // When viewing "todos", surface products with active promotions first (stable for the rest).
+  const promosMap = useActivePromotions();
+  const sortedProducts = useMemo(() => {
+    if (!products) return products;
+    if (category !== 'todos') return products;
+    const promoted: Tables<'products'>[] = [];
+    const regular: Tables<'products'>[] = [];
+    products.forEach(p => (promosMap.has(p.id) ? promoted : regular).push(p));
+    return [...promoted, ...regular];
+  }, [products, category, promosMap]);
+
+  const totalPages = Math.ceil((sortedProducts?.length || 0) / ITEMS_PER_PAGE);
+  const paginatedProducts = sortedProducts?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const goToPage = (p: number) => {
     setPage(p);
