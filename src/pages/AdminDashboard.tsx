@@ -82,6 +82,18 @@ export default function AdminDashboard() {
     },
   });
 
+  const { data: pendingZumbita, isLoading: zumbitaLoading } = useQuery({
+    queryKey: ['admin-dashboard-zumbita'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('zumbita_discount_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   // FIX BUG 1: Monthly sales sums ALL non-cancelled orders in the current month
   const monthlyRevenue = orders?.filter(o => {
     if (o.created_at < monthStart) return false;
