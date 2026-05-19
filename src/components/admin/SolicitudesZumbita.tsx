@@ -92,8 +92,8 @@ function formatExpirationLong(value: string | null) {
 }
 
 function buildWhatsAppMessage(customerName: string, code: string, expirationDate: string | null) {
-  const firstName = (customerName || '').split(' ')[0] || customerName;
-  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée Pastelería! ✨`;
+  const name = (customerName || '').trim();
+  return `Hola ${name} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo: ${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en: ${CHECKOUT_URL}\n\nVálido hasta: ${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée Pastelería! ✨`;
 }
 
 interface GeneratedCoupon {
