@@ -88,6 +88,7 @@ export default function SolicitudesZumbita() {
   const [filter, setFilter] = useState<'all' | RequestStatus>('all');
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
+  const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
     discount_type: 'percentage',
@@ -142,6 +143,28 @@ export default function SolicitudesZumbita() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['zumbita-requests'] }),
     onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
+  });
+
+  const disableBenefit = useMutation({
+    mutationFn: async (req: ZumbitaRequest) => {
+      const { error: couponErr } = await supabase
+        .from('coupons')
+        .update({ is_active: false })
+        .eq('zumbita_request_id', req.id);
+      if (couponErr) throw couponErr;
+
+      const { error: reqErr } = await supabase
+        .from('zumbita_discount_requests')
+        .update({ status: 'disabled' })
+        .eq('id', req.id);
+      if (reqErr) throw reqErr;
+    },
+    onSuccess: () => {
+      toast.success('Beneficio deshabilitado');
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+      setDisableModal(null);
+    },
+    onError: (e: any) => toast.error(e.message || 'No se pudo deshabilitar el beneficio'),
   });
 
   const createCoupon = useMutation({
@@ -337,7 +360,7 @@ export default function SolicitudesZumbita() {
                     </button>
                     <button
                       disabled={isPending || status === 'disabled'}
-                      onClick={() => updateStatus.mutate({ id: req.id, status: 'disabled' })}
+                      onClick={() => setDisableModal(req)}
                       className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-cream text-warm-gray hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Ban size={14} />
@@ -572,6 +595,60 @@ export default function SolicitudesZumbita() {
               >
                 <Check size={14} />
                 {createCoupon.isPending ? 'Creando...' : 'Crear cupón y aprobar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disable confirmation modal */}
+      {disableModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          onClick={() => !disableBenefit.isPending && setDisableModal(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center shrink-0">
+                  <Ban size={18} className="text-dusty-pink" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-espresso">
+                    Deshabilitar beneficio
+                  </h3>
+                  <p className="text-xs text-warm-gray mt-0.5 truncate">
+                    {disableModal.customer_name} · {disableModal.email}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-espresso/90 mb-2">
+                Vas a desactivar el beneficio de esta alumna. Si ya se generó un cupón, se va a desactivar y no podrá usarse en futuras compras.
+              </p>
+              <p className="text-xs text-warm-gray">
+                La solicitud va a quedar marcada como <span className="font-semibold">Deshabilitada</span>.
+              </p>
+            </div>
+            <div className="border-t border-gray-100 px-5 py-3 sm:px-6 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDisableModal(null)}
+                disabled={disableBenefit.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-cream text-espresso hover:bg-blush transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => disableModal && disableBenefit.mutate(disableModal)}
+                disabled={disableBenefit.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+              >
+                <Ban size={14} />
+                {disableBenefit.isPending ? 'Deshabilitando...' : 'Sí, deshabilitar'}
               </button>
             </div>
           </div>
