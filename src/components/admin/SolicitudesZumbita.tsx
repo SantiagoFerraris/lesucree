@@ -478,7 +478,17 @@ export default function SolicitudesZumbita() {
                       <Ban size={14} />
                       Deshabilitar
                     </button>
+                    <button
+                      disabled={deleteRequest.isPending}
+                      onClick={() => setDeleteModal(req)}
+                      className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-white border border-gray-200 text-warm-gray hover:bg-blush hover:text-espresso disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="Eliminar solicitud permanentemente"
+                    >
+                      <Trash2 size={14} />
+                      Eliminar
+                    </button>
                   </div>
+
                 </div>
               </div>
             );
