@@ -88,6 +88,7 @@ export default function SolicitudesZumbita() {
   const [filter, setFilter] = useState<'all' | RequestStatus>('all');
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
+  const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
     discount_type: 'percentage',
