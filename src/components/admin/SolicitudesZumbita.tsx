@@ -92,8 +92,8 @@ function formatExpirationLong(value: string | null) {
 }
 
 function buildWhatsAppMessage(customerName: string, code: string, expirationDate: string | null) {
-  const firstName = (customerName || '').split(' ')[0] || customerName;
-  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée Pastelería! ✨`;
+  const name = (customerName || '').trim();
+  return `Hola ${name} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo: ${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en: ${CHECKOUT_URL}\n\nVálido hasta: ${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée Pastelería! ✨`;
 }
 
 interface GeneratedCoupon {
@@ -726,8 +726,7 @@ export default function SolicitudesZumbita() {
                       toast.error('Esta solicitud no tiene número de WhatsApp');
                       return;
                     }
-                    const msg = buildWhatsAppMessage(generatedCoupon.req.customer_name, generatedCoupon.code, generatedCoupon.expirationDate);
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                    window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
                   }}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors"
                 >
