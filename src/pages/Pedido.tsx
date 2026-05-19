@@ -130,9 +130,10 @@ export default function Pedido() {
         const e: Record<string, string> = {};
         if (!form.name.trim()) e.name = 'Ingresá tu nombre';
         if (!PHONE_REGEX.test(form.phone.trim())) e.phone = 'Ingresá un teléfono válido';
-        if (!EMAIL_REGEX.test(form.email.trim())) e.email = 'Ingresá un email válido';
+        if (form.email.trim() && !EMAIL_REGEX.test(form.email.trim())) e.email = 'Ingresá un email válido';
         if (!form.date) e.date = 'Seleccioná una fecha';
         else if (form.date < getMinDate()) e.date = 'Mínimo 48hs de anticipación';
+        if (!form.time) e.time = 'Seleccioná un horario';
         setErrors(e);
         return Object.keys(e).length === 0;
   };
@@ -144,7 +145,7 @@ export default function Pedido() {
 
   const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setTouched({ name: true, phone: true, email: true, date: true });
+        setTouched({ name: true, phone: true, email: true, date: true, time: true });
 
         if (isHoneypotFilled(honeypot)) {
                 toast.success('¡Pedido enviado con éxito!');
