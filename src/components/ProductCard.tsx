@@ -138,9 +138,9 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
             <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
-              {formatPrice(displayPrice)}
+              <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
               {hasDiscount && (
-                <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(basePrice)}</span>
+                <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(basePrice)}</span>
               )}
             </span>
             <button
