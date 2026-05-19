@@ -94,6 +94,36 @@ export default function AdminDashboard() {
     },
   });
 
+  const { data: activePromotions, isLoading: promotionsLoading } = useQuery({
+    queryKey: ['admin-dashboard-active-promotions'],
+    queryFn: async () => {
+      const nowIso = new Date().toISOString();
+      const { data: promos, error } = await supabase
+        .from('promotions')
+        .select('id, title, discount_type, discount_value, start_date, end_date')
+        .eq('is_active', true)
+        .or(`start_date.is.null,start_date.lte.${nowIso}`)
+        .or(`end_date.is.null,end_date.gte.${nowIso}`)
+        .order('end_date', { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      if (!promos || promos.length === 0) return [];
+
+      const ids = promos.map(p => p.id);
+      const { data: links } = await supabase
+        .from('promotion_products')
+        .select('promotion_id, product_id, products(name)')
+        .in('promotion_id', ids);
+
+      return promos.map(p => ({
+        ...p,
+        products: (links || [])
+          .filter((l: any) => l.promotion_id === p.id)
+          .map((l: any) => l.products?.name)
+          .filter(Boolean) as string[],
+      }));
+    },
+  });
+
   // FIX BUG 1: Monthly sales sums ALL non-cancelled orders in the current month
   const monthlyRevenue = orders?.filter(o => {
     if (o.created_at < monthStart) return false;
