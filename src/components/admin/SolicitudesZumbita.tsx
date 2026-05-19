@@ -870,6 +870,57 @@ export default function SolicitudesZumbita() {
           </div>
         </div>
       )}
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          onClick={() => !deleteRequest.isPending && setDeleteModal(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center shrink-0">
+                  <Trash2 size={18} className="text-dusty-pink" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-espresso">
+                    Eliminar solicitud
+                  </h3>
+                  <p className="text-xs text-warm-gray mt-0.5 truncate">
+                    {deleteModal.customer_name}{deleteModal.email ? ` · ${deleteModal.email}` : ''}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-espresso/90">
+                ¿Estás seguro de que querés eliminar esta solicitud de forma permanente?
+              </p>
+            </div>
+            <div className="border-t border-gray-100 px-5 py-3 sm:px-6 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                disabled={deleteRequest.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-cream text-espresso hover:bg-blush transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteModal && deleteRequest.mutate(deleteModal)}
+                disabled={deleteRequest.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+              >
+                <Trash2 size={14} />
+                {deleteRequest.isPending ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
