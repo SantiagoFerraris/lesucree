@@ -72,6 +72,20 @@ function suggestCode(name: string) {
   return `ZUMBITA-${slug}`;
 }
 
+function randomSuffix(len = 4) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function appendRandomToCode(current: string) {
+  const base = (current || '').trim().toUpperCase().replace(/-+$/, '');
+  const suffix = randomSuffix(4);
+  if (!base) return `PROMO-${suffix}`;
+  return `${base}-${suffix}`;
+}
+
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('es-AR', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
