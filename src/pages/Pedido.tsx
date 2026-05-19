@@ -56,6 +56,53 @@ export default function Pedido() {
     const [honeypot, setHoneypot] = useState('');
     const formLoadedAt = useRef(Date.now());
 
+    // Coupon state
+    const [couponInput, setCouponInput] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+    const [couponError, setCouponError] = useState<string | null>(null);
+
+    const subtotal = getCartTotal();
+    const discount = appliedCoupon?.discountAmount ?? 0;
+    const finalTotal = Math.max(0, subtotal - discount);
+
+    // Re-validate coupon when cart changes
+    useEffect(() => {
+        if (appliedCoupon) {
+            setAppliedCoupon(null);
+            setCouponError('El carrito cambió. Aplicá el cupón nuevamente.');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items.length, subtotal]);
+
+    const handleApplyCoupon = async () => {
+        const code = couponInput.trim();
+        if (!code) return;
+        setCouponLoading(true);
+        setCouponError(null);
+        const { data, error } = await supabase.functions.invoke('validate-coupon', {
+            body: {
+                code,
+                customerEmail: form.email.trim() || undefined,
+                items: items.map(i => ({ productId: i.productId, variantId: i.variantId || undefined, quantity: i.quantity })),
+            },
+        });
+        setCouponLoading(false);
+        if (error || !data?.valid) {
+            setAppliedCoupon(null);
+            setCouponError(data?.error || 'No se pudo validar el cupón.');
+            return;
+        }
+        setAppliedCoupon({ code: data.code, discountAmount: data.discountAmount });
+        toast.success(`Cupón "${data.code}" aplicado`);
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponInput('');
+        setCouponError(null);
+    };
+
   // Set default time once settings load
   useEffect(() => {
         if (defaultTime && !form.time) {
