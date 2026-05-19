@@ -294,11 +294,13 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_id: string | null
           created_at: string | null
           customer_email: string
           customer_name: string
           customer_phone: string
           desired_date: string
+          discount_amount: number
           id: string
           items: Json
           notes: string | null
@@ -306,14 +308,17 @@ export type Database = {
           payment_status: string | null
           preferred_time: string
           status: string
+          subtotal: number | null
           total: number
         }
         Insert: {
+          coupon_id?: string | null
           created_at?: string | null
           customer_email: string
           customer_name: string
           customer_phone: string
           desired_date: string
+          discount_amount?: number
           id?: string
           items: Json
           notes?: string | null
@@ -321,14 +326,17 @@ export type Database = {
           payment_status?: string | null
           preferred_time: string
           status?: string
+          subtotal?: number | null
           total: number
         }
         Update: {
+          coupon_id?: string | null
           created_at?: string | null
           customer_email?: string
           customer_name?: string
           customer_phone?: string
           desired_date?: string
+          discount_amount?: number
           id?: string
           items?: Json
           notes?: string | null
@@ -336,9 +344,18 @@ export type Database = {
           payment_status?: string | null
           preferred_time?: string
           status?: string
+          subtotal?: number | null
           total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_variants: {
         Row: {
