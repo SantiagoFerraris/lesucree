@@ -187,21 +187,6 @@ export default function Zumbita() {
                 </div>
 
                 <div>
-                  <label htmlFor="zumbita-email" className="sr-only">Email</label>
-                  <input
-                    id="zumbita-email"
-                    type="email"
-                    placeholder="Email *"
-                    value={form.email}
-                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                    className={inputClass}
-                    maxLength={255}
-                    disabled={isNotStudent}
-                    required
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="zumbita-whatsapp" className="sr-only">WhatsApp</label>
                   <input
                     id="zumbita-whatsapp"
@@ -213,6 +198,20 @@ export default function Zumbita() {
                     maxLength={20}
                     disabled={isNotStudent}
                     required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="zumbita-email" className="sr-only">Email</label>
+                  <input
+                    id="zumbita-email"
+                    type="email"
+                    placeholder="Email (opcional)"
+                    value={form.email}
+                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                    className={inputClass}
+                    maxLength={255}
+                    disabled={isNotStudent}
                   />
                 </div>
 
