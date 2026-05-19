@@ -763,7 +763,7 @@ export default function SolicitudesZumbita() {
                     Deshabilitar beneficio
                   </h3>
                   <p className="text-xs text-warm-gray mt-0.5 truncate">
-                    {disableModal.customer_name} · {disableModal.email}
+                    {disableModal.customer_name}{disableModal.email ? ` · ${disableModal.email}` : ''}
                   </p>
                 </div>
               </div>
