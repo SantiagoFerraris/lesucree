@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     const { count } = await supabaseAdmin
       .from('rate_limits')
       .select('*', { count: 'exact', head: true })
-      .eq('identifier', customerEmail)
+      .eq('identifier', rateLimitId)
       .eq('action_type', 'order')
       .gte('created_at', tenMinAgo);
 
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    await supabaseAdmin.from('rate_limits').insert({ identifier: customerEmail, action_type: 'order' });
+    await supabaseAdmin.from('rate_limits').insert({ identifier: rateLimitId, action_type: 'order' });
 
     const productIds = [...new Set(items.map(i => i.productId))];
     const variantIds = items.filter(i => i.variantId).map(i => i.variantId!);
