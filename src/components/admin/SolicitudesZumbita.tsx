@@ -360,7 +360,7 @@ export default function SolicitudesZumbita() {
                     </button>
                     <button
                       disabled={isPending || status === 'disabled'}
-                      onClick={() => updateStatus.mutate({ id: req.id, status: 'disabled' })}
+                      onClick={() => setDisableModal(req)}
                       className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-cream text-warm-gray hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Ban size={14} />
