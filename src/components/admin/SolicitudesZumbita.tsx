@@ -278,7 +278,7 @@ export default function SolicitudesZumbita() {
       const s = search.toLowerCase();
       return (
         r.customer_name.toLowerCase().includes(s) ||
-        r.email.toLowerCase().includes(s) ||
+        (r.email || '').toLowerCase().includes(s) ||
         (r.whatsapp || '').toLowerCase().includes(s)
       );
     }
