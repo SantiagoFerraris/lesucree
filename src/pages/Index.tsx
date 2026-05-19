@@ -213,11 +213,13 @@ function FeaturedSection() {
         </div>
       </div>
       {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          variants={getVariants(selectedProduct.id)}
-          onClose={() => setSelectedProduct(null)}
-        />
+        <Suspense fallback={null}>
+          <ProductDetailModal
+            product={selectedProduct}
+            variants={getVariants(selectedProduct.id)}
+            onClose={() => setSelectedProduct(null)}
+          />
+        </Suspense>
       )}
     </section>
   );
