@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles, Wand2 } from 'lucide-react';
+import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles, Wand2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -122,6 +122,7 @@ export default function SolicitudesZumbita() {
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
   const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
+  const [deleteModal, setDeleteModal] = useState<ZumbitaRequest | null>(null);
   const [generatedCoupon, setGeneratedCoupon] = useState<GeneratedCoupon | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
@@ -216,6 +217,37 @@ export default function SolicitudesZumbita() {
     },
     onError: (e: any) => toast.error(e.message || 'No se pudo deshabilitar el beneficio'),
   });
+
+  const deleteRequest = useMutation({
+    mutationFn: async (req: ZumbitaRequest) => {
+      // Best-effort cleanup of related coupons (no FK cascade)
+      await supabase.from('coupons').delete().eq('zumbita_request_id', req.id);
+      const { error } = await supabase
+        .from('zumbita_discount_requests')
+        .delete()
+        .eq('id', req.id);
+      if (error) throw error;
+      return req.id;
+    },
+    onMutate: async (req) => {
+      await qc.cancelQueries({ queryKey: ['zumbita-requests'] });
+      const prev = qc.getQueryData<ZumbitaRequest[]>(['zumbita-requests']);
+      qc.setQueryData<ZumbitaRequest[]>(['zumbita-requests'], (old = []) =>
+        old.filter(r => r.id !== req.id)
+      );
+      return { prev };
+    },
+    onSuccess: () => {
+      toast.success('Solicitud eliminada correctamente');
+      setDeleteModal(null);
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['zumbita-requests'], ctx.prev);
+      toast.error('No se pudo eliminar la solicitud');
+    },
+  });
+
 
   const createCoupon = useMutation({
     mutationFn: async ({ req, form }: { req: ZumbitaRequest; form: CouponForm }) => {
@@ -446,7 +478,17 @@ export default function SolicitudesZumbita() {
                       <Ban size={14} />
                       Deshabilitar
                     </button>
+                    <button
+                      disabled={deleteRequest.isPending}
+                      onClick={() => setDeleteModal(req)}
+                      className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-white border border-gray-200 text-warm-gray hover:bg-blush hover:text-espresso disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="Eliminar solicitud permanentemente"
+                    >
+                      <Trash2 size={14} />
+                      Eliminar
+                    </button>
                   </div>
+
                 </div>
               </div>
             );
@@ -823,6 +865,57 @@ export default function SolicitudesZumbita() {
               >
                 <Ban size={14} />
                 {disableBenefit.isPending ? 'Deshabilitando...' : 'Sí, deshabilitar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          onClick={() => !deleteRequest.isPending && setDeleteModal(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center shrink-0">
+                  <Trash2 size={18} className="text-dusty-pink" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-espresso">
+                    Eliminar solicitud
+                  </h3>
+                  <p className="text-xs text-warm-gray mt-0.5 truncate">
+                    {deleteModal.customer_name}{deleteModal.email ? ` · ${deleteModal.email}` : ''}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-espresso/90">
+                ¿Estás seguro de que querés eliminar esta solicitud de forma permanente?
+              </p>
+            </div>
+            <div className="border-t border-gray-100 px-5 py-3 sm:px-6 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                disabled={deleteRequest.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-cream text-espresso hover:bg-blush transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteModal && deleteRequest.mutate(deleteModal)}
+                disabled={deleteRequest.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+              >
+                <Trash2 size={14} />
+                {deleteRequest.isPending ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
           </div>
