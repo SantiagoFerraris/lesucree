@@ -27,13 +27,22 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
   const basePrice = selectedVariant?.price ?? product.price;
-  const { final: displayPrice, hasDiscount } = applyBestPromotion(basePrice, productPromos);
+  const { final: displayPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
 
   // For "Desde $X" display when variants exist (use min discounted price)
   const minVariantPrice = hasVariants
     ? Math.min(...variants.map(v => applyBestPromotion(v.price, productPromos).final))
     : null;
   const minVariantOriginal = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
+
+  // Badge label: "-X%" for percentage, "OFERTA" otherwise
+  const cardHasAnyPromo = !!productPromos && productPromos.length > 0;
+  const badgeLabel = (() => {
+    if (!cardHasAnyPromo) return null;
+    const p = promo || productPromos![0];
+    if (p?.discount_type === 'percentage' && p.discount_value > 0) return `-${Math.round(p.discount_value)}%`;
+    return 'OFERTA';
+  })();
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
