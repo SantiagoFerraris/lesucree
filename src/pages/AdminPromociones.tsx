@@ -43,20 +43,7 @@ export default function AdminPromociones() {
       {activeTab === 'programadas' && <OfertasProgramadas />}
 
       {activeTab === 'zumbita' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 sm:p-12">
-          <div className="text-center max-w-md mx-auto">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-cream flex items-center justify-center">
-              <Tag size={24} className="text-dusty-pink" />
-            </div>
-            <h3 className="font-display text-lg font-bold text-espresso mb-2">
-              Solicitudes Zumbita
-            </h3>
-            <p className="text-sm text-warm-gray">
-              Acá vas a poder revisar y responder las solicitudes recibidas desde Zumbita. Próximamente.
-            </p>
-          </div>
-        </div>
-      )}
+      {activeTab === 'zumbita' && <SolicitudesZumbita />}
     </div>
   );
 }
