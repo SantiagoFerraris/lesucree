@@ -358,7 +358,21 @@ export default function AdminProductos() {
                         <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
                       </td>
                       <td className="py-3 pr-4 font-medium text-espresso">
-                        <span className="flex items-center gap-1">{p.name}{(!p.description || !p.description.trim()) && <span title="Sin descripción"><AlertTriangle size={13} className="text-amber-500" /></span>}</span>
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          {p.name}
+                          {(!p.description || !p.description.trim()) && <span title="Sin descripción"><AlertTriangle size={13} className="text-amber-500" /></span>}
+                          {activePromoMap?.[p.id] && (
+                            <span
+                              title="Producto con promoción activa"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#C4A265]/15 text-[#8B6F33] border border-[#C4A265]/30"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#C4A265]" />
+                              {activePromoMap[p.id].discount_type === 'percentage'
+                                ? `-${activePromoMap[p.id].discount_value}%`
+                                : 'En oferta'}
+                            </span>
+                          )}
+                        </span>
                         {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}
                       </td>
 
