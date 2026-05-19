@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Instagram, Clock, Truck, Heart } from "lucide-react";
@@ -11,9 +11,10 @@ import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
 import { useCart } from "@/contexts/CartContext";
-import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
-import ProductDetailModal from "@/components/ProductDetailModal";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import type { Tables } from "@/integrations/supabase/types";
+
+const ProductDetailModal = lazy(() => import("@/components/ProductDetailModal"));
 
 
 import tiramisuImg from "@/assets/torta_1_tiramisu.jpg";
