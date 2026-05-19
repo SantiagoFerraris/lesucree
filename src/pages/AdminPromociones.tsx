@@ -42,7 +42,6 @@ export default function AdminPromociones() {
       {/* Tab content */}
       {activeTab === 'programadas' && <OfertasProgramadas />}
 
-      {activeTab === 'zumbita' && (
       {activeTab === 'zumbita' && <SolicitudesZumbita />}
     </div>
   );
