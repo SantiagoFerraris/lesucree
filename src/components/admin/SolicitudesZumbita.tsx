@@ -451,7 +451,7 @@ export default function SolicitudesZumbita() {
                   <h3 className="font-display text-base font-bold text-espresso truncate">
                     Generar cupón para {couponModal.customer_name}
                   </h3>
-                  <p className="text-xs text-warm-gray truncate">{couponModal.email}</p>
+                  <p className="text-xs text-warm-gray truncate">{couponModal.email || couponModal.whatsapp || '—'}</p>
                 </div>
               </div>
               <button
