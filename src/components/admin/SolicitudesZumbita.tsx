@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Ban, Copy, Mail, Phone, MessageSquare, BadgeCheck, Search } from 'lucide-react';
+import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 type RequestStatus = 'pending' | 'approved' | 'rejected' | 'disabled';
+type DiscountType = 'percentage' | 'fixed';
 
 interface ZumbitaRequest {
   id: string;
@@ -15,6 +16,24 @@ interface ZumbitaRequest {
   is_zumbita_student: boolean;
   status: string;
   created_at: string;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  category: string;
+  active: boolean;
+}
+
+interface CouponForm {
+  code: string;
+  discount_type: DiscountType;
+  discount_value: string;
+  expiration_date: string;
+  max_uses: string;
+  minimum_purchase_amount: string;
+  single_use: boolean;
+  product_ids: string[];
 }
 
 const statusStyles: Record<string, string> = {
@@ -39,31 +58,47 @@ const filterOptions: { key: 'all' | RequestStatus; label: string }[] = [
   { key: 'disabled', label: 'Deshabilitadas' },
 ];
 
-function generateCouponCode(name: string) {
+const inputClass =
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
+
+function suggestCode(name: string) {
   const slug = (name || 'ZUM')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     .replace(/[^A-Z]/g, '')
-    .slice(0, 4) || 'ZUM';
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `ZUMBITA-${slug}-${rand}`;
+    .slice(0, 6) || 'ZUM';
+  return `ZUMBITA-${slug}`;
 }
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+}
+
+function defaultExpiration() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 3);
+  return d.toISOString().slice(0, 10);
 }
 
 export default function SolicitudesZumbita() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<'all' | RequestStatus>('all');
   const [search, setSearch] = useState('');
+  const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
+  const [form, setForm] = useState<CouponForm>({
+    code: '',
+    discount_type: 'percentage',
+    discount_value: '10',
+    expiration_date: defaultExpiration(),
+    max_uses: '1',
+    minimum_purchase_amount: '0',
+    single_use: true,
+    product_ids: [],
+  });
+  const [productSearch, setProductSearch] = useState('');
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['zumbita-requests'],
@@ -77,6 +112,26 @@ export default function SolicitudesZumbita() {
     },
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['admin-products-for-coupons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, category, active')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return (data || []) as ProductRow[];
+    },
+    enabled: !!couponModal,
+  });
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch) return products;
+    const s = productSearch.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(s) || p.category.toLowerCase().includes(s));
+  }, [products, productSearch]);
+
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
       const { error } = await supabase
@@ -85,44 +140,76 @@ export default function SolicitudesZumbita() {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['zumbita-requests'] }),
     onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
   });
 
-  const approveAndGenerate = useMutation({
-    mutationFn: async (req: ZumbitaRequest) => {
-      const code = generateCouponCode(req.customer_name);
-      const expiration = new Date();
-      expiration.setMonth(expiration.getMonth() + 3);
+  const createCoupon = useMutation({
+    mutationFn: async ({ req, form }: { req: ZumbitaRequest; form: CouponForm }) => {
+      const code = form.code.trim().toUpperCase();
+      if (!code) throw new Error('Ingresá un código de cupón');
+      const value = parseFloat(form.discount_value);
+      if (!Number.isFinite(value) || value <= 0) throw new Error('Valor de descuento inválido');
+      if (form.discount_type === 'percentage' && value > 100) throw new Error('El porcentaje no puede superar 100');
+      const maxUses = form.max_uses ? parseInt(form.max_uses, 10) : null;
+      if (maxUses !== null && (!Number.isFinite(maxUses) || maxUses <= 0)) throw new Error('Usos máximos inválido');
+      const minPurchase = form.minimum_purchase_amount ? parseFloat(form.minimum_purchase_amount) : 0;
+      if (!Number.isFinite(minPurchase) || minPurchase < 0) throw new Error('Compra mínima inválida');
 
-      const { error: couponErr } = await supabase.from('coupons').insert({
-        code,
-        discount_type: 'percentage',
-        discount_value: 10,
-        expiration_date: expiration.toISOString(),
-        single_use: true,
-        is_active: true,
-        minimum_purchase_amount: 0,
-      });
+      const { data: inserted, error: couponErr } = await supabase
+        .from('coupons')
+        .insert({
+          code,
+          discount_type: form.discount_type,
+          discount_value: value,
+          expiration_date: form.expiration_date ? new Date(form.expiration_date).toISOString() : null,
+          max_uses: maxUses,
+          minimum_purchase_amount: minPurchase,
+          single_use: form.single_use,
+          is_active: true,
+          zumbita_request_id: req.id,
+        })
+        .select('id')
+        .single();
       if (couponErr) throw couponErr;
 
-      const { error: updateErr } = await supabase
+      if (form.product_ids.length > 0 && inserted) {
+        const rows = form.product_ids.map(pid => ({ coupon_id: inserted.id, product_id: pid }));
+        const { error: linkErr } = await supabase.from('coupon_products').insert(rows);
+        if (linkErr) throw linkErr;
+      }
+
+      const { error: updErr } = await supabase
         .from('zumbita_discount_requests')
         .update({ status: 'approved' })
         .eq('id', req.id);
-      if (updateErr) throw updateErr;
+      if (updErr) throw updErr;
 
       return code;
     },
     onSuccess: async (code) => {
       await navigator.clipboard.writeText(code).catch(() => {});
-      toast.success(`Código generado: ${code} (copiado)`);
+      toast.success(`Cupón ${code} creado y copiado`);
       qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+      setCouponModal(null);
     },
-    onError: (e: any) => toast.error(e.message || 'No se pudo generar el código'),
+    onError: (e: any) => toast.error(e.message || 'No se pudo crear el cupón'),
   });
+
+  function openCouponModal(req: ZumbitaRequest) {
+    setForm({
+      code: suggestCode(req.customer_name),
+      discount_type: 'percentage',
+      discount_value: '10',
+      expiration_date: defaultExpiration(),
+      max_uses: '1',
+      minimum_purchase_amount: '0',
+      single_use: true,
+      product_ids: [],
+    });
+    setProductSearch('');
+    setCouponModal(req);
+  }
 
   const filtered = requests.filter(r => {
     if (filter !== 'all' && r.status !== filter) return false;
@@ -157,9 +244,7 @@ export default function SolicitudesZumbita() {
               key={opt.key}
               onClick={() => setFilter(opt.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                filter === opt.key
-                  ? 'bg-espresso text-white'
-                  : 'bg-cream text-warm-gray hover:bg-blush'
+                filter === opt.key ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'
               }`}
             >
               {opt.label}
@@ -178,9 +263,7 @@ export default function SolicitudesZumbita() {
           <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-cream flex items-center justify-center">
             <MessageSquare size={24} className="text-dusty-pink" />
           </div>
-          <h3 className="font-display text-lg font-bold text-espresso mb-2">
-            Sin solicitudes
-          </h3>
+          <h3 className="font-display text-lg font-bold text-espresso mb-2">Sin solicitudes</h3>
           <p className="text-sm text-warm-gray">
             Cuando recibas solicitudes desde Zumbita van a aparecer acá.
           </p>
@@ -189,19 +272,13 @@ export default function SolicitudesZumbita() {
         <div className="space-y-3">
           {filtered.map(req => {
             const status = (req.status as RequestStatus) || 'pending';
-            const isPending = updateStatus.isPending || approveAndGenerate.isPending;
+            const isPending = updateStatus.isPending;
             return (
-              <div
-                key={req.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5"
-              >
+              <div key={req.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="font-display text-base font-bold text-espresso truncate">
-                        {req.customer_name}
-                      </h3>
+                      <h3 className="font-display text-base font-bold text-espresso truncate">{req.customer_name}</h3>
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusStyles[status]}`}>
                         {statusLabels[status]}
                       </span>
@@ -214,18 +291,14 @@ export default function SolicitudesZumbita() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-warm-gray mb-3">
-                      <a
-                        href={`mailto:${req.email}`}
-                        className="flex items-center gap-2 hover:text-espresso truncate"
-                      >
+                      <a href={`mailto:${req.email}`} className="flex items-center gap-2 hover:text-espresso truncate">
                         <Mail size={13} className="shrink-0 text-dusty-pink" />
                         <span className="truncate">{req.email}</span>
                       </a>
                       {req.whatsapp && (
                         <a
                           href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
+                          target="_blank" rel="noreferrer"
                           className="flex items-center gap-2 hover:text-espresso truncate"
                         >
                           <Phone size={13} className="shrink-0 text-dusty-pink" />
@@ -245,11 +318,10 @@ export default function SolicitudesZumbita() {
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div className="flex flex-row lg:flex-col gap-2 lg:w-56 shrink-0">
                     <button
-                      disabled={isPending || status === 'approved'}
-                      onClick={() => approveAndGenerate.mutate(req)}
+                      disabled={isPending}
+                      onClick={() => openCouponModal(req)}
                       className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Check size={14} />
@@ -276,6 +348,233 @@ export default function SolicitudesZumbita() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Coupon Modal */}
+      {couponModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          onClick={() => !createCoupon.isPending && setCouponModal(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-cream flex items-center justify-center shrink-0">
+                  <Tag size={18} className="text-dusty-pink" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-espresso truncate">
+                    Generar cupón para {couponModal.customer_name}
+                  </h3>
+                  <p className="text-xs text-warm-gray truncate">{couponModal.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => !createCoupon.isPending && setCouponModal(null)}
+                className="p-2 rounded-full hover:bg-cream transition-colors"
+              >
+                <X size={16} className="text-warm-gray" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-espresso mb-1.5">Código del cupón</label>
+                <input
+                  type="text"
+                  value={form.code}
+                  onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                  maxLength={50}
+                  placeholder="EJ: ZUMBITA-MARIA"
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">Tipo de descuento</label>
+                  <div className="flex gap-2">
+                    {(['percentage', 'fixed'] as DiscountType[]).map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, discount_type: t }))}
+                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                          form.discount_type === t
+                            ? 'bg-espresso text-white'
+                            : 'bg-cream text-warm-gray hover:bg-blush'
+                        }`}
+                      >
+                        {t === 'percentage' ? 'Porcentaje (%)' : 'Monto fijo ($)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">
+                    Valor {form.discount_type === 'percentage' ? '(%)' : '($)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step={form.discount_type === 'percentage' ? '1' : '100'}
+                    value={form.discount_value}
+                    onChange={e => setForm(f => ({ ...f, discount_value: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">Fecha de expiración</label>
+                  <input
+                    type="date"
+                    value={form.expiration_date}
+                    onChange={e => setForm(f => ({ ...f, expiration_date: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">
+                    Usos máximos <span className="text-warm-gray font-normal">(vacío = ilimitado)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.max_uses}
+                    onChange={e => setForm(f => ({ ...f, max_uses: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">Compra mínima ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={form.minimum_purchase_amount}
+                    onChange={e => setForm(f => ({ ...f, minimum_purchase_amount: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-espresso mb-1.5">Modalidad de uso</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, single_use: true }))}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                        form.single_use ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'
+                      }`}
+                    >
+                      Un solo uso
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, single_use: false }))}
+                      className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                        !form.single_use ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'
+                      }`}
+                    >
+                      Múltiple
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-espresso">
+                    Productos permitidos{' '}
+                    <span className="text-warm-gray font-normal">
+                      ({form.product_ids.length === 0 ? 'todos' : `${form.product_ids.length} seleccionados`})
+                    </span>
+                  </label>
+                  {form.product_ids.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, product_ids: [] }))}
+                      className="text-[11px] text-dusty-pink hover:underline"
+                    >
+                      Limpiar selección
+                    </button>
+                  )}
+                </div>
+                <div className="relative mb-2">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                  <input
+                    type="text"
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    placeholder="Buscar producto"
+                    className="w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-xs text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+                  />
+                </div>
+                <div className="border border-gray-100 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
+                  {filteredProducts.length === 0 ? (
+                    <div className="p-3 text-xs text-warm-gray text-center">Sin productos</div>
+                  ) : (
+                    filteredProducts.map(p => {
+                      const checked = form.product_ids.includes(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 px-3 py-2 text-xs text-espresso hover:bg-cream/50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              setForm(f => ({
+                                ...f,
+                                product_ids: checked
+                                  ? f.product_ids.filter(id => id !== p.id)
+                                  : [...f.product_ids, p.id],
+                              }))
+                            }
+                            className="accent-dusty-pink"
+                          />
+                          <span className="flex-1 truncate">{p.name}</span>
+                          <span className="text-[10px] text-warm-gray uppercase">{p.category}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+                <p className="text-[11px] text-warm-gray mt-1.5">
+                  Si no seleccionás ninguno, el cupón aplica a todo el catálogo.
+                </p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-3 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setCouponModal(null)}
+                disabled={createCoupon.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-cream text-espresso hover:bg-blush transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => couponModal && createCoupon.mutate({ req: couponModal, form })}
+                disabled={createCoupon.isPending}
+                className="px-4 py-2 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+              >
+                <Check size={14} />
+                {createCoupon.isPending ? 'Creando...' : 'Crear cupón y aprobar'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
