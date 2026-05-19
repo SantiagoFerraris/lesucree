@@ -218,6 +218,37 @@ export default function SolicitudesZumbita() {
     onError: (e: any) => toast.error(e.message || 'No se pudo deshabilitar el beneficio'),
   });
 
+  const deleteRequest = useMutation({
+    mutationFn: async (req: ZumbitaRequest) => {
+      // Best-effort cleanup of related coupons (no FK cascade)
+      await supabase.from('coupons').delete().eq('zumbita_request_id', req.id);
+      const { error } = await supabase
+        .from('zumbita_discount_requests')
+        .delete()
+        .eq('id', req.id);
+      if (error) throw error;
+      return req.id;
+    },
+    onMutate: async (req) => {
+      await qc.cancelQueries({ queryKey: ['zumbita-requests'] });
+      const prev = qc.getQueryData<ZumbitaRequest[]>(['zumbita-requests']);
+      qc.setQueryData<ZumbitaRequest[]>(['zumbita-requests'], (old = []) =>
+        old.filter(r => r.id !== req.id)
+      );
+      return { prev };
+    },
+    onSuccess: () => {
+      toast.success('Solicitud eliminada correctamente');
+      setDeleteModal(null);
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['zumbita-requests'], ctx.prev);
+      toast.error('No se pudo eliminar la solicitud');
+    },
+  });
+
+
   const createCoupon = useMutation({
     mutationFn: async ({ req, form }: { req: ZumbitaRequest; form: CouponForm }) => {
       const code = form.code.trim().toUpperCase();
