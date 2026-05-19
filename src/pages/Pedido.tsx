@@ -167,7 +167,7 @@ export default function Pedido() {
                 body: {
                           customerName: form.name.trim(),
                           customerPhone: form.phone.trim(),
-                          customerEmail: form.email.trim(),
+                          customerEmail: form.email.trim() || undefined,
                           desiredDate: form.date,
                           preferredTime: form.time,
                           notes: form.notes.trim(),
