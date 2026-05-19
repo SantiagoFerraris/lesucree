@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -26,14 +26,22 @@ const PAYMENT_LABELS: Record<string, string> = {
   pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
 };
 
-function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: string; value: string; loading: boolean }) {
+function KpiCard({ icon: Icon, label, value, loading, badge, onClick }: { icon: any; label: string; value: string; loading: boolean; badge?: string | null; onClick?: () => void }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-xl shadow-sm border border-gray-100 p-5 ${onClick ? 'cursor-pointer hover:border-gray-200 transition-colors' : ''}`}
+    >
       <div className="flex items-center gap-3 mb-2">
         <div className="w-9 h-9 rounded-lg bg-cream flex items-center justify-center">
           <Icon size={18} className="text-espresso" />
         </div>
-        <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider flex-1 truncate">{label}</span>
+        {badge && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold whitespace-nowrap">
+            {badge}
+          </span>
+        )}
       </div>
       {loading ? <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" /> : <p className="text-2xl font-bold text-espresso font-display">{value}</p>}
     </div>
@@ -71,6 +79,18 @@ export default function AdminDashboard() {
       const { data, error } = await supabase.from('contact_messages').select('*').eq('read', false);
       if (error) throw error;
       return data as any[];
+    },
+  });
+
+  const { data: pendingZumbita, isLoading: zumbitaLoading } = useQuery({
+    queryKey: ['admin-dashboard-zumbita'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('zumbita_discount_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      if (error) throw error;
+      return count ?? 0;
     },
   });
 
@@ -235,11 +255,19 @@ export default function AdminDashboard() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
         <KpiCard icon={ShoppingBag} label="Pedidos Pendientes" value={String(pendingCount)} loading={isLoading} />
         <KpiCard icon={Clock} label="Retiros de Hoy" value={String(todayPickups)} loading={isLoading} />
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
+        <KpiCard
+          icon={Sparkles}
+          label="Solicitudes Zumbita"
+          value={String(pendingZumbita ?? 0)}
+          loading={zumbitaLoading}
+          badge={(pendingZumbita ?? 0) > 0 ? 'Pendientes' : null}
+          onClick={() => navigate('/admin/promociones')}
+        />
       </div>
 
       {/* Charts */}
