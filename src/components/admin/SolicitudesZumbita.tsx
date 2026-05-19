@@ -83,12 +83,31 @@ function defaultExpiration() {
   return d.toISOString().slice(0, 10);
 }
 
+const CHECKOUT_URL = 'https://lesucreepasteleria.com.ar/pedido';
+
+function formatExpirationLong(value: string | null) {
+  if (!value) return 'Sin vencimiento';
+  return new Date(value).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function buildWhatsAppMessage(customerName: string, code: string, expirationDate: string | null) {
+  const firstName = (customerName || '').split(' ')[0] || customerName;
+  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée! ✨`;
+}
+
+interface GeneratedCoupon {
+  req: ZumbitaRequest;
+  code: string;
+  expirationDate: string | null;
+}
+
 export default function SolicitudesZumbita() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<'all' | RequestStatus>('all');
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
   const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
+  const [generatedCoupon, setGeneratedCoupon] = useState<GeneratedCoupon | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
     discount_type: 'percentage',
