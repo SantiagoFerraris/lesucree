@@ -165,6 +165,33 @@ export default function SolicitudesZumbita() {
     onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
   });
 
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
+      const { error } = await supabase
+        .from('zumbita_discount_requests')
+        .update({ status })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['zumbita-requests'] }),
+    onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
+  });
+
+  const toggleVerifiedAlumna = useMutation({
+    mutationFn: async ({ id, verified }: { id: string; verified: boolean }) => {
+      const { error } = await (supabase
+        .from('zumbita_discount_requests') as any)
+        .update({ verified_alumna: verified })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.verified ? 'Alumna verificada' : 'Verificación quitada');
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'No se pudo actualizar la verificación'),
+  });
+
   const disableBenefit = useMutation({
     mutationFn: async (req: ZumbitaRequest) => {
       const { error: couponErr } = await supabase
