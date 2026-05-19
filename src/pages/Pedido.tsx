@@ -195,7 +195,11 @@ export default function Pedido() {
                 `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.unitPrice * i.quantity)}`
                                                          ).join('\n');
 
-        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(serverTotal)}`;
+        const serverSubtotal = orderResult.subtotal ?? serverTotal;
+        const serverDiscount = orderResult.discountAmount ?? 0;
+        const serverCouponCode = orderResult.couponCode as string | null | undefined;
+        const discountLine = serverDiscount > 0 ? `\n🎟 Cupón ${serverCouponCode}: -${formatPrice(serverDiscount)}` : '';
+        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
         window.open(`https://wa.me/${whatsappNotification}?text=${encodeURIComponent(waText)}`, '_blank');
 
         clearCart();
