@@ -56,6 +56,53 @@ export default function Pedido() {
     const [honeypot, setHoneypot] = useState('');
     const formLoadedAt = useRef(Date.now());
 
+    // Coupon state
+    const [couponInput, setCouponInput] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+    const [couponError, setCouponError] = useState<string | null>(null);
+
+    const subtotal = getCartTotal();
+    const discount = appliedCoupon?.discountAmount ?? 0;
+    const finalTotal = Math.max(0, subtotal - discount);
+
+    // Re-validate coupon when cart changes
+    useEffect(() => {
+        if (appliedCoupon) {
+            setAppliedCoupon(null);
+            setCouponError('El carrito cambió. Aplicá el cupón nuevamente.');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items.length, subtotal]);
+
+    const handleApplyCoupon = async () => {
+        const code = couponInput.trim();
+        if (!code) return;
+        setCouponLoading(true);
+        setCouponError(null);
+        const { data, error } = await supabase.functions.invoke('validate-coupon', {
+            body: {
+                code,
+                customerEmail: form.email.trim() || undefined,
+                items: items.map(i => ({ productId: i.productId, variantId: i.variantId || undefined, quantity: i.quantity })),
+            },
+        });
+        setCouponLoading(false);
+        if (error || !data?.valid) {
+            setAppliedCoupon(null);
+            setCouponError(data?.error || 'No se pudo validar el cupón.');
+            return;
+        }
+        setAppliedCoupon({ code: data.code, discountAmount: data.discountAmount });
+        toast.success(`Cupón "${data.code}" aplicado`);
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponInput('');
+        setCouponError(null);
+    };
+
   // Set default time once settings load
   useEffect(() => {
         if (defaultTime && !form.time) {
@@ -128,6 +175,7 @@ export default function Pedido() {
                                       variantId: i.variantId || undefined,
                                       quantity: i.quantity
                           })),
+                          couponCode: appliedCoupon?.code || undefined,
                 },
         });
 
@@ -147,7 +195,11 @@ export default function Pedido() {
                 `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity} - ${formatPrice(i.unitPrice * i.quantity)}`
                                                          ).join('\n');
 
-        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💰 Total: ${formatPrice(serverTotal)}`;
+        const serverSubtotal = orderResult.subtotal ?? serverTotal;
+        const serverDiscount = orderResult.discountAmount ?? 0;
+        const serverCouponCode = orderResult.couponCode as string | null | undefined;
+        const discountLine = serverDiscount > 0 ? `\n🎟 Cupón ${serverCouponCode}: -${formatPrice(serverDiscount)}` : '';
+        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
         window.open(`https://wa.me/${whatsappNotification}?text=${encodeURIComponent(waText)}`, '_blank');
 
         clearCart();
@@ -295,9 +347,55 @@ export default function Pedido() {
                                 </div>
                               ))}
                                                                             </div>
-                                                                            <div className="border-t border-blush mt-4 pt-4 flex items-center justify-between">
-                                                                                              <span className="font-body font-semibold text-warm-gray">Subtotal</span>
-                                                                                              <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
+                                                                            {/* Coupon section */}
+                                                                            <div className="border-t border-blush mt-4 pt-4">
+                                                                                <label htmlFor="coupon-code" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Código de descuento</label>
+                                                                                {appliedCoupon ? (
+                                                                                    <div className="mt-2 flex items-center justify-between rounded-xl bg-blush/40 border border-dusty-pink/30 px-3 py-2">
+                                                                                        <div className="text-sm">
+                                                                                            <span className="font-semibold text-espresso">🎟 {appliedCoupon.code}</span>
+                                                                                            <span className="text-warm-gray ml-2">-{formatPrice(appliedCoupon.discountAmount)}</span>
+                                                                                        </div>
+                                                                                        <button type="button" onClick={handleRemoveCoupon} className="text-xs text-warm-gray hover:text-red-500 transition-colors">Quitar</button>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="mt-2 flex gap-2">
+                                                                                        <input
+                                                                                            id="coupon-code"
+                                                                                            value={couponInput}
+                                                                                            onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
+                                                                                            placeholder="ZUMBITA10"
+                                                                                            maxLength={50}
+                                                                                            className={`${inputBase} border-input focus:ring-dusty-pink/30 flex-1 uppercase`}
+                                                                                        />
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={handleApplyCoupon}
+                                                                                            disabled={couponLoading || !couponInput.trim()}
+                                                                                            className="rounded-xl bg-espresso text-white px-5 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-espresso/90 transition-all active:scale-95 disabled:opacity-50"
+                                                                                        >
+                                                                                            {couponLoading ? '...' : 'Aplicar'}
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )}
+                                                                                {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
+                                                                            </div>
+
+                                                                            <div className="border-t border-blush mt-4 pt-4 space-y-2">
+                                                                                <div className="flex items-center justify-between text-sm">
+                                                                                    <span className="font-body text-warm-gray">Subtotal</span>
+                                                                                    <span className="font-body text-espresso">{formatPrice(subtotal)}</span>
+                                                                                </div>
+                                                                                {discount > 0 && (
+                                                                                    <div className="flex items-center justify-between text-sm">
+                                                                                        <span className="font-body text-dusty-pink">Descuento</span>
+                                                                                        <span className="font-body text-dusty-pink">-{formatPrice(discount)}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                                <div className="flex items-center justify-between pt-2 border-t border-blush/60">
+                                                                                    <span className="font-body font-semibold text-warm-gray">Total</span>
+                                                                                    <span className="font-display text-xl font-bold text-espresso">{formatPrice(finalTotal)}</span>
+                                                                                </div>
                                                                             </div>
                                                                             <p className="text-xs text-warm-gray mt-3">Los pedidos se reservan con un 50% de seña en efectivo o transferencia.</p>
                                                             </div>
