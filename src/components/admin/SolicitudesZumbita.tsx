@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag } from 'lucide-react';
+import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
