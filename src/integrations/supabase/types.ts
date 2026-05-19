@@ -182,6 +182,35 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_products: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_products_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -233,6 +262,7 @@ export type Database = {
           max_uses: number | null
           minimum_purchase_amount: number
           single_use: boolean
+          zumbita_request_id: string | null
         }
         Insert: {
           code: string
@@ -245,6 +275,7 @@ export type Database = {
           max_uses?: number | null
           minimum_purchase_amount?: number
           single_use?: boolean
+          zumbita_request_id?: string | null
         }
         Update: {
           code?: string
@@ -257,6 +288,7 @@ export type Database = {
           max_uses?: number | null
           minimum_purchase_amount?: number
           single_use?: boolean
+          zumbita_request_id?: string | null
         }
         Relationships: []
       }
