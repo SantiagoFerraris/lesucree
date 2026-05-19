@@ -3,6 +3,7 @@ import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
+import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -20,13 +21,19 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const { data: categories } = useCategories();
   const categoryLabels = buildCategoryLabels(categories);
+  const promosMap = useActivePromotions();
+  const productPromos = promosMap.get(product.id);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
-  const displayPrice = selectedVariant?.price ?? product.price;
+  const basePrice = selectedVariant?.price ?? product.price;
+  const { final: displayPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
 
-  // For "Desde $X" display when variants exist
-  const minVariantPrice = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
+  // For "Desde $X" display when variants exist (use min discounted price)
+  const minVariantPrice = hasVariants
+    ? Math.min(...variants.map(v => applyBestPromotion(v.price, productPromos).final))
+    : null;
+  const minVariantOriginal = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
