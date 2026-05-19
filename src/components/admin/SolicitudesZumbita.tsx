@@ -198,13 +198,15 @@ export default function SolicitudesZumbita() {
       const minPurchase = form.minimum_purchase_amount ? parseFloat(form.minimum_purchase_amount) : 0;
       if (!Number.isFinite(minPurchase) || minPurchase < 0) throw new Error('Compra mínima inválida');
 
+      const expirationIso = form.expiration_date ? new Date(form.expiration_date).toISOString() : null;
+
       const { data: inserted, error: couponErr } = await supabase
         .from('coupons')
         .insert({
           code,
           discount_type: form.discount_type,
           discount_value: value,
-          expiration_date: form.expiration_date ? new Date(form.expiration_date).toISOString() : null,
+          expiration_date: expirationIso,
           max_uses: maxUses,
           minimum_purchase_amount: minPurchase,
           single_use: form.single_use,
@@ -227,13 +229,13 @@ export default function SolicitudesZumbita() {
         .eq('id', req.id);
       if (updErr) throw updErr;
 
-      return code;
+      return { req, code, expirationDate: expirationIso };
     },
-    onSuccess: async (code) => {
-      await navigator.clipboard.writeText(code).catch(() => {});
-      toast.success(`Cupón ${code} creado y copiado`);
+    onSuccess: (result) => {
+      toast.success(`Cupón ${result.code} creado`);
       qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
       setCouponModal(null);
+      setGeneratedCoupon(result);
     },
     onError: (e: any) => toast.error(e.message || 'No se pudo crear el cupón'),
   });
