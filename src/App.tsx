@@ -26,6 +26,7 @@ const AdminPedidos = lazy(() => import("./pages/AdminPedidos"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminClientes = lazy(() => import("./pages/AdminClientes"));
 const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
+const AdminPromociones = lazy(() => import("./pages/AdminPromociones"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +86,7 @@ const App = () => (
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
                   <Route path="dashboard" element={<AdminSuspense><AdminDashboard /></AdminSuspense>} />
                   <Route path="productos" element={<AdminSuspense><AdminProductos /></AdminSuspense>} />
+                  <Route path="promociones" element={<AdminSuspense><AdminPromociones /></AdminSuspense>} />
                   <Route path="mensajes" element={<AdminSuspense><AdminMensajes /></AdminSuspense>} />
                   <Route path="pedidos" element={<AdminSuspense><AdminPedidos /></AdminSuspense>} />
                   <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
