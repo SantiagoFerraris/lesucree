@@ -84,6 +84,7 @@ export default function Pedido() {
             body: {
                 code,
                 customerEmail: form.email.trim() || undefined,
+                customerPhone: form.phone.trim() || undefined,
                 items: items.map(i => ({ productId: i.productId, variantId: i.variantId || undefined, quantity: i.quantity })),
             },
         });
