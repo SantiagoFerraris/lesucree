@@ -367,7 +367,7 @@ export default function Pedido() {
                                                                                             id="coupon-code"
                                                                                             value={couponInput}
                                                                                             onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
-                                                                                            placeholder="ZUMBITA10"
+                                                                                            placeholder="Código promocional"
                                                                                             maxLength={50}
                                                                                             className={`${inputBase} border-input focus:ring-dusty-pink/30 flex-1 uppercase`}
                                                                                         />
