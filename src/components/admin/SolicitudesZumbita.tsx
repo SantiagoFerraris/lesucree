@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag } from 'lucide-react';
+import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -83,12 +83,31 @@ function defaultExpiration() {
   return d.toISOString().slice(0, 10);
 }
 
+const CHECKOUT_URL = 'https://lesucreepasteleria.com.ar/pedido';
+
+function formatExpirationLong(value: string | null) {
+  if (!value) return 'Sin vencimiento';
+  return new Date(value).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function buildWhatsAppMessage(customerName: string, code: string, expirationDate: string | null) {
+  const firstName = (customerName || '').split(' ')[0] || customerName;
+  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée! ✨`;
+}
+
+interface GeneratedCoupon {
+  req: ZumbitaRequest;
+  code: string;
+  expirationDate: string | null;
+}
+
 export default function SolicitudesZumbita() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<'all' | RequestStatus>('all');
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
   const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
+  const [generatedCoupon, setGeneratedCoupon] = useState<GeneratedCoupon | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
     discount_type: 'percentage',
@@ -179,13 +198,15 @@ export default function SolicitudesZumbita() {
       const minPurchase = form.minimum_purchase_amount ? parseFloat(form.minimum_purchase_amount) : 0;
       if (!Number.isFinite(minPurchase) || minPurchase < 0) throw new Error('Compra mínima inválida');
 
+      const expirationIso = form.expiration_date ? new Date(form.expiration_date).toISOString() : null;
+
       const { data: inserted, error: couponErr } = await supabase
         .from('coupons')
         .insert({
           code,
           discount_type: form.discount_type,
           discount_value: value,
-          expiration_date: form.expiration_date ? new Date(form.expiration_date).toISOString() : null,
+          expiration_date: expirationIso,
           max_uses: maxUses,
           minimum_purchase_amount: minPurchase,
           single_use: form.single_use,
@@ -208,13 +229,13 @@ export default function SolicitudesZumbita() {
         .eq('id', req.id);
       if (updErr) throw updErr;
 
-      return code;
+      return { req, code, expirationDate: expirationIso };
     },
-    onSuccess: async (code) => {
-      await navigator.clipboard.writeText(code).catch(() => {});
-      toast.success(`Cupón ${code} creado y copiado`);
+    onSuccess: (result) => {
+      toast.success(`Cupón ${result.code} creado`);
       qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
       setCouponModal(null);
+      setGeneratedCoupon(result);
     },
     onError: (e: any) => toast.error(e.message || 'No se pudo crear el cupón'),
   });
@@ -596,6 +617,90 @@ export default function SolicitudesZumbita() {
                 <Check size={14} />
                 {createCoupon.isPending ? 'Creando...' : 'Crear cupón y aprobar'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generated coupon success modal */}
+      {generatedCoupon && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          onClick={() => setGeneratedCoupon(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-sage/20 flex items-center justify-center shrink-0">
+                  <Sparkles size={18} className="text-emerald-700" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-espresso">Cupón generado</h3>
+                  <p className="text-xs text-warm-gray truncate">{generatedCoupon.req.customer_name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setGeneratedCoupon(null)}
+                className="p-2 rounded-full hover:bg-cream transition-colors"
+              >
+                <X size={16} className="text-warm-gray" />
+              </button>
+            </div>
+
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="rounded-xl border border-dashed border-dusty-pink/40 bg-cream/60 px-4 py-3 text-center">
+                <p className="text-[11px] uppercase tracking-wider text-warm-gray mb-1">Código</p>
+                <p className="font-display text-xl font-bold text-espresso tracking-wider break-all">{generatedCoupon.code}</p>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-warm-gray">Válido hasta</span>
+                <span className="font-semibold text-espresso">{formatExpirationLong(generatedCoupon.expirationDate)}</span>
+              </div>
+
+              <div className="rounded-xl bg-cream/50 border border-gray-100 p-3 text-xs text-espresso/90 whitespace-pre-wrap font-body">
+                {buildWhatsAppMessage(generatedCoupon.req.customer_name, generatedCoupon.code, generatedCoupon.expirationDate)}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const msg = buildWhatsAppMessage(generatedCoupon.req.customer_name, generatedCoupon.code, generatedCoupon.expirationDate);
+                    try {
+                      await navigator.clipboard.writeText(msg);
+                      toast.success('Mensaje copiado');
+                    } catch {
+                      toast.error('No se pudo copiar');
+                    }
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-cream text-espresso hover:bg-blush transition-colors"
+                >
+                  <Copy size={14} />
+                  Copiar mensaje
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const phone = (generatedCoupon.req.whatsapp || '').replace(/\D/g, '');
+                    if (!phone) {
+                      toast.error('Esta solicitud no tiene número de WhatsApp');
+                      return;
+                    }
+                    const msg = buildWhatsAppMessage(generatedCoupon.req.customer_name, generatedCoupon.code, generatedCoupon.expirationDate);
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors"
+                >
+                  <Send size={14} />
+                  Abrir WhatsApp
+                </button>
+              </div>
+              <p className="text-[11px] text-warm-gray text-center">
+                Revisá el mensaje antes de enviarlo. El envío es manual.
+              </p>
             </div>
           </div>
         </div>
