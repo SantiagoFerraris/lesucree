@@ -27,7 +27,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
   const basePrice = selectedVariant?.price ?? product.price;
-  const { final: displayPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
+  const { final: displayPrice, hasDiscount } = applyBestPromotion(basePrice, productPromos);
 
   // For "Desde $X" display when variants exist (use min discounted price)
   const minVariantPrice = hasVariants
