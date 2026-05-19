@@ -29,16 +29,7 @@ export function useHeroImageUrl() {
   return useQuery({
     queryKey: ['hero-image-url'],
     queryFn: async () => {
-      const url = `${supabaseUrl}/storage/v1/object/public/site-images/hero/hero-bg.jpg`;
-      try {
-        const res = await fetch(url, { method: 'HEAD' });
-        if (res.ok) {
-          return url;
-        }
-      } catch {
-        // Fall through
-      }
-      return null;
+      return `${supabaseUrl}/storage/v1/object/public/site-images/hero/hero-bg.jpg`;
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
