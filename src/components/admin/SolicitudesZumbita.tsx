@@ -145,6 +145,28 @@ export default function SolicitudesZumbita() {
     onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
   });
 
+  const disableBenefit = useMutation({
+    mutationFn: async (req: ZumbitaRequest) => {
+      const { error: couponErr } = await supabase
+        .from('coupons')
+        .update({ is_active: false })
+        .eq('zumbita_request_id', req.id);
+      if (couponErr) throw couponErr;
+
+      const { error: reqErr } = await supabase
+        .from('zumbita_discount_requests')
+        .update({ status: 'disabled' })
+        .eq('id', req.id);
+      if (reqErr) throw reqErr;
+    },
+    onSuccess: () => {
+      toast.success('Beneficio deshabilitado');
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+      setDisableModal(null);
+    },
+    onError: (e: any) => toast.error(e.message || 'No se pudo deshabilitar el beneficio'),
+  });
+
   const createCoupon = useMutation({
     mutationFn: async ({ req, form }: { req: ZumbitaRequest; form: CouponForm }) => {
       const code = form.code.trim().toUpperCase();
