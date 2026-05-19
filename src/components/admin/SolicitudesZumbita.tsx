@@ -268,7 +268,15 @@ export default function SolicitudesZumbita() {
       setCouponModal(null);
       setGeneratedCoupon(result);
     },
-    onError: (e: any) => toast.error(e.message || 'No se pudo crear el cupón'),
+    onError: (e: any) => {
+      const msg = String(e?.message || '');
+      const isDuplicate = e?.code === '23505' || /duplicate key|coupons_code_key|unique constraint/i.test(msg);
+      if (isDuplicate) {
+        toast.error('Este código ya existe. Por favor, usá el botón de generar código aleatorio.');
+        return;
+      }
+      toast.error(msg || 'No se pudo crear el cupón');
+    },
   });
 
   function openCouponModal(req: ZumbitaRequest) {
