@@ -726,8 +726,7 @@ export default function SolicitudesZumbita() {
                       toast.error('Esta solicitud no tiene número de WhatsApp');
                       return;
                     }
-                    const msg = buildWhatsAppMessage(generatedCoupon.req.customer_name, generatedCoupon.code, generatedCoupon.expirationDate);
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                    window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
                   }}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors"
                 >
