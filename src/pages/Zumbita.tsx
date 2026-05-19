@@ -51,12 +51,12 @@ export default function Zumbita() {
     const whatsapp = form.whatsapp.trim();
     const message = form.message.trim();
 
-    if (!name || !email || !whatsapp) {
-      toast.error('Completá nombre, email y WhatsApp');
+    if (!name || !whatsapp) {
+      toast.error('Completá tu nombre y WhatsApp');
       return;
     }
-    if (!EMAIL_REGEX.test(email)) {
-      toast.error('Ingresá un email válido');
+    if (email && !EMAIL_REGEX.test(email)) {
+      toast.error('Ingresá un email válido o dejalo vacío');
       return;
     }
     if (message.length > MAX_MESSAGE_LENGTH) {
@@ -68,7 +68,7 @@ export default function Zumbita() {
 
     const { error } = await (supabase.from('zumbita_discount_requests' as any) as any).insert({
       customer_name: name,
-      email,
+      email: email || null,
       whatsapp,
       message: message || null,
       is_zumbita_student: true,
