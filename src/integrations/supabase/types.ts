@@ -182,6 +182,84 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          customer_id: string | null
+          id: string
+          order_id: string | null
+          used_at: string
+        }
+        Insert: {
+          coupon_id: string
+          customer_id?: string | null
+          id?: string
+          order_id?: string | null
+          used_at?: string
+        }
+        Update: {
+          coupon_id?: string
+          customer_id?: string | null
+          id?: string
+          order_id?: string | null
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number
+          expiration_date: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          minimum_purchase_amount: number
+          single_use: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type?: string
+          discount_value: number
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          minimum_purchase_amount?: number
+          single_use?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          minimum_purchase_amount?: number
+          single_use?: boolean
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string | null
@@ -307,41 +385,95 @@ export type Database = {
         }
         Relationships: []
       }
+      promotion_products: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_products_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promotions: {
         Row: {
+          banner_text: string | null
           created_at: string | null
-          day_of_week: number
+          day_of_week: number | null
           description: string | null
           discount_type: string
           discount_value: number | null
+          end_date: string | null
           id: string
-          name: string
+          internal_notes: string | null
+          is_active: boolean
+          name: string | null
           product_ids: string[] | null
+          start_date: string | null
           status: string
+          title: string | null
           updated_at: string | null
         }
         Insert: {
+          banner_text?: string | null
           created_at?: string | null
-          day_of_week: number
+          day_of_week?: number | null
           description?: string | null
           discount_type?: string
           discount_value?: number | null
+          end_date?: string | null
           id?: string
-          name: string
+          internal_notes?: string | null
+          is_active?: boolean
+          name?: string | null
           product_ids?: string[] | null
+          start_date?: string | null
           status?: string
+          title?: string | null
           updated_at?: string | null
         }
         Update: {
+          banner_text?: string | null
           created_at?: string | null
-          day_of_week?: number
+          day_of_week?: number | null
           description?: string | null
           discount_type?: string
           discount_value?: number | null
+          end_date?: string | null
           id?: string
-          name?: string
+          internal_notes?: string | null
+          is_active?: boolean
+          name?: string | null
           product_ids?: string[] | null
+          start_date?: string | null
           status?: string
+          title?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -403,6 +535,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      zumbita_discount_requests: {
+        Row: {
+          created_at: string
+          customer_name: string
+          email: string
+          id: string
+          is_zumbita_student: boolean
+          message: string | null
+          status: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          email: string
+          id?: string
+          is_zumbita_student?: boolean
+          message?: string | null
+          status?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          email?: string
+          id?: string
+          is_zumbita_student?: boolean
+          message?: string | null
+          status?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
