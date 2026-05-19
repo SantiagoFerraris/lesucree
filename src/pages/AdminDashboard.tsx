@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Clock, MessageSquare, AlertTriangle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
