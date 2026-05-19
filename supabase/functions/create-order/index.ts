@@ -15,13 +15,17 @@ const OrderItemSchema = z.object({
 const OrderSchema = z.object({
   customerName: z.string().trim().min(1).max(200),
   customerPhone: z.string().trim().min(7).max(20),
-  customerEmail: z.string().trim().email().max(255),
+  customerEmail: z.string().trim().email().max(255).optional().or(z.literal('')),
   desiredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferredTime: z.string().min(1).max(50),
   notes: z.string().max(1000).optional().default(''),
   items: z.array(OrderItemSchema).min(1).max(50),
   couponCode: z.string().trim().min(1).max(50).optional(),
 });
+
+function normalizePhone(p: string | null | undefined): string {
+  return (p || '').replace(/\D/g, '');
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
