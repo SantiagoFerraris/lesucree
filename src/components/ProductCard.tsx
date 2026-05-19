@@ -3,6 +3,7 @@ import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
+import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -20,13 +21,19 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const { data: categories } = useCategories();
   const categoryLabels = buildCategoryLabels(categories);
+  const promosMap = useActivePromotions();
+  const productPromos = promosMap.get(product.id);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
-  const displayPrice = selectedVariant?.price ?? product.price;
+  const basePrice = selectedVariant?.price ?? product.price;
+  const { final: displayPrice, hasDiscount } = applyBestPromotion(basePrice, productPromos);
 
-  // For "Desde $X" display when variants exist
-  const minVariantPrice = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
+  // For "Desde $X" display when variants exist (use min discounted price)
+  const minVariantPrice = hasVariants
+    ? Math.min(...variants.map(v => applyBestPromotion(v.price, productPromos).final))
+    : null;
+  const minVariantOriginal = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,8 +76,22 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
 
         {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) */}
         {!compact && (
-          <p className="font-body text-base font-semibold text-espresso mt-2">
-            {minVariantPrice !== null ? `Desde ${formatPrice(minVariantPrice)}` : formatPrice(product.price)}
+          <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
+            {minVariantPrice !== null ? (
+              <>
+                <span>Desde {formatPrice(minVariantPrice)}</span>
+                {minVariantOriginal !== null && minVariantPrice < minVariantOriginal && (
+                  <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(minVariantOriginal)}</span>
+                )}
+              </>
+            ) : (
+              <>
+                <span>{formatPrice(displayPrice)}</span>
+                {hasDiscount && (
+                  <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(basePrice)}</span>
+                )}
+              </>
+            )}
           </p>
         )}
 
@@ -97,8 +118,11 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
 
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
-            <span className="font-body text-lg font-semibold text-espresso">
+            <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
               {formatPrice(displayPrice)}
+              {hasDiscount && (
+                <span className="text-xs text-warm-gray line-through font-normal">{formatPrice(basePrice)}</span>
+              )}
             </span>
             <button
               onClick={handleAdd}

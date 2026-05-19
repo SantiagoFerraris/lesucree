@@ -4,6 +4,7 @@ import ProductImage from '@/components/ProductImage';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCart } from '@/contexts/CartContext';
+import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
@@ -14,8 +15,11 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addToCart, setIsOpen } = useCart();
+  const promosMap = useActivePromotions();
+  const productPromos = promosMap.get(product.id);
 
-  const currentPrice = selectedVariant?.price ?? product.price;
+  const basePrice = selectedVariant?.price ?? product.price;
+  const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
   const consultText = selectedVariant
     ? `Hola! Quiero consultar por ${product.name} - ${selectedVariant.label}`
     : `Hola! Quiero consultar por ${product.name}`;
@@ -65,7 +69,20 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
             </div>
           )}
 
-          <p className="font-body text-2xl font-semibold text-espresso mt-4">{formatPrice(currentPrice)}</p>
+          <div className="mt-4 flex items-baseline gap-3 flex-wrap">
+            <p className="font-body text-2xl font-semibold text-espresso">{formatPrice(currentPrice)}</p>
+            {hasDiscount && (
+              <>
+                <span className="text-sm text-warm-gray line-through">{formatPrice(basePrice)}</span>
+                <span className="text-[11px] uppercase tracking-[0.1em] font-semibold px-2 py-1 rounded-full bg-dusty-pink/15 text-dusty-pink">
+                  {promo?.discount_type === 'percentage' ? `-${promo.discount_value}%` : 'Oferta'}
+                </span>
+              </>
+            )}
+          </div>
+          {hasDiscount && promo?.banner_text && (
+            <p className="text-xs text-dusty-pink mt-1.5 font-medium">{promo.banner_text}</p>
+          )}
 
           <div className="flex items-center gap-3 mt-4">
             <span className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Cantidad</span>
