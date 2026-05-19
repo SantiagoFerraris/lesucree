@@ -1,0 +1,1 @@
+ALTER TABLE public.zumbita_discount_requests ALTER COLUMN email DROP NOT NULL;

@@ -591,7 +591,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_name: string
-          email: string
+          email: string | null
           id: string
           is_zumbita_student: boolean
           message: string | null
@@ -601,7 +601,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_name: string
-          email: string
+          email?: string | null
           id?: string
           is_zumbita_student?: boolean
           message?: string | null
@@ -611,7 +611,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_name?: string
-          email?: string
+          email?: string | null
           id?: string
           is_zumbita_student?: boolean
           message?: string | null
