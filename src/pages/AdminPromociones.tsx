@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Tag } from 'lucide-react';
 import OfertasProgramadas from '@/components/admin/OfertasProgramadas';
+import SolicitudesZumbita from '@/components/admin/SolicitudesZumbita';
 
 type TabKey = 'programadas' | 'zumbita';
 
