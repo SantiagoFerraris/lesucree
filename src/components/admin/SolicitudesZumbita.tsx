@@ -153,17 +153,6 @@ export default function SolicitudesZumbita() {
     return products.filter(p => p.name.toLowerCase().includes(s) || p.category.toLowerCase().includes(s));
   }, [products, productSearch]);
 
-  const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
-      const { error } = await supabase
-        .from('zumbita_discount_requests')
-        .update({ status })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['zumbita-requests'] }),
-    onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
-  });
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
