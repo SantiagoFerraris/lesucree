@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
     if (couponId) {
       await supabaseAdmin.from('coupon_usage').insert({
         coupon_id: couponId,
-        customer_id: customerEmail,
+        customer_id: customerEmail || normalizePhone(customerPhone) || null,
         order_id: orderId,
       });
     }
