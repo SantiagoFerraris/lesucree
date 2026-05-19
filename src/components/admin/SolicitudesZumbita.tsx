@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles } from 'lucide-react';
+import { Check, X, Ban, Mail, Phone, MessageSquare, BadgeCheck, Search, Tag, Copy, Send, Sparkles, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -70,6 +70,20 @@ function suggestCode(name: string) {
     .replace(/[^A-Z]/g, '')
     .slice(0, 6) || 'ZUM';
   return `ZUMBITA-${slug}`;
+}
+
+function randomSuffix(len = 4) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function appendRandomToCode(current: string) {
+  const base = (current || '').trim().toUpperCase().replace(/-+$/, '');
+  const suffix = randomSuffix(4);
+  if (!base) return `PROMO-${suffix}`;
+  return `${base}-${suffix}`;
 }
 
 function formatDate(value: string) {
@@ -254,7 +268,15 @@ export default function SolicitudesZumbita() {
       setCouponModal(null);
       setGeneratedCoupon(result);
     },
-    onError: (e: any) => toast.error(e.message || 'No se pudo crear el cupón'),
+    onError: (e: any) => {
+      const msg = String(e?.message || '');
+      const isDuplicate = e?.code === '23505' || /duplicate key|coupons_code_key|unique constraint/i.test(msg);
+      if (isDuplicate) {
+        toast.error('Este código ya existe. Por favor, usá el botón de generar código aleatorio.');
+        return;
+      }
+      toast.error(msg || 'No se pudo crear el cupón');
+    },
   });
 
   function openCouponModal(req: ZumbitaRequest) {
@@ -465,14 +487,25 @@ export default function SolicitudesZumbita() {
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-espresso mb-1.5">Código del cupón</label>
-                <input
-                  type="text"
-                  value={form.code}
-                  onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
-                  maxLength={50}
-                  placeholder="EJ: ZUMBITA-MARIA"
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={form.code}
+                    onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                    maxLength={50}
+                    placeholder="EJ: ZUMBITA-MARIA"
+                    className={`${inputClass} pr-11`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, code: appendRandomToCode(f.code) }))}
+                    title="Generar código aleatorio"
+                    aria-label="Generar código aleatorio"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-8 h-8 rounded-md text-espresso hover:bg-cream transition-colors"
+                  >
+                    <Wand2 size={15} />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
