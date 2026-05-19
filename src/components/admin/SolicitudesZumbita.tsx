@@ -122,6 +122,7 @@ export default function SolicitudesZumbita() {
   const [search, setSearch] = useState('');
   const [couponModal, setCouponModal] = useState<ZumbitaRequest | null>(null);
   const [disableModal, setDisableModal] = useState<ZumbitaRequest | null>(null);
+  const [deleteModal, setDeleteModal] = useState<ZumbitaRequest | null>(null);
   const [generatedCoupon, setGeneratedCoupon] = useState<GeneratedCoupon | null>(null);
   const [form, setForm] = useState<CouponForm>({
     code: '',
