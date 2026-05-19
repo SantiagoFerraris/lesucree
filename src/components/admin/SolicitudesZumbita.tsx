@@ -479,14 +479,25 @@ export default function SolicitudesZumbita() {
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-espresso mb-1.5">Código del cupón</label>
-                <input
-                  type="text"
-                  value={form.code}
-                  onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
-                  maxLength={50}
-                  placeholder="EJ: ZUMBITA-MARIA"
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={form.code}
+                    onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                    maxLength={50}
+                    placeholder="EJ: ZUMBITA-MARIA"
+                    className={`${inputClass} pr-11`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, code: appendRandomToCode(f.code) }))}
+                    title="Generar código aleatorio"
+                    aria-label="Generar código aleatorio"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-8 h-8 rounded-md text-espresso hover:bg-cream transition-colors"
+                  >
+                    <Wand2 size={15} />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
