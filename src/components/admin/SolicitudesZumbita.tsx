@@ -10,10 +10,11 @@ type DiscountType = 'percentage' | 'fixed';
 interface ZumbitaRequest {
   id: string;
   customer_name: string;
-  email: string;
+  email: string | null;
   whatsapp: string | null;
   message: string | null;
   is_zumbita_student: boolean;
+  verified_alumna: boolean;
   status: string;
   created_at: string;
 }
