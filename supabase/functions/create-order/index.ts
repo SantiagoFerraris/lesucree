@@ -220,6 +220,26 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Zumbita personal coupon: must match phone or email of the original requester
+      if (coupon.zumbita_request_id) {
+        const { data: zReq } = await supabaseAdmin
+          .from('zumbita_discount_requests')
+          .select('email, whatsapp')
+          .eq('id', coupon.zumbita_request_id)
+          .maybeSingle();
+        const phoneIn = normalizePhone(customerPhone);
+        const reqPhone = normalizePhone(zReq?.whatsapp);
+        const emailIn = (customerEmail || '').toLowerCase();
+        const reqEmail = (zReq?.email || '').toLowerCase();
+        const phoneMatches = !!(phoneIn && reqPhone && (phoneIn === reqPhone || phoneIn.endsWith(reqPhone) || reqPhone.endsWith(phoneIn)));
+        const emailMatches = !!(emailIn && reqEmail && emailIn === reqEmail);
+        if (!phoneMatches && !emailMatches) {
+          return new Response(JSON.stringify({ error: 'Este cupón es personal y no coincide con tus datos' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Usage limits
       if (coupon.max_uses != null) {
         const { count: usedCount } = await supabaseAdmin
@@ -233,13 +253,14 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Single-use per customer
-      if (coupon.single_use) {
+      // Single-use per customer (prefer email, fallback to normalized phone)
+      const customerKey = customerEmail || normalizePhone(customerPhone);
+      if (coupon.single_use && customerKey) {
         const { count: prevUse } = await supabaseAdmin
           .from('coupon_usage')
           .select('*', { count: 'exact', head: true })
           .eq('coupon_id', coupon.id)
-          .eq('customer_id', customerEmail);
+          .eq('customer_id', customerKey);
         if ((prevUse ?? 0) > 0) {
           return new Response(JSON.stringify({ error: 'Ya usaste este cupón anteriormente.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
