@@ -71,6 +71,39 @@ export default function AdminProductos() {
     },
   });
 
+  const { data: activePromoMap } = useQuery({
+    queryKey: ['admin-products-active-promos'],
+    queryFn: async () => {
+      const nowIso = new Date().toISOString();
+      const { data: promos, error } = await supabase
+        .from('promotions')
+        .select('id, discount_type, discount_value, start_date, end_date')
+        .eq('is_active', true)
+        .or(`start_date.is.null,start_date.lte.${nowIso}`)
+        .or(`end_date.is.null,end_date.gte.${nowIso}`);
+      if (error) throw error;
+      if (!promos || promos.length === 0) return {} as Record<string, { discount_type: string; discount_value: number }>;
+      const { data: links } = await supabase
+        .from('promotion_products')
+        .select('promotion_id, product_id')
+        .in('promotion_id', promos.map(p => p.id));
+      const byPromo = new Map(promos.map(p => [p.id, p]));
+      const map: Record<string, { discount_type: string; discount_value: number }> = {};
+      (links || []).forEach((l: any) => {
+        const promo = byPromo.get(l.promotion_id);
+        if (!promo) return;
+        const existing = map[l.product_id];
+        const value = Number(promo.discount_value ?? 0);
+        if (!existing) {
+          map[l.product_id] = { discount_type: promo.discount_type, discount_value: value };
+        } else if (promo.discount_type === existing.discount_type && value > existing.discount_value) {
+          map[l.product_id] = { discount_type: promo.discount_type, discount_value: value };
+        }
+      });
+      return map;
+    },
+  });
+
   const getVariants = (pid: string) => allVariants?.filter((v: any) => v.product_id === pid) || [];
 
   // Product count by category for the category manager
