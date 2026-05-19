@@ -289,8 +289,8 @@ export default function Pedido() {
                                                             </div>
                                               
                                                             <div>
-                                                                            <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email *</label>
-                                                                            <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} onBlur={() => handleBlur('email')} className={getInputClass('email')} maxLength={255} />
+                                                                            <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email <span className="text-warm-gray/60 normal-case font-normal">(opcional)</span></label>
+                                                                            <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} onBlur={() => handleBlur('email')} className={getInputClass('email')} maxLength={255} placeholder="tu@email.com" />
                                                               {touched.email && errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                                                             </div>
                                               
