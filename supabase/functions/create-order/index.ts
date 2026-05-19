@@ -15,13 +15,17 @@ const OrderItemSchema = z.object({
 const OrderSchema = z.object({
   customerName: z.string().trim().min(1).max(200),
   customerPhone: z.string().trim().min(7).max(20),
-  customerEmail: z.string().trim().email().max(255),
+  customerEmail: z.string().trim().email().max(255).optional().or(z.literal('')),
   desiredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferredTime: z.string().min(1).max(50),
   notes: z.string().max(1000).optional().default(''),
   items: z.array(OrderItemSchema).min(1).max(50),
   couponCode: z.string().trim().min(1).max(50).optional(),
 });
+
+function normalizePhone(p: string | null | undefined): string {
+  return (p || '').replace(/\D/g, '');
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -38,7 +42,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { customerName, customerPhone, customerEmail, desiredDate, preferredTime, notes, items, couponCode } = parsed.data;
+    const { customerName, customerPhone, customerEmail: rawEmail, desiredDate, preferredTime, notes, items, couponCode } = parsed.data;
+    const customerEmail = (rawEmail && rawEmail.trim()) ? rawEmail.trim() : null;
+    const rateLimitId = customerEmail || normalizePhone(customerPhone) || 'anon';
 
     const minDate = new Date();
     minDate.setDate(minDate.getDate() + 2);
@@ -60,7 +66,7 @@ Deno.serve(async (req) => {
     const { count } = await supabaseAdmin
       .from('rate_limits')
       .select('*', { count: 'exact', head: true })
-      .eq('identifier', customerEmail)
+      .eq('identifier', rateLimitId)
       .eq('action_type', 'order')
       .gte('created_at', tenMinAgo);
 
@@ -70,7 +76,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    await supabaseAdmin.from('rate_limits').insert({ identifier: customerEmail, action_type: 'order' });
+    await supabaseAdmin.from('rate_limits').insert({ identifier: rateLimitId, action_type: 'order' });
 
     const productIds = [...new Set(items.map(i => i.productId))];
     const variantIds = items.filter(i => i.variantId).map(i => i.variantId!);
@@ -214,6 +220,26 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Zumbita personal coupon: must match phone or email of the original requester
+      if (coupon.zumbita_request_id) {
+        const { data: zReq } = await supabaseAdmin
+          .from('zumbita_discount_requests')
+          .select('email, whatsapp')
+          .eq('id', coupon.zumbita_request_id)
+          .maybeSingle();
+        const phoneIn = normalizePhone(customerPhone);
+        const reqPhone = normalizePhone(zReq?.whatsapp);
+        const emailIn = (customerEmail || '').toLowerCase();
+        const reqEmail = (zReq?.email || '').toLowerCase();
+        const phoneMatches = !!(phoneIn && reqPhone && (phoneIn === reqPhone || phoneIn.endsWith(reqPhone) || reqPhone.endsWith(phoneIn)));
+        const emailMatches = !!(emailIn && reqEmail && emailIn === reqEmail);
+        if (!phoneMatches && !emailMatches) {
+          return new Response(JSON.stringify({ error: 'Este cupón es personal y no coincide con tus datos' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Usage limits
       if (coupon.max_uses != null) {
         const { count: usedCount } = await supabaseAdmin
@@ -227,13 +253,14 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Single-use per customer
-      if (coupon.single_use) {
+      // Single-use per customer (prefer email, fallback to normalized phone)
+      const customerKey = customerEmail || normalizePhone(customerPhone);
+      if (coupon.single_use && customerKey) {
         const { count: prevUse } = await supabaseAdmin
           .from('coupon_usage')
           .select('*', { count: 'exact', head: true })
           .eq('coupon_id', coupon.id)
-          .eq('customer_id', customerEmail);
+          .eq('customer_id', customerKey);
         if ((prevUse ?? 0) > 0) {
           return new Response(JSON.stringify({ error: 'Ya usaste este cupón anteriormente.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -309,7 +336,7 @@ Deno.serve(async (req) => {
     if (couponId) {
       await supabaseAdmin.from('coupon_usage').insert({
         coupon_id: couponId,
-        customer_id: customerEmail,
+        customer_id: customerEmail || normalizePhone(customerPhone) || null,
         order_id: orderId,
       });
     }

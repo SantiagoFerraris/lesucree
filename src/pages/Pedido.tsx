@@ -84,6 +84,7 @@ export default function Pedido() {
             body: {
                 code,
                 customerEmail: form.email.trim() || undefined,
+                customerPhone: form.phone.trim() || undefined,
                 items: items.map(i => ({ productId: i.productId, variantId: i.variantId || undefined, quantity: i.quantity })),
             },
         });
@@ -130,9 +131,10 @@ export default function Pedido() {
         const e: Record<string, string> = {};
         if (!form.name.trim()) e.name = 'Ingresá tu nombre';
         if (!PHONE_REGEX.test(form.phone.trim())) e.phone = 'Ingresá un teléfono válido';
-        if (!EMAIL_REGEX.test(form.email.trim())) e.email = 'Ingresá un email válido';
+        if (form.email.trim() && !EMAIL_REGEX.test(form.email.trim())) e.email = 'Ingresá un email válido';
         if (!form.date) e.date = 'Seleccioná una fecha';
         else if (form.date < getMinDate()) e.date = 'Mínimo 48hs de anticipación';
+        if (!form.time) e.time = 'Seleccioná un horario';
         setErrors(e);
         return Object.keys(e).length === 0;
   };
@@ -144,7 +146,7 @@ export default function Pedido() {
 
   const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setTouched({ name: true, phone: true, email: true, date: true });
+        setTouched({ name: true, phone: true, email: true, date: true, time: true });
 
         if (isHoneypotFilled(honeypot)) {
                 toast.success('¡Pedido enviado con éxito!');
@@ -166,7 +168,7 @@ export default function Pedido() {
                 body: {
                           customerName: form.name.trim(),
                           customerPhone: form.phone.trim(),
-                          customerEmail: form.email.trim(),
+                          customerEmail: form.email.trim() || undefined,
                           desiredDate: form.date,
                           preferredTime: form.time,
                           notes: form.notes.trim(),
@@ -199,7 +201,8 @@ export default function Pedido() {
         const serverDiscount = orderResult.discountAmount ?? 0;
         const serverCouponCode = orderResult.couponCode as string | null | undefined;
         const discountLine = serverDiscount > 0 ? `\n🎟 Cupón ${serverCouponCode}: -${formatPrice(serverDiscount)}` : '';
-        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📧 ${form.email.trim()}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
+        const emailLine = form.email.trim() ? `\n📧 ${form.email.trim()}` : '';
+        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}${emailLine}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
         window.open(`https://wa.me/${whatsappNotification}?text=${encodeURIComponent(waText)}`, '_blank');
 
         clearCart();
@@ -286,8 +289,8 @@ export default function Pedido() {
                                                             </div>
                                               
                                                             <div>
-                                                                            <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email *</label>
-                                                                            <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} onBlur={() => handleBlur('email')} className={getInputClass('email')} maxLength={255} />
+                                                                            <label htmlFor="pedido-email" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Email <span className="text-warm-gray/60 normal-case font-normal">(opcional)</span></label>
+                                                                            <input id="pedido-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} onBlur={() => handleBlur('email')} className={getInputClass('email')} maxLength={255} placeholder="tu@email.com" />
                                                               {touched.email && errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                                                             </div>
                                               
@@ -364,7 +367,7 @@ export default function Pedido() {
                                                                                             id="coupon-code"
                                                                                             value={couponInput}
                                                                                             onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null); }}
-                                                                                            placeholder="ZUMBITA10"
+                                                                                            placeholder="Código promocional"
                                                                                             maxLength={50}
                                                                                             className={`${inputBase} border-input focus:ring-dusty-pink/30 flex-1 uppercase`}
                                                                                         />

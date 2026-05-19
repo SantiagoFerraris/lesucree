@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,7 @@ import ProductDetailModal from '@/components/ProductDetailModal';
 import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useActivePromotions } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
@@ -51,8 +52,19 @@ export default function Catalogo() {
 
   const getVariants = (productId: string) => allVariants?.filter(v => v.product_id === productId) || [];
 
-  const totalPages = Math.ceil((products?.length || 0) / ITEMS_PER_PAGE);
-  const paginatedProducts = products?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  // When viewing "todos", surface products with active promotions first (stable for the rest).
+  const promosMap = useActivePromotions();
+  const sortedProducts = useMemo(() => {
+    if (!products) return products;
+    if (category !== 'todos') return products;
+    const promoted: Tables<'products'>[] = [];
+    const regular: Tables<'products'>[] = [];
+    products.forEach(p => (promosMap.has(p.id) ? promoted : regular).push(p));
+    return [...promoted, ...regular];
+  }, [products, category, promosMap]);
+
+  const totalPages = Math.ceil((sortedProducts?.length || 0) / ITEMS_PER_PAGE);
+  const paginatedProducts = sortedProducts?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const goToPage = (p: number) => {
     setPage(p);

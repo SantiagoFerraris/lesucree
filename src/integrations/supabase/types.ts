@@ -296,7 +296,7 @@ export type Database = {
         Row: {
           coupon_id: string | null
           created_at: string | null
-          customer_email: string
+          customer_email: string | null
           customer_name: string
           customer_phone: string
           desired_date: string
@@ -314,7 +314,7 @@ export type Database = {
         Insert: {
           coupon_id?: string | null
           created_at?: string | null
-          customer_email: string
+          customer_email?: string | null
           customer_name: string
           customer_phone: string
           desired_date: string
@@ -332,7 +332,7 @@ export type Database = {
         Update: {
           coupon_id?: string | null
           created_at?: string | null
-          customer_email?: string
+          customer_email?: string | null
           customer_name?: string
           customer_phone?: string
           desired_date?: string
@@ -596,6 +596,7 @@ export type Database = {
           is_zumbita_student: boolean
           message: string | null
           status: string
+          verified_alumna: boolean
           whatsapp: string | null
         }
         Insert: {
@@ -606,6 +607,7 @@ export type Database = {
           is_zumbita_student?: boolean
           message?: string | null
           status?: string
+          verified_alumna?: boolean
           whatsapp?: string | null
         }
         Update: {
@@ -616,6 +618,7 @@ export type Database = {
           is_zumbita_student?: boolean
           message?: string | null
           status?: string
+          verified_alumna?: boolean
           whatsapp?: string | null
         }
         Relationships: []

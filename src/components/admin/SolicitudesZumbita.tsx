@@ -10,10 +10,11 @@ type DiscountType = 'percentage' | 'fixed';
 interface ZumbitaRequest {
   id: string;
   customer_name: string;
-  email: string;
+  email: string | null;
   whatsapp: string | null;
   message: string | null;
   is_zumbita_student: boolean;
+  verified_alumna: boolean;
   status: string;
   created_at: string;
 }
@@ -92,7 +93,7 @@ function formatExpirationLong(value: string | null) {
 
 function buildWhatsAppMessage(customerName: string, code: string, expirationDate: string | null) {
   const firstName = (customerName || '').split(' ')[0] || customerName;
-  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée! ✨`;
+  return `Hola ${firstName} ✨\n\nTu beneficio exclusivo para alumnas de Zumbita ya está listo 💕\n\nCódigo:\n${code}\n\nPodés aplicarlo directamente al finalizar tu pedido en:\n${CHECKOUT_URL}\n\nVálido hasta:\n${formatExpirationLong(expirationDate)}\n\n¡Gracias por elegir Le Sucrée Pastelería! ✨`;
 }
 
 interface GeneratedCoupon {
@@ -152,6 +153,7 @@ export default function SolicitudesZumbita() {
     return products.filter(p => p.name.toLowerCase().includes(s) || p.category.toLowerCase().includes(s));
   }, [products, productSearch]);
 
+
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
       const { error } = await supabase
@@ -162,6 +164,21 @@ export default function SolicitudesZumbita() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['zumbita-requests'] }),
     onError: (e: any) => toast.error(e.message || 'No se pudo actualizar'),
+  });
+
+  const toggleVerifiedAlumna = useMutation({
+    mutationFn: async ({ id, verified }: { id: string; verified: boolean }) => {
+      const { error } = await (supabase
+        .from('zumbita_discount_requests') as any)
+        .update({ verified_alumna: verified })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.verified ? 'Alumna verificada' : 'Verificación quitada');
+      qc.invalidateQueries({ queryKey: ['zumbita-requests'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'No se pudo actualizar la verificación'),
   });
 
   const disableBenefit = useMutation({
@@ -261,7 +278,7 @@ export default function SolicitudesZumbita() {
       const s = search.toLowerCase();
       return (
         r.customer_name.toLowerCase().includes(s) ||
-        r.email.toLowerCase().includes(s) ||
+        (r.email || '').toLowerCase().includes(s) ||
         (r.whatsapp || '').toLowerCase().includes(s)
       );
     }
@@ -326,7 +343,7 @@ export default function SolicitudesZumbita() {
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusStyles[status]}`}>
                         {statusLabels[status]}
                       </span>
-                      {req.is_zumbita_student && (
+                      {req.verified_alumna && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sage/20 text-emerald-700">
                           <BadgeCheck size={12} />
                           Alumna verificada
@@ -335,10 +352,17 @@ export default function SolicitudesZumbita() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-warm-gray mb-3">
-                      <a href={`mailto:${req.email}`} className="flex items-center gap-2 hover:text-espresso truncate">
-                        <Mail size={13} className="shrink-0 text-dusty-pink" />
-                        <span className="truncate">{req.email}</span>
-                      </a>
+                      {req.email ? (
+                        <a href={`mailto:${req.email}`} className="flex items-center gap-2 hover:text-espresso truncate">
+                          <Mail size={13} className="shrink-0 text-dusty-pink" />
+                          <span className="truncate">{req.email}</span>
+                        </a>
+                      ) : (
+                        <span className="flex items-center gap-2 text-warm-gray/60 truncate">
+                          <Mail size={13} className="shrink-0" />
+                          <span className="truncate">Sin email</span>
+                        </span>
+                      )}
                       {req.whatsapp && (
                         <a
                           href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}`}
@@ -380,6 +404,19 @@ export default function SolicitudesZumbita() {
                       Rechazar
                     </button>
                     <button
+                      disabled={toggleVerifiedAlumna.isPending}
+                      onClick={() => toggleVerifiedAlumna.mutate({ id: req.id, verified: !req.verified_alumna })}
+                      className={`flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${
+                        req.verified_alumna
+                          ? 'bg-sage/20 text-emerald-700 hover:bg-sage/30'
+                          : 'bg-cream text-warm-gray hover:bg-blush'
+                      }`}
+                      title={req.verified_alumna ? 'Quitar verificación de alumna' : 'Marcar como alumna verificada'}
+                    >
+                      <BadgeCheck size={14} />
+                      {req.verified_alumna ? 'Alumna verificada' : 'Verificar alumna'}
+                    </button>
+                    <button
                       disabled={isPending || status === 'disabled'}
                       onClick={() => setDisableModal(req)}
                       className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-cream text-warm-gray hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -414,7 +451,7 @@ export default function SolicitudesZumbita() {
                   <h3 className="font-display text-base font-bold text-espresso truncate">
                     Generar cupón para {couponModal.customer_name}
                   </h3>
-                  <p className="text-xs text-warm-gray truncate">{couponModal.email}</p>
+                  <p className="text-xs text-warm-gray truncate">{couponModal.email || couponModal.whatsapp || '—'}</p>
                 </div>
               </div>
               <button
@@ -726,7 +763,7 @@ export default function SolicitudesZumbita() {
                     Deshabilitar beneficio
                   </h3>
                   <p className="text-xs text-warm-gray mt-0.5 truncate">
-                    {disableModal.customer_name} · {disableModal.email}
+                    {disableModal.customer_name}{disableModal.email ? ` · ${disableModal.email}` : ''}
                   </p>
                 </div>
               </div>
