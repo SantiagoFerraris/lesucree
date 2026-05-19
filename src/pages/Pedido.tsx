@@ -175,6 +175,7 @@ export default function Pedido() {
                                       variantId: i.variantId || undefined,
                                       quantity: i.quantity
                           })),
+                          couponCode: appliedCoupon?.code || undefined,
                 },
         });
 
