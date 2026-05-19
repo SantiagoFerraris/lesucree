@@ -14,9 +14,14 @@ const ItemSchema = z.object({
 
 const Schema = z.object({
   code: z.string().trim().min(1).max(50),
-  customerEmail: z.string().trim().email().max(255).optional(),
+  customerEmail: z.string().trim().email().max(255).optional().or(z.literal('')),
+  customerPhone: z.string().trim().min(4).max(30).optional().or(z.literal('')),
   items: z.array(ItemSchema).min(1).max(50),
 });
+
+function normalizePhone(p: string | null | undefined): string {
+  return (p || '').replace(/\D/g, '');
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
