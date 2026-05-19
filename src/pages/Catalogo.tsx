@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,7 @@ import ProductDetailModal from '@/components/ProductDetailModal';
 import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useActivePromotions } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
