@@ -4,6 +4,7 @@ import ProductImage from '@/components/ProductImage';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCart } from '@/contexts/CartContext';
+import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
@@ -14,8 +15,11 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addToCart, setIsOpen } = useCart();
+  const promosMap = useActivePromotions();
+  const productPromos = promosMap.get(product.id);
 
-  const currentPrice = selectedVariant?.price ?? product.price;
+  const basePrice = selectedVariant?.price ?? product.price;
+  const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
   const consultText = selectedVariant
     ? `Hola! Quiero consultar por ${product.name} - ${selectedVariant.label}`
     : `Hola! Quiero consultar por ${product.name}`;
