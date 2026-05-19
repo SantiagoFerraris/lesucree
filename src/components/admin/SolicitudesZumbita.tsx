@@ -404,6 +404,19 @@ export default function SolicitudesZumbita() {
                       Rechazar
                     </button>
                     <button
+                      disabled={toggleVerifiedAlumna.isPending}
+                      onClick={() => toggleVerifiedAlumna.mutate({ id: req.id, verified: !req.verified_alumna })}
+                      className={`flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${
+                        req.verified_alumna
+                          ? 'bg-sage/20 text-emerald-700 hover:bg-sage/30'
+                          : 'bg-cream text-warm-gray hover:bg-blush'
+                      }`}
+                      title={req.verified_alumna ? 'Quitar verificación de alumna' : 'Marcar como alumna verificada'}
+                    >
+                      <BadgeCheck size={14} />
+                      {req.verified_alumna ? 'Alumna verificada' : 'Verificar alumna'}
+                    </button>
+                    <button
                       disabled={isPending || status === 'disabled'}
                       onClick={() => setDisableModal(req)}
                       className="flex-1 lg:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-cream text-warm-gray hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
