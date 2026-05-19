@@ -255,11 +255,19 @@ export default function AdminDashboard() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
         <KpiCard icon={ShoppingBag} label="Pedidos Pendientes" value={String(pendingCount)} loading={isLoading} />
         <KpiCard icon={Clock} label="Retiros de Hoy" value={String(todayPickups)} loading={isLoading} />
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
+        <KpiCard
+          icon={Sparkles}
+          label="Solicitudes Zumbita"
+          value={String(pendingZumbita ?? 0)}
+          loading={zumbitaLoading}
+          badge={(pendingZumbita ?? 0) > 0 ? 'Pendientes' : null}
+          onClick={() => navigate('/admin/promociones')}
+        />
       </div>
 
       {/* Charts */}
