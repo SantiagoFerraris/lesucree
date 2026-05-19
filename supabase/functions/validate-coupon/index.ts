@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const { code, customerEmail, items } = parsed.data;
+    const { code, customerEmail, customerPhone, items } = parsed.data;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -51,6 +51,24 @@ Deno.serve(async (req) => {
       return json({ valid: false, error: 'Este cupón está vencido.' });
     }
 
+    // Zumbita personal coupon — must match requester's phone or email
+    if (coupon.zumbita_request_id) {
+      const { data: zReq } = await admin
+        .from('zumbita_discount_requests')
+        .select('email, whatsapp')
+        .eq('id', coupon.zumbita_request_id)
+        .maybeSingle();
+      const phoneIn = normalizePhone(customerPhone);
+      const reqPhone = normalizePhone(zReq?.whatsapp);
+      const emailIn = (customerEmail || '').toLowerCase();
+      const reqEmail = (zReq?.email || '').toLowerCase();
+      const phoneMatches = !!(phoneIn && reqPhone && (phoneIn === reqPhone || phoneIn.endsWith(reqPhone) || reqPhone.endsWith(phoneIn)));
+      const emailMatches = !!(emailIn && reqEmail && emailIn === reqEmail);
+      if (!phoneMatches && !emailMatches) {
+        return json({ valid: false, error: 'Este cupón es personal y no coincide con tus datos' });
+      }
+    }
+
     if (coupon.max_uses != null) {
       const { count } = await admin
         .from('coupon_usage')
@@ -58,12 +76,13 @@ Deno.serve(async (req) => {
         .eq('coupon_id', coupon.id);
       if ((count ?? 0) >= coupon.max_uses) return json({ valid: false, error: 'Este cupón alcanzó el límite de usos.' });
     }
-    if (coupon.single_use && customerEmail) {
+    const customerKey = customerEmail || normalizePhone(customerPhone);
+    if (coupon.single_use && customerKey) {
       const { count } = await admin
         .from('coupon_usage')
         .select('*', { count: 'exact', head: true })
         .eq('coupon_id', coupon.id)
-        .eq('customer_id', customerEmail);
+        .eq('customer_id', customerKey);
       if ((count ?? 0) > 0) return json({ valid: false, error: 'Ya usaste este cupón anteriormente.' });
     }
 
