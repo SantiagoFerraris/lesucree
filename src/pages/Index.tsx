@@ -33,24 +33,38 @@ interface Variant {
 }
 
 /* ─── HERO ─── */
+// Static hero URL — matches the <link rel="preload"> in index.html so the LCP
+// element paints from the preloaded resource without waiting on any query.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const HERO_WEBP = `${SUPABASE_URL}/storage/v1/object/public/site-images/hero/hero-bg.webp`;
+const HERO_JPG = `${SUPABASE_URL}/storage/v1/object/public/site-images/hero/hero-bg.jpg`;
+
 function HeroSection() {
-  const { data: heroImageUrl, isLoading: heroLoading } = useHeroImageUrl();
   const { data: settings } = useSiteSettings();
-  const bgImage = heroImageUrl || null;
   const heroTitle = settings?.hero_title || 'Le Sucrée';
   const heroSubtitle = settings?.hero_subtitle || 'Pastelería Artesanal';
-  const heroText = settings?.hero_text || 'Endulzar tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
 
   return (
     <section
-      className="relative min-h-[70vh] flex items-center"
-      style={{
-        backgroundImage: bgImage ? `url(${bgImage})` : 'none',
-        backgroundColor: '#fdf6f0',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      className="relative min-h-[70vh] flex items-center overflow-hidden"
+      style={{ backgroundColor: '#fdf6f0' }}
     >
+      {/* LCP image — eager + high priority, paints from preloaded cache */}
+      <picture>
+        <source srcSet={HERO_WEBP} type="image/webp" />
+        <img
+          src={HERO_JPG}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </picture>
+
       {/* Gradient overlay */}
       <div
         className="absolute inset-0"
