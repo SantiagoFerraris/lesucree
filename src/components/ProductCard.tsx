@@ -67,12 +67,20 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
       className="card-product flex flex-col animate-fade-in-up"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <div className="aspect-[4/3] overflow-hidden">
+      <div className="aspect-[4/3] overflow-hidden relative">
         <ProductImage
           src={product.image_url}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
+        {badgeLabel && (
+          <span
+            className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-espresso/90 backdrop-blur-sm text-cream text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm transition-opacity duration-300"
+            aria-label={`Producto en oferta ${badgeLabel}`}
+          >
+            {badgeLabel}
+          </span>
+        )}
       </div>
       <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
