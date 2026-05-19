@@ -343,7 +343,7 @@ export default function SolicitudesZumbita() {
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusStyles[status]}`}>
                         {statusLabels[status]}
                       </span>
-                      {req.is_zumbita_student && (
+                      {req.verified_alumna && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sage/20 text-emerald-700">
                           <BadgeCheck size={12} />
                           Alumna verificada
@@ -352,10 +352,17 @@ export default function SolicitudesZumbita() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-warm-gray mb-3">
-                      <a href={`mailto:${req.email}`} className="flex items-center gap-2 hover:text-espresso truncate">
-                        <Mail size={13} className="shrink-0 text-dusty-pink" />
-                        <span className="truncate">{req.email}</span>
-                      </a>
+                      {req.email ? (
+                        <a href={`mailto:${req.email}`} className="flex items-center gap-2 hover:text-espresso truncate">
+                          <Mail size={13} className="shrink-0 text-dusty-pink" />
+                          <span className="truncate">{req.email}</span>
+                        </a>
+                      ) : (
+                        <span className="flex items-center gap-2 text-warm-gray/60 truncate">
+                          <Mail size={13} className="shrink-0" />
+                          <span className="truncate">Sin email</span>
+                        </span>
+                      )}
                       {req.whatsapp && (
                         <a
                           href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}`}
