@@ -3,6 +3,7 @@ import { Instagram, MapPin, Clock, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_NUMBER, WHATSAPP_NOTIFICATION_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
+import { getWhatsAppLink, openWhatsApp } from '@/lib/whatsapp';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
