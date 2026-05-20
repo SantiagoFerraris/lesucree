@@ -17,6 +17,7 @@ interface PromotionRow {
   end_date: string | null;
   is_active: boolean;
   banner_text: string | null;
+  show_discount_badge: boolean;
   created_at: string;
 }
 
@@ -28,6 +29,7 @@ interface PromoForm {
   start_date: string;
   end_date: string;
   is_active: boolean;
+  show_discount_badge: boolean;
   banner_text: string;
   product_ids: string[];
 }
@@ -40,6 +42,7 @@ const emptyForm: PromoForm = {
   start_date: '',
   end_date: '',
   is_active: true,
+  show_discount_badge: true,
   banner_text: '',
   product_ids: [],
 };
@@ -158,6 +161,7 @@ export default function OfertasProgramadas() {
       start_date: toLocalInput(p.start_date),
       end_date: toLocalInput(p.end_date),
       is_active: p.is_active,
+      show_discount_badge: (p as any).show_discount_badge !== false,
       banner_text: p.banner_text || '',
       product_ids: productsByPromo[p.id] || [],
     });
@@ -199,6 +203,7 @@ export default function OfertasProgramadas() {
         start_date: new Date(form.start_date).toISOString(),
         end_date: new Date(form.end_date).toISOString(),
         is_active: form.is_active,
+        show_discount_badge: form.show_discount_badge,
         banner_text: form.banner_text.trim() || null,
         status: 'active', // legacy column
       };
@@ -510,6 +515,24 @@ export default function OfertasProgramadas() {
                   className="rounded"
                 />
                 <label htmlFor="promo-active" className="text-sm text-espresso">Promoción activa</label>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="promo-show-badge"
+                    type="checkbox"
+                    checked={form.show_discount_badge}
+                    onChange={e => setForm(p => ({ ...p, show_discount_badge: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <label htmlFor="promo-show-badge" className="text-sm text-espresso">
+                    Mostrar badge visual en catálogo
+                  </label>
+                </div>
+                <p className="text-xs text-warm-gray mt-1 ml-6">
+                  Controla si esta promoción muestra el badge visual sobre la imagen del producto.
+                </p>
               </div>
 
               {/* Product selector */}

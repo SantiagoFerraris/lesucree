@@ -16,12 +16,11 @@ interface ProductFormData {
   price: string;
   category: string;
   featured: boolean;
-  show_discount_badge: boolean;
   image_url: string;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, show_discount_badge: true, image_url: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', variants: [] };
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
@@ -124,7 +123,6 @@ export default function AdminProductos() {
         price: hasVariants ? minVariantPrice : parseFloat(form.price),
         category: form.category,
         featured: form.featured,
-        show_discount_badge: form.show_discount_badge,
         image_url: form.image_url || null,
       };
 
@@ -214,7 +212,6 @@ export default function AdminProductos() {
       price: String(p.price),
       category: p.category,
       featured: p.featured ?? false,
-      show_discount_badge: (p as any).show_discount_badge !== false,
       image_url: p.image_url || '',
       variants: existingVariants,
     });
@@ -467,13 +464,7 @@ export default function AdminProductos() {
                 <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm(p => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="show_discount_badge" checked={form.show_discount_badge} onChange={e => setForm(p => ({ ...p, show_discount_badge: e.target.checked }))} className="rounded" />
-                  <label htmlFor="show_discount_badge" className="text-sm text-espresso">Mostrar badge de descuento</label>
-                </div>
-                <p className="text-xs text-warm-gray mt-1 ml-6">Controla únicamente la visibilidad visual del badge sobre la imagen.</p>
-              </div>
+
 
               {/* Variants section */}
               <div className="border-t border-gray-100 pt-4">

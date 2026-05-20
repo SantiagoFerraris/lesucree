@@ -8,6 +8,7 @@ export interface ActivePromotion {
   banner_text: string | null;
   discount_type: 'percentage' | 'fixed' | string;
   discount_value: number;
+  show_discount_badge: boolean;
 }
 
 interface RawPromo extends ActivePromotion {
@@ -25,7 +26,7 @@ export function useActivePromotions() {
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       const { data, error } = await (supabase.from('promotions' as any) as any)
-        .select('id, title, banner_text, discount_type, discount_value, promotion_products(product_id)')
+        .select('id, title, banner_text, discount_type, discount_value, show_discount_badge, promotion_products(product_id)')
         .eq('is_active', true)
         .lte('start_date', nowIso)
         .gte('end_date', nowIso);
@@ -48,6 +49,7 @@ export function useActivePromotions() {
         banner_text: p.banner_text,
         discount_type: p.discount_type,
         discount_value: Number(p.discount_value) || 0,
+        show_discount_badge: (p as any).show_discount_badge !== false,
       };
       (p.promotion_products || []).forEach(link => {
         const arr = m.get(link.product_id) || [];
