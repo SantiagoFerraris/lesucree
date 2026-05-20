@@ -8,6 +8,7 @@ export interface ActivePromotion {
   banner_text: string | null;
   discount_type: 'percentage' | 'fixed' | string;
   discount_value: number;
+  show_discount_badge: boolean;
 }
 
 interface RawPromo extends ActivePromotion {
