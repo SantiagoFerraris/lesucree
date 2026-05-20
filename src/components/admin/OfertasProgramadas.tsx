@@ -203,6 +203,7 @@ export default function OfertasProgramadas() {
         start_date: new Date(form.start_date).toISOString(),
         end_date: new Date(form.end_date).toISOString(),
         is_active: form.is_active,
+        show_discount_badge: form.show_discount_badge,
         banner_text: form.banner_text.trim() || null,
         status: 'active', // legacy column
       };
