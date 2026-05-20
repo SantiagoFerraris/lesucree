@@ -146,7 +146,7 @@ export default function AdminMensajes() {
                               </a>
                               {(m as any).phone && (
                                 <a
-                                  href={`https://wa.me/${cleanPhone((m as any).phone)}`}
+                                  href={getWhatsAppLink((m as any).phone) ?? '#'}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
