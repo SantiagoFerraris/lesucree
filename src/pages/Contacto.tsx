@@ -22,7 +22,7 @@ export default function Contacto() {
     const { data: settings } = useSiteSettings();
 
   const whatsappNumber = settings?.whatsapp_number || WHATSAPP_NUMBER;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+    const whatsappUrl = getWhatsAppLink(whatsappNumber) ?? '#';
     const whatsappNotification = settings?.whatsapp_number || WHATSAPP_NOTIFICATION_NUMBER;
     const instagramUrl = settings?.instagram_url || INSTAGRAM_URL;
     const instagramHandle = settings?.instagram_handle || INSTAGRAM_HANDLE;
