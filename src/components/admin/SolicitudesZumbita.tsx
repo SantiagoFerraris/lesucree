@@ -418,16 +418,19 @@ export default function SolicitudesZumbita() {
                           <span className="truncate">Sin email</span>
                         </span>
                       )}
-                      {req.whatsapp && (
-                        <a
-                          href={`https://wa.me/${req.whatsapp.replace(/\D/g, '')}`}
-                          target="_blank" rel="noreferrer"
-                          className="flex items-center gap-2 hover:text-espresso truncate"
-                        >
-                          <Phone size={13} className="shrink-0 text-dusty-pink" />
-                          <span className="truncate">{req.whatsapp}</span>
-                        </a>
-                      )}
+                      {req.whatsapp && (() => {
+                        const waUrl = getWhatsAppLink(req.whatsapp);
+                        return waUrl ? (
+                          <a
+                            href={waUrl}
+                            target="_blank" rel="noreferrer"
+                            className="flex items-center gap-2 hover:text-espresso truncate"
+                          >
+                            <Phone size={13} className="shrink-0 text-dusty-pink" />
+                            <span className="truncate">{req.whatsapp}</span>
+                          </a>
+                        ) : null;
+                      })()}
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] uppercase tracking-wider">Recibida:</span>
                         <span>{formatDate(req.created_at)}</span>
