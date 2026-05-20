@@ -467,6 +467,13 @@ export default function AdminProductos() {
                 <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm(p => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
               </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="show_discount_badge" checked={form.show_discount_badge} onChange={e => setForm(p => ({ ...p, show_discount_badge: e.target.checked }))} className="rounded" />
+                  <label htmlFor="show_discount_badge" className="text-sm text-espresso">Mostrar badge de descuento</label>
+                </div>
+                <p className="text-xs text-warm-gray mt-1 ml-6">Controla únicamente la visibilidad visual del badge sobre la imagen.</p>
+              </div>
 
               {/* Variants section */}
               <div className="border-t border-gray-100 pt-4">
