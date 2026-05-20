@@ -92,7 +92,7 @@ function TrustBadges() {
   const reveal = useScrollReveal();
   const badges = [
     { icon: Clock, text: "Pedí con 48hs de anticipación" },
-    { icon: Truck, text: "Retiro en Rosario y Roldán" },
+    { icon: Truck, text: "Retiro en Rosario" },
     { icon: Heart, text: "100% artesanal, hecho a mano" },
   ];
   return (
