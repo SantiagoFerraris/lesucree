@@ -212,7 +212,6 @@ export default function AdminProductos() {
       price: String(p.price),
       category: p.category,
       featured: p.featured ?? false,
-      show_discount_badge: (p as any).show_discount_badge !== false,
       image_url: p.image_url || '',
       variants: existingVariants,
     });
