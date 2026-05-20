@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS show_discount_badge boolean NOT NULL DEFAULT true;
