@@ -517,6 +517,24 @@ export default function OfertasProgramadas() {
                 <label htmlFor="promo-active" className="text-sm text-espresso">Promoción activa</label>
               </div>
 
+              <div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="promo-show-badge"
+                    type="checkbox"
+                    checked={form.show_discount_badge}
+                    onChange={e => setForm(p => ({ ...p, show_discount_badge: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <label htmlFor="promo-show-badge" className="text-sm text-espresso">
+                    Mostrar badge visual en catálogo
+                  </label>
+                </div>
+                <p className="text-xs text-warm-gray mt-1 ml-6">
+                  Controla si esta promoción muestra el badge visual sobre la imagen del producto.
+                </p>
+              </div>
+
               {/* Product selector */}
               <div className="border-t border-gray-100 pt-4">
                 <div className="flex items-center justify-between mb-2">
