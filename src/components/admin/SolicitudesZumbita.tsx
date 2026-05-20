@@ -800,12 +800,7 @@ export default function SolicitudesZumbita() {
                 <button
                   type="button"
                   onClick={() => {
-                    const phone = (generatedCoupon.req.whatsapp || '').replace(/\D/g, '');
-                    if (!phone) {
-                      toast.error('Esta solicitud no tiene número de WhatsApp');
-                      return;
-                    }
-                    window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
+                    openWhatsApp(generatedCoupon.req.whatsapp);
                   }}
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-espresso text-white hover:bg-espresso/90 transition-colors"
                 >
