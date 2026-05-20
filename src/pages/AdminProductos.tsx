@@ -20,7 +20,7 @@ interface ProductFormData {
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, show_discount_badge: true, image_url: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', variants: [] };
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
