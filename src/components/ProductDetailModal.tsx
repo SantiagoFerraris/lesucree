@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import ProductImage from '@/components/ProductImage';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCart } from '@/contexts/CartContext';
 import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
