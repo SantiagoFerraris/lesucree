@@ -16,7 +16,6 @@ interface ProductFormData {
   price: string;
   category: string;
   featured: boolean;
-  show_discount_badge: boolean;
   image_url: string;
   variants: VariantForm[];
 }
