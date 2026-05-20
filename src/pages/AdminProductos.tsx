@@ -124,6 +124,7 @@ export default function AdminProductos() {
         price: hasVariants ? minVariantPrice : parseFloat(form.price),
         category: form.category,
         featured: form.featured,
+        show_discount_badge: form.show_discount_badge,
         image_url: form.image_url || null,
       };
 
