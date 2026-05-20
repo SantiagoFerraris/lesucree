@@ -1,69 +1,72 @@
 {
-    "headers": [
-          {
-                  "source": "/assets/(.*)",
-                  "headers": [
-                            {
-                                        "key": "Cache-Control",
-                                        "value": "public, max-age=31536000, immutable"
-                            }
-                  ]
-          },
-          {
-                  "source": "/(.*)\\.js",
-                  "headers": [
-                            {
-                                        "key": "Cache-Control",
-                                        "value": "public, max-age=31536000, immutable"
-                            }
-                  ]
-          },
-          {
-                  "source": "/(.*)\\.css",
-                  "headers": [
-                            {
-                                        "key": "Cache-Control",
-                                        "value": "public, max-age=31536000, immutable"
-                            }
-                  ]
-          },
-          {
-                  "source": "/(.*)\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico)",
-                  "headers": [
-                            {
-                                        "key": "Cache-Control",
-                                        "value": "public, max-age=2592000, stale-while-revalidate=86400"
-                            }
-                  ]
-          },
-          {
-                  "source": "/(.*)\\.(?:woff|woff2|ttf|otf|eot)",
-                  "headers": [
-                            {
-                                        "key": "Cache-Control",
-                                        "value": "public, max-age=31536000, immutable"
-                            }
-                  ]
-          },
-          {
-                  "source": "/(.*)",
-                  "headers": [
-                            {
-                                        "key": "X-Frame-Options",
-                                        "value": "DENY"
-                            },
-                            {
-                                        "key": "X-Content-Type-Options",
-                                        "value": "nosniff"
-                            },
-                            {
-                                        "key": "Referrer-Policy",
-                                        "value": "strict-origin-when-cross-origin"
-                            }
-                  ]
-          }
-    ],
-    "rewrites": [
-          { "source": "/(.*)", "destination": "/index.html" }
-    ]
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|gif|webp|avif|svg|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(woff|woff2|ttf|otf|eot)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
