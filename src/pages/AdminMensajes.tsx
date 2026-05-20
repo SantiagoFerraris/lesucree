@@ -5,13 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateReplySuggestion } from '@/lib/messageHelper';
 import { buildWhatsAppUrl } from '@/lib/insightEngine';
-
-function cleanPhone(phone: string): string {
-  const digits = phone.replace(/[\s\-()]/g, '');
-  if (digits.startsWith('+54') || digits.startsWith('54')) return digits.replace('+', '');
-  if (/^[23]\d{9}$/.test(digits)) return `549${digits}`;
-  return digits;
-}
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 export default function AdminMensajes() {
   const qc = useQueryClient();
