@@ -29,15 +29,10 @@ export interface DailySummaryData {
 
 const DAY_NAMES_FULL = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
-function cleanPhone(phone: string): string {
-  const digits = phone.replace(/[\s\-()]/g, '');
-  if (digits.startsWith('+54') || digits.startsWith('54')) return digits.replace('+', '');
-  if (/^[23]\d{9}$/.test(digits)) return `549${digits}`;
-  return digits;
-}
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 export function buildWhatsAppUrl(phone: string, message: string): string {
-  return `https://wa.me/${cleanPhone(phone)}?text=${encodeURIComponent(message)}`;
+  return getWhatsAppLink(phone, message) ?? '#';
 }
 
 // ==================== LAYER 1: URGENT ALERTS ====================

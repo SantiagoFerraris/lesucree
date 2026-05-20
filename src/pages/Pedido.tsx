@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { WHATSAPP_NOTIFICATION_NUMBER, WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink, openWhatsApp } from '@/lib/whatsapp';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
@@ -203,7 +204,7 @@ export default function Pedido() {
         const discountLine = serverDiscount > 0 ? `\n🎟 Cupón ${serverCouponCode}: -${formatPrice(serverDiscount)}` : '';
         const emailLine = form.email.trim() ? `\n📧 ${form.email.trim()}` : '';
         const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}${emailLine}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
-        window.open(`https://wa.me/${whatsappNotification}?text=${encodeURIComponent(waText)}`, '_blank');
+        openWhatsApp(whatsappNotification, waText);
 
         clearCart();
         setHoneypot('');
@@ -225,7 +226,7 @@ export default function Pedido() {
                                                             Te contactaremos por WhatsApp o teléfono para confirmar tu pedido y coordinar el pago.
                                               </p>
                                               <a
-                                                              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMsg)}`}
+                                                              href={getWhatsAppLink(whatsappNumber, waMsg) ?? '#'}
                                                               target="_blank" rel="noopener noreferrer"
                                                               className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#25D366] text-white px-8 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-[#1da851] transition-all active:scale-95"
                                                             >

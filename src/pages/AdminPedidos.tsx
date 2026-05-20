@@ -58,15 +58,10 @@ const PAGE_SIZE = 10;
 
 const PAYMENT_SORT_ORDER: Record<string, number> = { pendiente: 0, 'seña_recibida': 1, 'pagado_completo': 2 };
 
-function cleanPhone(phone: string): string {
-  const digits = phone.replace(/[\s\-()]/g, '');
-  if (digits.startsWith('+54') || digits.startsWith('54')) return digits.replace('+', '');
-  if (/^[23]\d{9}$/.test(digits)) return `549${digits}`;
-  return digits;
-}
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 function buildWhatsAppUrl(phone: string, message: string): string {
-  return `https://wa.me/${cleanPhone(phone)}?text=${encodeURIComponent(message)}`;
+  return getWhatsAppLink(phone, message) ?? '#';
 }
 
 function getStatusBorder(status: string): string {

@@ -3,6 +3,7 @@ import { Instagram, MapPin, Clock, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_NUMBER, WHATSAPP_NOTIFICATION_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from '@/lib/constants';
+import { getWhatsAppLink, openWhatsApp } from '@/lib/whatsapp';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
@@ -21,7 +22,7 @@ export default function Contacto() {
     const { data: settings } = useSiteSettings();
 
   const whatsappNumber = settings?.whatsapp_number || WHATSAPP_NUMBER;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+    const whatsappUrl = getWhatsAppLink(whatsappNumber) ?? '#';
     const whatsappNotification = settings?.whatsapp_number || WHATSAPP_NOTIFICATION_NUMBER;
     const instagramUrl = settings?.instagram_url || INSTAGRAM_URL;
     const instagramHandle = settings?.instagram_handle || INSTAGRAM_HANDLE;
@@ -85,7 +86,7 @@ export default function Contacto() {
           toast.success('¡Mensaje enviado! Te responderemos pronto.');
 
           const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}\n📧 Email: ${email}${form.phone.trim() ? `\n📞 Tel: ${form.phone.trim()}` : ''}\n💬 Mensaje: ${message}`;
-                window.open(`https://wa.me/${whatsappNotification}?text=${encodeURIComponent(waText)}`, '_blank');
+                openWhatsApp(whatsappNotification, waText);
 
           setForm({ name: '', email: '', phone: '', message: '' });
                 setHoneypot('');

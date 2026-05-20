@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import ProductImage from '@/components/ProductImage';
 import { WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCart } from '@/contexts/CartContext';
 import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
@@ -23,7 +24,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const consultText = selectedVariant
     ? `Hola! Quiero consultar por ${product.name} - ${selectedVariant.label}`
     : `Hola! Quiero consultar por ${product.name}`;
-  const consultUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(consultText)}`;
+  const consultUrl = getWhatsAppLink(WHATSAPP_NUMBER, consultText) ?? '#';
 
   const handleAdd = () => {
     addToCart({
