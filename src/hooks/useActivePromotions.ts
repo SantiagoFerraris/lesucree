@@ -26,7 +26,7 @@ export function useActivePromotions() {
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       const { data, error } = await (supabase.from('promotions' as any) as any)
-        .select('id, title, banner_text, discount_type, discount_value, promotion_products(product_id)')
+        .select('id, title, banner_text, discount_type, discount_value, show_discount_badge, promotion_products(product_id)')
         .eq('is_active', true)
         .lte('start_date', nowIso)
         .gte('end_date', nowIso);
