@@ -226,7 +226,7 @@ export default function Pedido() {
                                                             Te contactaremos por WhatsApp o teléfono para confirmar tu pedido y coordinar el pago.
                                               </p>
                                               <a
-                                                              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMsg)}`}
+                                                              href={getWhatsAppLink(whatsappNumber, waMsg) ?? '#'}
                                                               target="_blank" rel="noopener noreferrer"
                                                               className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#25D366] text-white px-8 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-[#1da851] transition-all active:scale-95"
                                                             >
