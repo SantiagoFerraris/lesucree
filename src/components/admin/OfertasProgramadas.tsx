@@ -17,6 +17,7 @@ interface PromotionRow {
   end_date: string | null;
   is_active: boolean;
   banner_text: string | null;
+  show_discount_badge: boolean;
   created_at: string;
 }
 
@@ -28,6 +29,7 @@ interface PromoForm {
   start_date: string;
   end_date: string;
   is_active: boolean;
+  show_discount_badge: boolean;
   banner_text: string;
   product_ids: string[];
 }
@@ -40,6 +42,7 @@ const emptyForm: PromoForm = {
   start_date: '',
   end_date: '',
   is_active: true,
+  show_discount_badge: true,
   banner_text: '',
   product_ids: [],
 };
