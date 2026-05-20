@@ -24,7 +24,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const consultText = selectedVariant
     ? `Hola! Quiero consultar por ${product.name} - ${selectedVariant.label}`
     : `Hola! Quiero consultar por ${product.name}`;
-  const consultUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(consultText)}`;
+  const consultUrl = getWhatsAppLink(WHATSAPP_NUMBER, consultText) ?? '#';
 
   const handleAdd = () => {
     addToCart({
