@@ -96,24 +96,13 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
         )}
 
         {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) */}
-        {!compact && (
+        {!compact && minVariantPrice !== null && (
           <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
-            {minVariantPrice !== null ? (
-              <>
-                <span className={minVariantOriginal !== null && minVariantPrice < minVariantOriginal ? 'font-bold text-dusty-pink' : ''}>
-                  Desde {formatPrice(minVariantPrice)}
-                </span>
-                {minVariantOriginal !== null && minVariantPrice < minVariantOriginal && (
-                  <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(minVariantOriginal)}</span>
-                )}
-              </>
-            ) : (
-              <>
-                <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
-                {hasDiscount && (
-                  <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(basePrice)}</span>
-                )}
-              </>
+            <span className={minVariantOriginal !== null && minVariantPrice < minVariantOriginal ? 'font-bold text-dusty-pink' : ''}>
+              Desde {formatPrice(minVariantPrice)}
+            </span>
+            {minVariantOriginal !== null && minVariantPrice < minVariantOriginal && (
+              <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(minVariantOriginal)}</span>
             )}
           </p>
         )}
