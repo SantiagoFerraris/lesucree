@@ -36,14 +36,15 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
   const minVariantOriginal = hasVariants ? Math.min(...variants.map(v => v.price)) : null;
 
   // Badge label: "-X%" for percentage, "OFERTA" otherwise.
-  // Admin-controlled visibility via product.show_discount_badge (default true).
+  // Visibility now controlled per-promotion via promotion.show_discount_badge (default true).
   // Only affects visual badge — pricing/promo logic untouched.
-  const cardHasAnyPromo = !!productPromos && productPromos.length > 0;
-  const showBadgeSetting = (product as any).show_discount_badge !== false;
   const badgeLabel = (() => {
-    if (!cardHasAnyPromo || !showBadgeSetting) return null;
-    const p = promo || productPromos![0];
-    if (p?.discount_type === 'percentage' && p.discount_value > 0) return `-${Math.round(p.discount_value)}%`;
+    const activePromo = promo || (productPromos && productPromos[0]);
+    if (!activePromo) return null;
+    if (activePromo.show_discount_badge === false) return null;
+    if (activePromo.discount_type === 'percentage' && activePromo.discount_value > 0) {
+      return `-${Math.round(activePromo.discount_value)}%`;
+    }
     return 'OFERTA';
   })();
 
