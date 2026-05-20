@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/formatPrice';
 import { WHATSAPP_NOTIFICATION_NUMBER, WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink, openWhatsApp } from '@/lib/whatsapp';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
