@@ -13,31 +13,40 @@ export default function WhatsAppConnect() {
     try {
       const res = await fetch(`${NGROK_URL}/api/whatsapp/scan`, {
         method: 'GET',
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-        },
+        mode: 'cors',
+        credentials: 'omit',
       });
+      
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      
       const data = await res.json();
       setMessage(data.message);
 
       const interval = setInterval(async () => {
-        const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`, {
-          method: 'GET',
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-          },
-        });
-        const statusData = await statusRes.json();
-        if (statusData.ready) {
-          setConnected(true);
-          setMessage('✅ WhatsApp Connected');
-          clearInterval(interval);
+        try {
+          const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`, {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'omit',
+          });
+          
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            if (statusData.ready) {
+              setConnected(true);
+              setMessage('✅ WhatsApp Connected');
+              clearInterval(interval);
+            }
+          }
+        } catch (err) {
+          console.error('Status check error:', err);
         }
       }, 2000);
 
       setTimeout(() => clearInterval(interval), 60000);
     } catch (error: any) {
-      setMessage('❌ Error: ' + error.message);
+      console.error('Connect error:', error);
+      setMessage('❌ Error: ' + (error.message || 'Failed to connect'));
     }
     setLoading(false);
   };
