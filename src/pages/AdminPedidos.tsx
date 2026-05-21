@@ -4,6 +4,7 @@ import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, T
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 import ExcelImportModal from '@/components/admin/ExcelImportModal';
 import { toast } from 'sonner';
+import PagosPedidoAdmin from '@/components/admin/PagosPedidoAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -679,6 +680,19 @@ export default function AdminPedidos() {
                           </a>
                         </div>
                       )}
+
+                      {/* Gestión de pagos */}
+                      <div className="pt-3 mt-3 border-t border-[#F0E8E0]">
+                        <PagosPedidoAdmin
+                          pedido={{
+                            id: o.id,
+                            cliente: o.customer_name,
+                            email: o.customer_email,
+                            telefono: o.customer_phone,
+                            total: Number(o.total),
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
