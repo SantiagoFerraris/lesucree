@@ -271,6 +271,8 @@ export default function AdminDashboard() {
     <div>
       <h2 className="font-display text-2xl font-bold text-espresso mb-6">Dashboard</h2>
 
+      <WhatsAppConnect />
+
       {/* Pending orders alert */}
       {!isLoading && pendingCount > 0 && (
         <div
