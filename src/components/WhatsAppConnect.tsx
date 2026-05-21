@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const NGROK_URL = 'https://apply-starring-harvest.ngrok-free.dev';
+
 export default function WhatsAppConnect() {
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -9,12 +11,12 @@ export default function WhatsAppConnect() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('http://localhost:3001/api/whatsapp/scan');
+      const res = await fetch(`${NGROK_URL}/api/whatsapp/scan`);
       const data = await res.json();
       setMessage(data.message);
 
       const interval = setInterval(async () => {
-        const statusRes = await fetch('http://localhost:3001/api/whatsapp/status');
+        const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`);
         const statusData = await statusRes.json();
         if (statusData.ready) {
           setConnected(true);
@@ -65,11 +67,9 @@ export default function WhatsAppConnect() {
           >
             {loading ? '⏳ Connecting...' : '📱 Connect WhatsApp'}
           </button>
-
           {message && (
             <p style={{ marginTop: '15px', fontSize: '14px', color: '#666' }}>{message}</p>
           )}
-
           <p style={{ marginTop: '30px', fontSize: '12px', color: '#999' }}>
             💡 When you click the button, look at the TERMINAL (the black window) and you'll see a QR
             code. Scan it with WhatsApp.
