@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard, BarChart3, Users, Settings, Tag, Wallet } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard, BarChart3, Users, Settings, Tag } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
