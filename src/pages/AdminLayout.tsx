@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard, BarChart3, Users, Settings, Tag } from 'lucide-react';
+import { Package, MessageSquare, ShoppingCart, LogOut, Menu, X, Lock, LayoutDashboard, BarChart3, Users, Settings, Tag, Wallet } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLogin from './AdminLogin';
 import { useState } from 'react';
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/admin/productos', label: 'Productos', icon: Package, badgeKey: null },
   { to: '/admin/promociones', label: 'Promociones', icon: Tag, badgeKey: null },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart, badgeKey: 'pendingOrders' as const },
+  { to: '/admin/cobranza', label: 'Cobranza', icon: Wallet, badgeKey: null },
   { to: '/admin/mensajes', label: 'Mensajes', icon: MessageSquare, badgeKey: 'unreadMessages' as const },
   { to: '/admin/estadisticas', label: 'Estadísticas', icon: BarChart3, badgeKey: null },
   { to: '/admin/clientes', label: 'Clientes', icon: Users, badgeKey: null },

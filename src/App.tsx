@@ -28,6 +28,7 @@ const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminClientes = lazy(() => import("./pages/AdminClientes"));
 const AdminConfiguracion = lazy(() => import("./pages/AdminConfiguracion"));
 const AdminPromociones = lazy(() => import("./pages/AdminPromociones"));
+const CobranzaPage = lazy(() => import("./pages/CobranzaPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,6 +95,7 @@ const App = () => (
                   <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
                   <Route path="clientes" element={<AdminSuspense><AdminClientes /></AdminSuspense>} />
                   <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
+                  <Route path="cobranza" element={<AdminSuspense><CobranzaPage /></AdminSuspense>} />
                 </Route>
 
                 <Route path="*" element={<PublicSuspense><NotFound /></PublicSuspense>} />
