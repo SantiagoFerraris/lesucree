@@ -9,7 +9,19 @@
  * Manager phone is hardcoded to +5493412741229 (Julieta) when not provided.
  */
 
-import type { NextApiRequest, NextApiResponse } from 'next';
+// Minimal Next-compatible types so this file compiles without `next` installed.
+// Swap for `import type { NextApiRequest, NextApiResponse } from 'next'` when
+// mounted in a real Next.js project.
+type NextApiRequest = {
+  method?: string;
+  body?: unknown;
+  headers: Record<string, string | string[] | undefined>;
+};
+type NextApiResponse<T = unknown> = {
+  status: (code: number) => NextApiResponse<T>;
+  json: (body: T) => void;
+  setHeader: (name: string, value: string) => void;
+};
 import {
   sendOrderNotificationToCustomer,
   sendOrderNotificationToManager,
