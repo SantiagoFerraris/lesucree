@@ -130,6 +130,43 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
     onSuccess: () => {
       toast.success('Pedido creado exitosamente');
       qc.invalidateQueries({ queryKey: ['admin-orders'] });
+
+      // 🔔 WHATSAPP NOTIFICATIONS (async, non-blocking)
+      try {
+        const productsFormatted = items
+          .filter((i) => i.productName.trim())
+          .map((item: any) => ({
+            name: item.productName || item.name || 'Producto',
+            quantity: item.quantity,
+            price: item.price ?? 0,
+          }));
+
+        const pickupDateFormatted = desiredDate
+          ? format(desiredDate, "dd 'de' MMMM", { locale: es })
+          : 'A coordinar';
+
+        // Call WhatsApp endpoint (fire and forget)
+        fetch('/api/whatsapp/send-order-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            customerEmail: customerEmail.trim() || 'manual@lesucree.com',
+            orderId: 'obtener_desde_respuesta', // TODO: Get real ID from response if available
+            orderTotal: Number(total),
+            products: productsFormatted,
+            pickupDate: pickupDateFormatted,
+            pickupTime: preferredTime.trim() || 'A coordinar',
+            managerPhone: '+5493412741229', // Julieta
+          }),
+        }).catch((err) =>
+          console.log('WhatsApp notification error (non-blocking):', err)
+        );
+      } catch (error) {
+        console.error('WhatsApp error:', error);
+      }
+
       resetForm();
       onOpenChange(false);
     },
