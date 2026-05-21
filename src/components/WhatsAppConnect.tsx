@@ -11,12 +11,22 @@ export default function WhatsAppConnect() {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch(`${NGROK_URL}/api/whatsapp/scan`);
+      const res = await fetch(`${NGROK_URL}/api/whatsapp/scan`, {
+        method: 'GET',
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
       const data = await res.json();
       setMessage(data.message);
 
       const interval = setInterval(async () => {
-        const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`);
+        const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`, {
+          method: 'GET',
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         const statusData = await statusRes.json();
         if (statusData.ready) {
           setConnected(true);
