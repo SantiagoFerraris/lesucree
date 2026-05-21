@@ -95,6 +95,7 @@ const App = () => (
                   <Route path="estadisticas" element={<AdminSuspense><AdminAnalytics /></AdminSuspense>} />
                   <Route path="clientes" element={<AdminSuspense><AdminClientes /></AdminSuspense>} />
                   <Route path="configuracion" element={<AdminSuspense><AdminConfiguracion /></AdminSuspense>} />
+                  <Route path="cobranza" element={<AdminSuspense><CobranzaPage /></AdminSuspense>} />
                 </Route>
 
                 <Route path="*" element={<PublicSuspense><NotFound /></PublicSuspense>} />
