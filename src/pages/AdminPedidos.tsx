@@ -690,24 +690,6 @@ export default function AdminPedidos() {
                           </select>
                         </div>
                       </div>
-                      {o.status !== 'completed' && o.status !== 'picked_up' && (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {o.status === 'pending' && (
-                            <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                              <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
-                            </a>
-                          )}
-                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                            <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
-                          </a>
-                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                            <MessageCircle size={13} className="text-green-600" /> Pedido Listo
-                          </a>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
