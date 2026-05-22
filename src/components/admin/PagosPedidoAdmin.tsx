@@ -280,31 +280,6 @@ setEditing(null);
             </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <button
-              onClick={() => openDraft('solicitar_sena')}
-              disabled={configMissing}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#E8DDD4] bg-white px-3 py-2.5 text-sm text-espresso font-semibold hover:bg-[#FFFBF5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <CreditCard size={15} /> Solicitar Seña
-            </button>
-            <button
-              onClick={() => openDraft('confirmar_sena')}
-              disabled={configMissing || calc.amountPaid <= 0}
-              title={calc.amountPaid <= 0 ? 'Registrá la seña primero' : ''}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#E8DDD4] bg-white px-3 py-2.5 text-sm text-espresso font-semibold hover:bg-[#FFFBF5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <CheckCircle2 size={15} /> Confirmar Seña
-            </button>
-            <button
-              onClick={() => openDraft('pedido_listo')}
-              disabled={configMissing}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[#E8DDD4] bg-white px-3 py-2.5 text-sm text-espresso font-semibold hover:bg-[#FFFBF5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <PackageCheck size={15} /> Pedido Listo
-            </button>
-          </div>
 
           {/* Payment timeline */}
           <div className="rounded-xl border border-[#F0E8E0] p-4">
