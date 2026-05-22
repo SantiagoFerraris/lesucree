@@ -91,10 +91,10 @@ export default function PagosPedidoAdmin({ order, open, onOpenChange }: Props) {
       return `¡Hola ${customer}!\n\nPara confirmar tu pedido, te pedimos una seña del 50% del total.\n\n💰 Seña a abonar: ${formatPrice(depositSuggested)}\n💰 Saldo pendiente: ${formatPrice(total - depositSuggested)}\n💰 Total del pedido: ${formatPrice(total)}\n\n📋 Tu pedido:\n${orderDetails}\n\n💳 Podés abonar por transferencia a:\nAlias: ${cfg.alias}${cfg.cbu ? `\nCBU: ${cfg.cbu}` : ''}\n\nCuando confirmes el pago, nos avisás y aseguramos tu pedido. El saldo restante lo abonás el día del retiro.\n\n🕐 Horarios: ${cfg.hours}\n\n¿Preguntas? Escribinos 📱`;
     }
     if (kind === 'confirmar_sena') {
-      return `¡Hola ${customer}!\n\nConfirmamos que recibimos tu seña de ${formatPrice(calc.amountPaid)} ✅\n\n📋 Tu pedido:\n${orderDetails}\n\n💰 Saldo a abonar el día del retiro: ${formatPrice(calc.remainingBalance)}\n\n📅 Retiro confirmado para: ${pickupDate} - ${pickupTime}\n📍 Dirección: ${cfg.pickupAddress}\n\nEl día de la entrega, abonás el saldo y te llevás tu pedido. ¡Listo!\n\n📱 Si necesitás cambiar la fecha, avisanos con tiempo.`;
+      return `¡Hola ${customer}! 💚\n\nConfirmamos que recibimos tu seña correctamente, ¡gracias!\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\n${cfg.pickupAddress}\n\n📅 ${pickupDate} — ${pickupTime}\n\n💰 RESUMEN DEL PAGO:\n━━━━━━━━━━━━━━━━━━━━━━━\n- Seña recibida: ${formatPrice(calc.amountPaid)}\n- Saldo pendiente: ${formatPrice(calc.remainingBalance)}\n- Total del pedido: ${formatPrice(total)}\n\n📋 Tu pedido:\n${orderDetails}\n\n💳 El saldo lo abonás el día del retiro\n\n¡Te esperamos! 🤎`;
     }
     // pedido_listo
-    return `¡Hola ${customer}!\n\nTu pedido está listo para retirar 🎉\n\n📋 Pedido: #${String(order.id).slice(0, 8).toUpperCase()}\n📅 Fecha: ${pickupDate}\n🕐 Horario: ${pickupTime}\n📍 Dirección: ${cfg.pickupAddress}\n\n💰 Total: ${formatPrice(total)}\n(Seña pagada: ${formatPrice(calc.amountPaid)} | Saldo a abonar: ${formatPrice(calc.remainingBalance)})\n\nGracias por confiar en Le Sucrée. Esperamos verte pronto 💚`;
+    return `¡Hola ${customer}!\n\nTu pedido está listo para retirar 🎉\n\n📋 Pedido: #${String(order.id).slice(0, 8).toUpperCase()}\n📅 Fecha: ${pickupDate}\n🕐 Horario: ${pickupTime}\n📍 Dirección: ${cfg.pickupAddress}\n\n💰 Total: ${formatPrice(total)}\n(Seña pagada: ${formatPrice(calc.amountPaid)} | Saldo a abonar: ${formatPrice(calc.remainingBalance)})\n\nGracias por confiar en Le Sucrée Pastelería. Esperamos verte pronto 💚`;
   };
 
   const openDraft = (kind: MessageKind) => {
