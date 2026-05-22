@@ -68,98 +68,6 @@ function buildWhatsAppUrl(phone: string, message: string): string {
   return getWhatsAppLink(phone, message) ?? '#';
 }
 
-// ==================== NUEVA FUNCIÓN (LEE MENSAJE GUARDADO) ====================
-async function createMessageAndSendWhatsApp(
-  order: any,
-  messageType: 'solicitar_sena' | 'confirmar_sena' | 'pedido_listo',
-  supabaseClient: any,
-  siteConfig: any,
-  queryClient: any,
-  formatPriceFn: (price: number) => string
-) {
-  try {
-    // 1. Buscar el mensaje guardado para este pedido y tipo de mensaje
-    const { data: savedMessages, error: fetchError } = await supabaseClient
-      .from('contact_messages')
-      .select('message')
-      .eq('order_id', order.id)
-      .eq('message_type', messageType)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    let messageText = '';
-
-    // 2. Si existe mensaje guardado, usarlo. Si no, generar uno
-    if (savedMessages && savedMessages.length > 0) {
-      messageText = savedMessages[0].message;
-    } else {
-      // Generar mensaje por defecto si no hay guardado
-      const customer = order.customer_name || 'cliente';
-      const total = Number(order.total) || 0;
-      const products = (order.items as any[]).map((i: any) => 
-        `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity}`
-      ).join('\n');
-      
-      const alias = siteConfig?.alias || '';
-      const pickupAddress = siteConfig?.pickup_address || '';
-      
-      const formatDateHelper = (d: string) => {
-        if (!d) return '—';
-        const dateObj = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
-        if (isNaN(dateObj.getTime())) return '—';
-        return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      };
-
-      if (messageType === 'solicitar_sena') {
-        const depositSuggested = order.deposit_amount ? Number(order.deposit_amount) : Math.round(total * 0.5);
-        messageText = `¡Hola ${customer}! 🎂\nRecibimos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPriceFn(total)}\n💳 Seña (50%): ${formatPriceFn(depositSuggested)}\n\nPara reservar tu pedido, te pedimos una seña del 50% por transferencia:\n🔑 Alias: ${alias}\n\n📅 Retiro: ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n📍 Rosario, Santa Fe\n\nUna vez realizada, envianos el comprobante 😊\n¡Gracias! 🤎`;
-      } else if (messageType === 'confirmar_sena') {
-        messageText = `¡Hola ${customer}! 💚\nRecibimos tu seña correctamente, ¡gracias!\n\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\n${pickupAddress}\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n¡Te esperamos! 🤎`;
-      } else if (messageType === 'pedido_listo') {
-        messageText = `¡Hola ${customer}! 🎉\nTu pedido de Le Sucrée está listo para retirar.\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n📍 ${pickupAddress}\n\n¡Te esperamos! 🤎`;
-      }
-    }
-
-    // 3. Si es confirmar_sena y no hay mensaje guardado, crear uno
-    if (messageType === 'confirmar_sena' && (!savedMessages || savedMessages.length === 0)) {
-      await supabaseClient
-        .from('contact_messages')
-        .insert({
-          name: order.customer_name || 'Cliente',
-          email: order.customer_email || '',
-          phone: order.customer_phone || '',
-          message: messageText,
-          order_id: order.id,
-          is_auto: true,
-          sent: false,
-          message_type: messageType,
-          read: false,
-        });
-
-      await supabaseClient
-        .from('orders')
-        .update({
-          is_deposit_confirmed: true,
-          last_payment_date: new Date().toISOString(),
-        })
-        .eq('id', order.id);
-
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
-    }
-
-    // 4. Abrir WhatsApp con el mensaje
-    const whatsappUrl = buildWhatsAppUrl(order.customer_phone, messageText);
-    window.open(whatsappUrl, '_blank');
-    
-    toast.success('Mensaje enviado por WhatsApp');
-  } catch (error) {
-    console.error('Error:', error);
-    toast.error('Error al enviar por WhatsApp');
-  }
-}
-// ======================================================
-
 function getStatusBorder(status: string): string {
   if (status === 'pending') return 'border-l-4 border-l-[#F59E0B]';
   if (status === 'confirmed') return 'border-l-4 border-l-[#10B981]';
@@ -772,26 +680,23 @@ export default function AdminPedidos() {
                         </div>
                       </div>
                       {o.status !== 'completed' && o.status !== 'picked_up' && (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {o.status === 'pending' && (
-                            <button 
-                              onClick={() => createMessageAndSendWhatsApp(o, 'solicitar_sena', supabase, siteConfig, qc, formatPrice)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                              <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => createMessageAndSendWhatsApp(o, 'confirmar_sena', supabase, siteConfig, qc, formatPrice)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                            <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
-                          </button>
-                          <button 
-                            onClick={() => createMessageAndSendWhatsApp(o, 'pedido_listo', supabase, siteConfig, qc, formatPrice)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-                            <MessageCircle size={13} className="text-green-600" /> Pedido Listo
-                          </button>
-                        </div>
-                      )}
+  <div className="flex flex-wrap gap-2 pt-1">
+    {o.status === 'pending' && (
+      <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+        <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
+      </a>
+    )}
+    <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+      <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
+    </a>
+    <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+      <MessageCircle size={13} className="text-green-600" /> Pedido Listo
+    </a>
+  </div>
+)}
                     </div>
                   )}
                 </div>
