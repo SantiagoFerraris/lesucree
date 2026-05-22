@@ -68,7 +68,7 @@ function buildWhatsAppUrl(phone: string, message: string): string {
   return getWhatsAppLink(phone, message) ?? '#';
 }
 
-// ==================== NUEVA FUNCIÓN (CORREGIDA) ====================
+// ==================== NUEVA FUNCIÓN (LEE MENSAJE GUARDADO) ====================
 async function createMessageAndSendWhatsApp(
   order: any,
   messageType: 'solicitar_sena' | 'confirmar_sena' | 'pedido_listo',
@@ -78,23 +78,30 @@ async function createMessageAndSendWhatsApp(
   formatPriceFn: (price: number) => string
 ) {
   try {
-    // Esperar a que siteConfig esté disponible
-    let config = siteConfig;
-    if (!config || !config.alias) {
-      const { data } = await supabaseClient.from('site_settings').select('key, value');
-      config = {};
-      data?.forEach((r: any) => { config[r.key] = r.value || ''; });
-    }
+    // 1. Buscar el mensaje guardado para este pedido y tipo de mensaje
+    const { data: savedMessages, error: fetchError } = await supabaseClient
+      .from('contact_messages')
+      .select('message')
+      .eq('order_id', order.id)
+      .eq('message_type', messageType)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    const buildMessage = (kind: typeof messageType): string => {
+    let messageText = '';
+
+    // 2. Si existe mensaje guardado, usarlo. Si no, generar uno
+    if (savedMessages && savedMessages.length > 0) {
+      messageText = savedMessages[0].message;
+    } else {
+      // Generar mensaje por defecto si no hay guardado
       const customer = order.customer_name || 'cliente';
       const total = Number(order.total) || 0;
       const products = (order.items as any[]).map((i: any) => 
         `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity}`
       ).join('\n');
       
-      const alias = config?.alias || config?.pago_alias || '';
-      const pickupAddress = config?.pickup_address || config?.direccion_retiro || config?.address || '';
+      const alias = siteConfig?.alias || '';
+      const pickupAddress = siteConfig?.pickup_address || '';
       
       const formatDateHelper = (d: string) => {
         if (!d) return '—';
@@ -103,60 +110,52 @@ async function createMessageAndSendWhatsApp(
         return dateObj.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       };
 
-      if (kind === 'solicitar_sena') {
+      if (messageType === 'solicitar_sena') {
         const depositSuggested = order.deposit_amount ? Number(order.deposit_amount) : Math.round(total * 0.5);
-        return `¡Hola ${customer}! 🎂\nRecibimos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPriceFn(total)}\n💳 Seña (50%): ${formatPriceFn(depositSuggested)}\n\nPara reservar tu pedido, te pedimos una seña del 50% por transferencia:\n🔑 Alias: ${alias}\n\n📅 Retiro: ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n📍 Rosario, Santa Fe\n\nUna vez realizada, envianos el comprobante 😊\n¡Gracias! 🤎`;
+        messageText = `¡Hola ${customer}! 🎂\nRecibimos tu pedido de Le Sucrée:\n\n📦 ${products}\n\n💰 Total: ${formatPriceFn(total)}\n💳 Seña (50%): ${formatPriceFn(depositSuggested)}\n\nPara reservar tu pedido, te pedimos una seña del 50% por transferencia:\n🔑 Alias: ${alias}\n\n📅 Retiro: ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n📍 Rosario, Santa Fe\n\nUna vez realizada, envianos el comprobante 😊\n¡Gracias! 🤎`;
+      } else if (messageType === 'confirmar_sena') {
+        messageText = `¡Hola ${customer}! 💚\nRecibimos tu seña correctamente, ¡gracias!\n\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\n${pickupAddress}\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n¡Te esperamos! 🤎`;
+      } else if (messageType === 'pedido_listo') {
+        messageText = `¡Hola ${customer}! 🎉\nTu pedido de Le Sucrée está listo para retirar.\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n📍 ${pickupAddress}\n\n¡Te esperamos! 🤎`;
       }
-      if (kind === 'confirmar_sena') {
-        return `¡Hola ${customer}! 💚\nRecibimos tu seña correctamente, ¡gracias!\n\nTu pedido ya quedó reservado 🙌\n\n📍 Dirección de retiro:\n${pickupAddress}\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n¡Te esperamos! 🤎`;
-      }
-      return `¡Hola ${customer}! 🎉\nTu pedido de Le Sucrée está listo para retirar.\n\n📅 ${formatDateHelper(order.desired_date)} — ${order.preferred_time}\n\n📍 ${pickupAddress}\n\n¡Te esperamos! 🤎`;
-    };
-
-    const messageText = buildMessage(messageType);
-
-    const { error: insertError } = await supabaseClient
-      .from('contact_messages')
-      .insert({
-        name: order.customer_name || 'Cliente',
-        email: order.customer_email || '',
-        phone: order.customer_phone || '',
-        message: messageText,
-        order_id: order.id,
-        is_auto: true,
-        sent: false,
-        message_type: messageType,
-        read: false,
-      });
-
-    if (insertError) {
-      console.error('Error inserting message:', insertError);
-      toast.error('Error al crear el mensaje');
-      return;
     }
 
-    if (messageType === 'confirmar_sena') {
-      const { error: updateError } = await supabaseClient
+    // 3. Si es confirmar_sena y no hay mensaje guardado, crear uno
+    if (messageType === 'confirmar_sena' && (!savedMessages || savedMessages.length === 0)) {
+      await supabaseClient
+        .from('contact_messages')
+        .insert({
+          name: order.customer_name || 'Cliente',
+          email: order.customer_email || '',
+          phone: order.customer_phone || '',
+          message: messageText,
+          order_id: order.id,
+          is_auto: true,
+          sent: false,
+          message_type: messageType,
+          read: false,
+        });
+
+      await supabaseClient
         .from('orders')
         .update({
           is_deposit_confirmed: true,
           last_payment_date: new Date().toISOString(),
         })
         .eq('id', order.id);
-      
-      if (updateError) console.error('Error updating order:', updateError);
+
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
     }
 
-    queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-    queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
-
-    toast.success('Mensaje creado y WhatsApp abierto');
-
+    // 4. Abrir WhatsApp con el mensaje
     const whatsappUrl = buildWhatsAppUrl(order.customer_phone, messageText);
     window.open(whatsappUrl, '_blank');
+    
+    toast.success('Mensaje enviado por WhatsApp');
   } catch (error) {
     console.error('Error:', error);
-    toast.error('Error al procesar la acción');
+    toast.error('Error al enviar por WhatsApp');
   }
 }
 // ======================================================
