@@ -25,10 +25,18 @@ export function normalizeWhatsAppPhone(phone: string | null | undefined): string
 export function getWhatsAppLink(phone: string | null | undefined, message?: string): string | null {
   const normalized = normalizeWhatsAppPhone(phone);
   if (!normalized || normalized.length < 10) return null;
-  const base = `https://wa.me/${normalized}`;
   const msg = message?.trim();
-  if (!msg) return base;
-  return `${base}?text=${encodeURIComponent(msg)}`;
+  const isMobile = typeof navigator !== 'undefined' &&
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (!msg) {
+    return isMobile
+      ? `https://wa.me/${normalized}`
+      : `https://web.whatsapp.com/send?phone=${normalized}`;
+  }
+  const encodedText = encodeURIComponent(msg);
+  return isMobile
+    ? `https://wa.me/${normalized}?text=${encodedText}`
+    : `https://web.whatsapp.com/send?phone=${normalized}&text=${encodedText}`;
 }
 
 /**
