@@ -5,6 +5,7 @@ import { CreditCard, CheckCircle2, PackageCheck, AlertTriangle, X } from 'lucide
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 import { useOrderPaymentCalculations } from '@/hooks/useOrderPaymentCalculations';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 type MessageKind = 'solicitar_sena' | 'confirmar_sena' | 'pedido_listo';
 
@@ -140,9 +141,19 @@ export default function PagosPedidoAdmin({ order, open, onOpenChange }: Props) {
     }
 
     setSaving(false);
-    toast.success('Mensaje generado. Revísalo antes de enviar.');
-    setEditing(null);
-  };
+toast.success('Mensaje generado. Revísalo antes de enviar.');
+
+// ✅ Abrir WhatsApp automáticamente
+const customerPhone = order.customer_phone || '';
+if (customerPhone) {
+  const whatsappUrl = getWhatsAppLink(customerPhone, draftText);
+  if (whatsappUrl) {
+    window.open(whatsappUrl, '_blank');
+  }
+}
+
+setEditing(null);
+};
 
   const saveDepositAmount = async () => {
     const amount = Number(depositInput);
