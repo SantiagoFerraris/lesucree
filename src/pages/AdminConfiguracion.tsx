@@ -16,6 +16,14 @@ const SETTING_FIELDS = [
   { key: 'hero_text', label: 'Texto del Hero', placeholder: 'Endulzamos tus momentos...', multiline: true },
   { key: 'instagram_url', label: 'URL de Instagram', placeholder: 'https://www.instagram.com/...' },
   { key: 'instagram_handle', label: 'Handle de Instagram', placeholder: '@pasteleria.lesucree' },
+  // Payment configuration
+  { key: 'pago_alias', label: 'Alias de pago (sistema seña)', placeholder: 'lesucree.mp' },
+  { key: 'cbu_pago', label: 'CBU para transferencias', placeholder: '0000003100000000000000' },
+  { key: 'direccion_retiro', label: 'Dirección de retiro (seña)', placeholder: 'Catamarca 1473, 1° B' },
+  { key: 'horarios', label: 'Horarios (seña)', placeholder: 'Mañana: 9:00 - 12:00 / Tarde: 14:00 - 19:00' },
+  { key: 'min_deposit_percentage', label: 'Mínimo de seña (%)', placeholder: '30', numeric: true },
+  { key: 'max_deposit_percentage', label: 'Máximo de seña (%)', placeholder: '70', numeric: true },
+  { key: 'dias_vencimiento', label: 'Días antes de vencer', placeholder: '3', numeric: true },
 ] as const;
 
 export default function AdminConfiguracion() {
@@ -54,6 +62,14 @@ export default function AdminConfiguracion() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Validate deposit percentages
+      const minPct = Number(form.min_deposit_percentage);
+      const maxPct = Number(form.max_deposit_percentage);
+      if (form.min_deposit_percentage && form.max_deposit_percentage) {
+        if (isNaN(minPct) || isNaN(maxPct) || minPct < 0 || maxPct > 100 || minPct >= maxPct) {
+          throw new Error('Los porcentajes de seña deben cumplir: 0 ≤ mínimo < máximo ≤ 100');
+        }
+      }
       for (const [key, value] of Object.entries(form)) {
         const { error } = await supabase
           .from('site_settings')
@@ -65,8 +81,10 @@ export default function AdminConfiguracion() {
       toast.success('Configuración guardada');
       qc.invalidateQueries({ queryKey: ['site-settings'] });
       qc.invalidateQueries({ queryKey: ['admin-site-settings'] });
+      qc.invalidateQueries({ queryKey: ['site-settings-payment-config'] });
+      qc.invalidateQueries({ queryKey: ['payment-settings'] });
     },
-    onError: () => toast.error('Error al guardar la configuración'),
+    onError: (e: any) => toast.error(e?.message || 'Error al guardar la configuración'),
   });
 
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

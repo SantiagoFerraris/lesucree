@@ -1,8 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload, Wallet } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
 import ExcelImportModal from '@/components/admin/ExcelImportModal';
+import PagosPedidoAdmin from '@/components/admin/PagosPedidoAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -77,6 +78,7 @@ export default function AdminPedidos() {
   const [search, setSearch] = useState('');
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
+  const [paymentOrder, setPaymentOrder] = useState<any | null>(null);
   // Fetch site settings for WhatsApp templates
   const { data: siteConfig } = useQuery({
     queryKey: ['site-settings-config'],
@@ -622,6 +624,33 @@ export default function AdminPedidos() {
                         <div><span className="text-[#9B8578]">Email:</span> <span className="text-[#3B2617]">{o.customer_email}</span></div>
                         <div><span className="text-[#9B8578]">Horario:</span> <span className="text-[#3B2617]">{o.preferred_time}</span></div>
                       </div>
+
+                      {/* Payment summary strip */}
+                      {(() => {
+                        const total = Number(o.total) || 0;
+                        const paid = Number(o.deposit_amount) || 0;
+                        const remaining = Math.max(0, total - paid);
+                        const progress = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+                        return (
+                          <div className="rounded-lg border border-[#F0E8E0] bg-[#FFFBF5] p-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+                            <span className="text-[#9B8578]">Seña: <strong className="text-espresso">{formatPrice(paid)} / {formatPrice(total)}</strong></span>
+                            <span className="text-[#9B8578]">Saldo: <strong className={remaining > 0 ? 'text-red-600' : 'text-emerald-700'}>{formatPrice(remaining)}</strong></span>
+                            <div className="flex items-center gap-2 flex-1 min-w-[140px]">
+                              <div className="flex-1 h-1.5 rounded-full bg-[#F0E8E0] overflow-hidden">
+                                <div className={`h-full ${progress >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${progress}%` }} />
+                              </div>
+                              <span className="font-semibold text-espresso">{progress}%</span>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setPaymentOrder(o); }}
+                              className="flex items-center gap-1.5 rounded-lg bg-espresso text-white px-3 py-1.5 text-xs font-semibold hover:bg-espresso/90"
+                            >
+                              <Wallet size={13} /> Gestionar Pagos
+                            </button>
+                          </div>
+                        );
+                      })()}
+
                       {o.notes && <p className="text-sm text-[#7C6354] bg-[#FFFBF5] rounded-lg p-3">{o.notes}</p>}
                       <div className="space-y-1">
                         {(o.items as any[]).map((item: any, i: number) => (
@@ -699,6 +728,9 @@ export default function AdminPedidos() {
 
       <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
       <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={orders || []} />
+      {paymentOrder && (
+        <PagosPedidoAdmin order={paymentOrder} open={!!paymentOrder} onOpenChange={(v) => !v && setPaymentOrder(null)} />
+      )}
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
