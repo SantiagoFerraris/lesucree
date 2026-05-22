@@ -309,6 +309,22 @@ Deno.serve(async (req) => {
 
     const finalTotal = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
 
+    // Compute default deposit (50%) using configured range as bounds
+    let depositPercentage = 50;
+    try {
+      const { data: cfg } = await supabaseAdmin
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['min_deposit_percentage', 'max_deposit_percentage']);
+      const cfgMap: Record<string, string> = {};
+      (cfg || []).forEach((r: any) => { cfgMap[r.key] = r.value; });
+      const minPct = Number(cfgMap.min_deposit_percentage || 30);
+      const maxPct = Number(cfgMap.max_deposit_percentage || 70);
+      if (depositPercentage < minPct) depositPercentage = minPct;
+      if (depositPercentage > maxPct) depositPercentage = maxPct;
+    } catch { /* defaults */ }
+    const depositAmount = Math.round(finalTotal * (depositPercentage / 100));
+
     const orderId = crypto.randomUUID();
     const { error: insertError } = await supabaseAdmin.from('orders').insert({
       id: orderId,
@@ -323,6 +339,9 @@ Deno.serve(async (req) => {
       coupon_id: couponId,
       discount_amount: discountAmount,
       total: finalTotal,
+      deposit_percentage: depositPercentage,
+      deposit_amount: null,
+      is_deposit_confirmed: false,
     });
 
     if (insertError) {
