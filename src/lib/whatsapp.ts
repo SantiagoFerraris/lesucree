@@ -28,7 +28,7 @@ export function getWhatsAppLink(phone: string | null | undefined, message?: stri
   const base = `https://wa.me/${normalized}`;
   const msg = message?.trim();
   if (!msg) return base;
-  return `${base}?text=${encodeURIComponent(msg)}`;
+  return `${base}?text=${encodeURI(msg)}`;
 }
 
 /**
