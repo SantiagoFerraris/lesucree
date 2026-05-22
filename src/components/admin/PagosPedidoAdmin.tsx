@@ -148,6 +148,7 @@ const customerPhone = order.customer_phone || '';
 if (customerPhone) {
   const whatsappUrl = getWhatsAppLink(customerPhone, draftText);
   if (whatsappUrl) {
+    console.log('[WA] Final URL:', whatsappUrl);
     window.open(whatsappUrl, '_blank');
   }
 }
