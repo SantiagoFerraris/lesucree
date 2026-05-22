@@ -68,7 +68,7 @@ function buildWhatsAppUrl(phone: string, message: string): string {
   return getWhatsAppLink(phone, message) ?? '#';
 }
 
-// ==================== NUEVA FUNCIÓN ====================
+// ==================== NUEVA FUNCIÓN (CORREGIDA) ====================
 async function createMessageAndSendWhatsApp(
   order: any,
   messageType: 'solicitar_sena' | 'confirmar_sena' | 'pedido_listo',
@@ -78,6 +78,14 @@ async function createMessageAndSendWhatsApp(
   formatPriceFn: (price: number) => string
 ) {
   try {
+    // Esperar a que siteConfig esté disponible
+    let config = siteConfig;
+    if (!config || !config.alias) {
+      const { data } = await supabaseClient.from('site_settings').select('key, value');
+      config = {};
+      data?.forEach((r: any) => { config[r.key] = r.value || ''; });
+    }
+
     const buildMessage = (kind: typeof messageType): string => {
       const customer = order.customer_name || 'cliente';
       const total = Number(order.total) || 0;
@@ -85,8 +93,8 @@ async function createMessageAndSendWhatsApp(
         `• ${i.productName}${i.variantLabel ? ` (${i.variantLabel})` : ''} x${i.quantity}`
       ).join('\n');
       
-      const alias = siteConfig?.alias || '';
-      const pickupAddress = siteConfig?.pickup_address || '';
+      const alias = config?.alias || config?.pago_alias || '';
+      const pickupAddress = config?.pickup_address || config?.direccion_retiro || config?.address || '';
       
       const formatDateHelper = (d: string) => {
         if (!d) return '—';
