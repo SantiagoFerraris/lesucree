@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
-const NGROK_URL = 'https://apply-starring-harvest.ngrok-free.dev';
-
 export default function WhatsAppConnect() {
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const NGROK_URL = 'https://apply-starring-harvest.ngrok-free.dev';
 
   const handleConnect = async () => {
     setLoading(true);
@@ -13,8 +13,9 @@ export default function WhatsAppConnect() {
     try {
       const res = await fetch(`${NGROK_URL}/api/whatsapp/scan`, {
         method: 'GET',
-        mode: 'cors',
-        credentials: 'omit',
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
       });
       
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -26,8 +27,9 @@ export default function WhatsAppConnect() {
         try {
           const statusRes = await fetch(`${NGROK_URL}/api/whatsapp/status`, {
             method: 'GET',
-            mode: 'cors',
-            credentials: 'omit',
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+            },
           });
           
           if (statusRes.ok) {
