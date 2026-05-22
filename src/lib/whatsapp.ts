@@ -11,7 +11,8 @@ export function normalizeWhatsAppPhone(phone: string | null | undefined): string
   // Strip leading zeros
   digits = digits.replace(/^0+/, '');
   if (digits.startsWith('549')) return digits;
-  if (digits.startsWith('54')) return `549${digits.slice(2)}`;
+  if (digits.startsWith('54')) return `549${digits.slice(231
+                                                         
   // Local AR mobile (10 digits starting with 2/3) — prepend 549
   if (/^[23]\d{9}$/.test(digits)) return `549${digits}`;
   // Default: prepend 549 if not already country-coded
@@ -28,7 +29,7 @@ export function getWhatsAppLink(phone: string | null | undefined, message?: stri
   const base = `https://wa.me/${normalized}`;
   const msg = message?.trim();
   if (!msg) return base;
-  return `${base}?text=${encodeURIComponent(msg)}`;
+  return `${base}?text=${msg}`;
 }
 
 /**
