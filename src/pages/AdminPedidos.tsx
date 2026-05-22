@@ -20,7 +20,6 @@ const STATUS_LABELS: Record<string, string> = {
   picked_up: 'Retirado',
   cancelled: 'Cancelado',
 };
-
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-[#FEF3C7] text-[#92400E]',
   confirmed: 'bg-[#D1FAE5] text-[#065F46]',
@@ -28,13 +27,11 @@ const STATUS_COLORS: Record<string, string> = {
   picked_up: 'bg-emerald-100 text-emerald-800',
   cancelled: 'bg-red-100 text-red-800',
 };
-
 const PAYMENT_LABELS: Record<string, string> = {
   pendiente: 'Pago Pendiente',
   'seña_recibida': 'Seña Recibida',
   'pagado_completo': 'Pagado',
 };
-
 const PAYMENT_COLORS: Record<string, string> = {
   pendiente: 'bg-[#FEE2E2] text-[#991B1B]',
   'seña_recibida': 'bg-[#E0E7FF] text-[#3730A3]',
@@ -58,8 +55,8 @@ const DATE_FILTERS = [
   { value: 'semana', label: 'Esta semana' },
   { value: 'vencidos', label: 'Vencidos' },
 ];
-
 const PAGE_SIZE = 10;
+
 const PAYMENT_SORT_ORDER: Record<string, number> = { pendiente: 0, 'seña_recibida': 1, 'pagado_completo': 2 };
 
 import { getWhatsAppLink } from '@/lib/whatsapp';
@@ -82,7 +79,7 @@ export default function AdminPedidos() {
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<any | null>(null);
-  
+  // Fetch site settings for WhatsApp templates
   const { data: siteConfig } = useQuery({
     queryKey: ['site-settings-config'],
     queryFn: async () => {
@@ -92,7 +89,6 @@ export default function AdminPedidos() {
       return map;
     },
   });
-
   const [statusFilter, setStatusFilter] = useState('todos');
   const [dateFilter, setDateFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('retiro-asc');
@@ -109,6 +105,7 @@ export default function AdminPedidos() {
   const tomorrowStr = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
   const weekEnd = (() => { const d = new Date(today); d.setDate(d.getDate() + 7); return d.toISOString().split('T')[0]; })();
 
+  // Close sort dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
@@ -158,6 +155,7 @@ export default function AdminPedidos() {
       toast.error('Error al eliminar. Intentá de nuevo.');
     },
   });
+
 
   const bulkUpdateStatus = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
@@ -220,6 +218,7 @@ export default function AdminPedidos() {
       return matchSearch && matchStatus && matchDate;
     }) || [];
 
+    // Sort
     result = [...result].sort((a, b) => {
       let primary = 0;
       if (sortBy === 'retiro-asc') primary = a.desired_date.localeCompare(b.desired_date);
@@ -232,6 +231,7 @@ export default function AdminPedidos() {
 
       if (primary !== 0) return primary;
 
+      // Secondary sort
       if (sortBy.startsWith('retiro') || sortBy.startsWith('pedido')) {
         return (PAYMENT_SORT_ORDER[a.payment_status] ?? 1) - (PAYMENT_SORT_ORDER[b.payment_status] ?? 1);
       }
@@ -363,6 +363,7 @@ export default function AdminPedidos() {
       <h2 className="font-display text-2xl font-bold text-espresso">Pedidos</h2>
       <p className="text-xs text-[#9B8578] mb-5 mt-1">{subtitle}</p>
 
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-3">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
@@ -385,6 +386,7 @@ export default function AdminPedidos() {
           <option value="cancelled">Cancelado ({statusCounts.cancelled || 0})</option>
         </select>
 
+        {/* Sort dropdown */}
         <div ref={sortRef} className="relative">
           <button
             onClick={() => setSortOpen(!sortOpen)}
@@ -464,6 +466,7 @@ export default function AdminPedidos() {
         </div>
       </div>
 
+      {/* Date filter pills */}
       <div className="flex gap-2 mb-5 flex-wrap">
         {DATE_FILTERS.map(f => (
           <button
@@ -502,11 +505,13 @@ export default function AdminPedidos() {
         </div>
       ) : (
         <>
+          {/* Select all + column headers */}
           <div className="flex items-center gap-3 px-4 py-2 mb-1">
             <Checkbox checked={allPageSelected} onCheckedChange={toggleSelectAll} />
             <span className="text-xs text-warm-gray font-semibold">Seleccionar todos</span>
           </div>
 
+          {/* Column headers */}
           <div className="hidden lg:grid grid-cols-[40px_80px_1fr_90px_100px_100px_1fr_100px_110px_60px] items-center gap-2 px-4 py-2 border-b border-[#E8DDD4] mb-2">
             <span />
             <span className="text-[11px] uppercase tracking-wider text-[#9B8578] font-semibold">ID</span>
@@ -519,11 +524,14 @@ export default function AdminPedidos() {
             <span className="text-[11px] uppercase tracking-wider text-[#9B8578] font-semibold">Pago</span>
             <span />
           </div>
-<div className="space-y-2">
+
+          <div className="space-y-2">
             {paginated.map(o => {
+              const msgs = getWhatsAppMessages(o);
               const deliveryBadge = getDeliveryBadge(o.desired_date, o.status);
               return (
                 <div key={o.id} className={`bg-white rounded-[10px] shadow-sm border border-[#F0E8E0] overflow-hidden transition-all hover:shadow-md hover:-translate-y-[1px] ${getStatusBorder(o.status)}`}>
+                  {/* Desktop grid row */}
                   <div className="hidden lg:grid grid-cols-[40px_80px_1fr_90px_100px_100px_1fr_100px_110px_60px] items-center gap-2 px-4 py-3">
                     <Checkbox
                       checked={selected.has(o.id)}
@@ -561,6 +569,7 @@ export default function AdminPedidos() {
                     </div>
                   </div>
 
+                  {/* Mobile card layout */}
                   <div className="lg:hidden p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -607,6 +616,7 @@ export default function AdminPedidos() {
                     </div>
                   </div>
 
+                  {/* Expanded detail */}
                   {expanded === o.id && (
                     <div className="px-4 pb-4 border-t border-[#F0E8E0] pt-3 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
@@ -615,6 +625,7 @@ export default function AdminPedidos() {
                         <div><span className="text-[#9B8578]">Horario:</span> <span className="text-[#3B2617]">{o.preferred_time}</span></div>
                       </div>
 
+                      {/* Payment summary strip */}
                       {(() => {
                         const total = Number(o.total) || 0;
                         const paid = Number(o.deposit_amount) || 0;
@@ -680,23 +691,23 @@ export default function AdminPedidos() {
                         </div>
                       </div>
                       {o.status !== 'completed' && o.status !== 'picked_up' && (
-  <div className="flex flex-wrap gap-2 pt-1">
-    {o.status === 'pending' && (
-      <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-        <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
-      </a>
-    )}
-    <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-      <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
-    </a>
-    <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
-      <MessageCircle size={13} className="text-green-600" /> Pedido Listo
-    </a>
-  </div>
-)}
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {o.status === 'pending' && (
+                            <a href={buildWhatsAppUrl(o.customer_phone, msgs.confirm)} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+                              <MessageCircle size={13} className="text-green-600" /> Solicitar Seña
+                            </a>
+                          )}
+                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.remind)} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+                            <MessageCircle size={13} className="text-green-600" /> Confirmar Seña
+                          </a>
+                          <a href={buildWhatsAppUrl(o.customer_phone, msgs.ready)} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E8DDD4] text-xs text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
+                            <MessageCircle size={13} className="text-green-600" /> Pedido Listo
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -721,6 +732,7 @@ export default function AdminPedidos() {
         <PagosPedidoAdmin order={paymentOrder} open={!!paymentOrder} onOpenChange={(v) => !v && setPaymentOrder(null)} />
       )}
 
+      {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
