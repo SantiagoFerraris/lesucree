@@ -157,28 +157,40 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          is_auto: boolean | null
           message: string
+          message_type: string | null
           name: string
           notified_at: string | null
+          order_id: string | null
           read: boolean | null
+          sent: boolean | null
         }
         Insert: {
           created_at?: string | null
           email: string
           id?: string
+          is_auto?: boolean | null
           message: string
+          message_type?: string | null
           name: string
           notified_at?: string | null
+          order_id?: string | null
           read?: boolean | null
+          sent?: boolean | null
         }
         Update: {
           created_at?: string | null
           email?: string
           id?: string
+          is_auto?: boolean | null
           message?: string
+          message_type?: string | null
           name?: string
           notified_at?: string | null
+          order_id?: string | null
           read?: boolean | null
+          sent?: boolean | null
         }
         Relationships: []
       }
@@ -357,14 +369,19 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_phone: string
+          deposit_amount: number | null
+          deposit_percentage: number | null
           desired_date: string
           discount_amount: number
           id: string
+          is_deposit_confirmed: boolean | null
           items: Json
+          last_payment_date: string | null
           notes: string | null
           notified_at: string | null
           payment_status: string | null
           preferred_time: string
+          remaining_balance: number | null
           status: string
           subtotal: number | null
           total: number
@@ -375,14 +392,19 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_phone: string
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
           desired_date: string
           discount_amount?: number
           id?: string
+          is_deposit_confirmed?: boolean | null
           items: Json
+          last_payment_date?: string | null
           notes?: string | null
           notified_at?: string | null
           payment_status?: string | null
           preferred_time: string
+          remaining_balance?: number | null
           status?: string
           subtotal?: number | null
           total: number
@@ -393,14 +415,19 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
           desired_date?: string
           discount_amount?: number
           id?: string
+          is_deposit_confirmed?: boolean | null
           items?: Json
+          last_payment_date?: string | null
           notes?: string | null
           notified_at?: string | null
           payment_status?: string | null
           preferred_time?: string
+          remaining_balance?: number | null
           status?: string
           subtotal?: number | null
           total?: number
