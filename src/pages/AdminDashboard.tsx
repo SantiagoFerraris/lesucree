@@ -11,7 +11,6 @@ import DailySummaryLayer from '@/components/admin/DailySummary';
 import OpportunitiesLayer from '@/components/admin/OpportunitiesLayer';
 import RetentionLayer from '@/components/admin/RetentionLayer';
 import ActionHistoryModal from '@/components/admin/ActionHistoryModal';
-import WhatsAppConnect from '@/components/WhatsAppConnect';
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -270,8 +269,6 @@ export default function AdminDashboard() {
   return (
     <div>
       <h2 className="font-display text-2xl font-bold text-espresso mb-6">Dashboard</h2>
-
-      <WhatsAppConnect />
 
       {/* Pending orders alert */}
       {!isLoading && pendingCount > 0 && (

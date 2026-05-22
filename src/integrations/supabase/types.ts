@@ -248,13 +248,6 @@ export type Database = {
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "coupon_usage_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "vista_deuda_pedidos"
-            referencedColumns: ["id"]
-          },
         ]
       }
       coupons: {
@@ -298,57 +291,6 @@ export type Database = {
           zumbita_request_id?: string | null
         }
         Relationships: []
-      }
-      order_payments: {
-        Row: {
-          estado: string
-          fecha_creacion: string
-          fecha_pago: string
-          hora_pago: string
-          id: number
-          monto: number
-          notas: string | null
-          order_id: string
-          tipo: string
-        }
-        Insert: {
-          estado?: string
-          fecha_creacion?: string
-          fecha_pago?: string
-          hora_pago?: string
-          id?: number
-          monto: number
-          notas?: string | null
-          order_id: string
-          tipo: string
-        }
-        Update: {
-          estado?: string
-          fecha_creacion?: string
-          fecha_pago?: string
-          hora_pago?: string
-          id?: number
-          monto?: number
-          notas?: string | null
-          order_id?: string
-          tipo?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_payments_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_payments_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "vista_deuda_pedidos"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       orders: {
         Row: {
@@ -720,37 +662,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vista_deuda_pedidos: {
-        Row: {
-          cantidad_pagos: number | null
-          created_at: string | null
-          customer_email: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          desired_date: string | null
-          deuda_restante: number | null
-          estado_deuda: string | null
-          id: string | null
-          payment_status: string | null
-          porcentaje_pagado: number | null
-          status: string | null
-          total: number | null
-          total_pagado: number | null
-        }
-        Relationships: []
-      }
-      vista_estadisticas_cobranza: {
-        Row: {
-          pedidos_pagos: number | null
-          pedidos_parciales: number | null
-          pedidos_sin_pagar: number | null
-          tasa_cobranza: number | null
-          total_pedidos: number | null
-          total_pendiente: number | null
-          total_recaudado: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
@@ -764,15 +675,6 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
-      obtener_deuda_pedido: {
-        Args: { pedido_id_param: string }
-        Returns: {
-          cantidad_pagos: number
-          completamente_pagado: boolean
-          deuda_restante: number
-          total_pagado: number
-        }[]
-      }
     }
     Enums: {
       app_role: "admin" | "user"
