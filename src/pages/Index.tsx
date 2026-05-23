@@ -85,9 +85,9 @@ function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-3 mt-8">
             <Link
               to="/catalogo"
-              className="inline-flex items-center justify-center bg-espresso text-white px-8 py-4 text-[14px] font-semibold uppercase tracking-[0.15em] hover:bg-espresso/90 transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-espresso focus-visible:outline-none"
+              className="inline-flex items-center justify-center bg-espresso text-white px-8 py-4 text-[14px] font-semibold tracking-[0.15em] hover:bg-espresso/90 transition-all duration-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-espresso focus-visible:outline-none"
             >
-              VER CATALOGO
+              Ver Catálogo
             </Link>
           </div>
         </div>

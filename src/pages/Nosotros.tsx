@@ -30,13 +30,13 @@ export default function Nosotros() {
         <div className={`container max-w-5xl ${storyReveal.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div>
-              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80">
+              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso">
                 Le Sucrée Pastelería nació de mi pasión por la pastelería artesanal y del deseo de crear productos que transmitan sabor, dedicación y calidad en cada detalle. Detrás de cada elaboración hay ingredientes seleccionados, recetas caseras y una presentación cuidada para brindar una experiencia especial.
               </p>
-              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80 mt-6">
+              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso mt-6">
                 Soy Julieta, Licenciada en Recursos Humanos, y esa formación me permitió desarrollar una mirada organizada, comprometida y enfocada en ofrecer siempre la mejor atención a cada cliente.
               </p>
-              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso/80 mt-6">
+              <p className="text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] text-espresso mt-6">
                 Hoy, Le Sucrée Pastelería acompaña eventos y momentos cotidianos con productos artesanales hechos con pasión.
               </p>
             </div>
