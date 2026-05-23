@@ -279,9 +279,9 @@ export default function AdminProductos() {
             setSyncing(true);
             try {
               const { data, error } = await supabase.functions.invoke('sync-prices-from-sheet');
-              if (error) { toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
-              else { toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
-            } catch (err: any) { toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
+              if (error) { setLastSyncStatus('error'); toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
+              else { setLastSyncStatus('ok'); toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
+            } catch (err: any) { setLastSyncStatus('error'); toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
             finally { setSyncing(false); }
           }} disabled={syncing} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors disabled:opacity-50">
             <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> Sincronizar precios
