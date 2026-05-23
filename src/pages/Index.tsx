@@ -7,6 +7,8 @@ import ProductCard from "@/components/ProductCard";
 import SectionDivider from "@/components/SectionDivider";
 import SEOHead from "@/components/SEOHead";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useCategories } from "@/hooks/useCategories";
+import { useActivePromotions } from "@/hooks/useActivePromotions";
 import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
