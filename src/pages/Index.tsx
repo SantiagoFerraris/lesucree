@@ -186,7 +186,7 @@ function FeaturedSection() {
             ))}
           {products?.map((p, i) => (
             <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
-              <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} compact />
+              <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} categories={categories} activePromotions={promosMap} compact />
             </div>
           ))}
         </div>
