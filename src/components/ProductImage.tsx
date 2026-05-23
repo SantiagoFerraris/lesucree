@@ -4,13 +4,23 @@ interface ProductImageProps {
   src: string | null | undefined;
   alt: string;
   className?: string;
+  width?: number;
+  quality?: number;
 }
 
-export default function ProductImage({ src, alt, className }: ProductImageProps) {
+function transformSupabaseUrl(src: string, width: number, quality: number): string {
+  if (!src.includes('supabase.co/storage')) return src;
+  if (/[?&](width|quality|format)=/.test(src)) return src;
+  const sep = src.includes('?') ? '&' : '?';
+  return `${src}${sep}width=${width}&quality=${quality}&format=webp`;
+}
+
+export default function ProductImage({ src, alt, className, width = 600, quality = 75 }: ProductImageProps) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  const imgSrc = src && !error ? src : '/placeholder.svg';
+  const rawSrc = src && !error ? src : '/placeholder.svg';
+  const imgSrc = src && !error ? transformSupabaseUrl(rawSrc, width, quality) : rawSrc;
 
   return (
     <div className={`relative overflow-hidden ${className || ''}`}>
