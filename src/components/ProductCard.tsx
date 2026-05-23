@@ -75,6 +75,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
         <ProductImage
           src={product.image_url}
           alt={product.name}
+          productName={product.name}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {badgeLabel && (

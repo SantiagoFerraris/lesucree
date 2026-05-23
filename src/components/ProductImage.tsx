@@ -6,6 +6,7 @@ interface ProductImageProps {
   className?: string;
   width?: number;
   quality?: number;
+  productName?: string;
 }
 
 function transformSupabaseUrl(src: string, width: number, quality: number): string {
@@ -15,12 +16,24 @@ function transformSupabaseUrl(src: string, width: number, quality: number): stri
   return `${src}${sep}width=${width}&quality=${quality}&format=webp`;
 }
 
-export default function ProductImage({ src, alt, className, width = 600, quality = 75 }: ProductImageProps) {
+export default function ProductImage({ src, alt, className, width = 600, quality = 75, productName }: ProductImageProps) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  const rawSrc = src && !error ? src : '/placeholder.svg';
-  const imgSrc = src && !error ? transformSupabaseUrl(rawSrc, width, quality) : rawSrc;
+  const hasImage = !!src && !error;
+
+  if (!hasImage && productName) {
+    return (
+      <div className={`relative overflow-hidden bg-muted flex items-center justify-center ${className || ''}`}>
+        <span className="font-display text-espresso/60 text-center text-balance line-clamp-2 px-4 text-base sm:text-lg font-semibold">
+          {productName}
+        </span>
+      </div>
+    );
+  }
+
+  const rawSrc = hasImage ? src! : '/placeholder.svg';
+  const imgSrc = hasImage ? transformSupabaseUrl(rawSrc, width, quality) : rawSrc;
 
   return (
     <div className={`relative overflow-hidden ${className || ''}`}>
