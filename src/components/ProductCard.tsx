@@ -17,13 +17,15 @@ interface Props {
   activePromotions?: Map<string, ActivePromotion[]>;
 }
 
-function ProductCardImpl({ product, index = 0, variants, compact = false }: Props) {
+function ProductCardImpl({ product, index = 0, variants, compact = false, categories: categoriesProp, activePromotions: activePromotionsProp }: Props) {
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const { data: categories } = useCategories();
+  const { data: categoriesFromHook } = useCategories();
+  const promosMapFromHook = useActivePromotions();
+  const categories = categoriesProp ?? categoriesFromHook;
+  const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
-  const promosMap = useActivePromotions();
   const productPromos = promosMap.get(product.id);
 
   const hasVariants = variants && variants.length > 0;
