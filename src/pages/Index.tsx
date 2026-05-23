@@ -129,6 +129,8 @@ function TrustBadges() {
 function FeaturedSection() {
   const reveal = useScrollReveal();
   const [selectedProduct, setSelectedProduct] = useState<Tables<"products"> | null>(null);
+  const { data: categories } = useCategories();
+  const promosMap = useActivePromotions();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
