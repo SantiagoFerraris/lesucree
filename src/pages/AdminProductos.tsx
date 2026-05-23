@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
