@@ -349,7 +349,7 @@ export default function Index() {
     <>
       <SEOHead
         title="Le Sucrée Pastelería | Tortas Artesanales en Rosario"
-        description="Pastelería artesanal en Rosario. Tortas, tartas, cookies y boxes hechos a mano con ingredientes seleccionados. Pedidos con 48hs de anticipación."
+        description="Tortas, alfajores, tartas y cookies artesanales en Rosario. Pedidos con retiro en el local."
         path="/"
       />
       <HeroSection />
