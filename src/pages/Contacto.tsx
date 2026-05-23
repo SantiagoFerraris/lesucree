@@ -103,8 +103,8 @@ export default function Contacto() {
   return (
         <section className="pt-[72px]">
               <SEOHead
-                        title="Contacto | Le Sucrée Pastelería"
-                        description="Contactanos por WhatsApp, Instagram o el formulario. Pedidos con 48hs de anticipación. Rosario, Santa Fe."
+                        title="Contacto | Le Sucrée Pastelería en Rosario"
+                        description="Contactanos para hacer tu pedido de pastelería artesanal en Rosario."
                         path="/contacto"
                       />
         
