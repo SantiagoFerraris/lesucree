@@ -397,6 +397,9 @@ export default function AdminProductos() {
                       <td className="py-3 pr-4 font-medium text-espresso">
                         <span className="flex items-center gap-1.5 flex-wrap">
                           {p.name}
+                          {duplicateNames.has(p.name.trim().toLowerCase()) && (
+                            <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
+                          )}
                           {(!p.description || !p.description.trim()) && <span title="Sin descripción"><AlertTriangle size={13} className="text-amber-500" /></span>}
                           {activePromoMap?.[p.id] && (
                             <span
