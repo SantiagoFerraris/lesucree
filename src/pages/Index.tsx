@@ -33,10 +33,18 @@ interface Variant {
 }
 
 /* ─── HERO ─── */
+function transformHeroUrl(src: string | null): string | null {
+  if (!src) return null;
+  if (!src.includes('supabase.co/storage')) return src;
+  if (/[?&](width|quality|format)=/.test(src)) return src;
+  const sep = src.includes('?') ? '&' : '?';
+  return `${src}${sep}width=1400&quality=80&format=webp`;
+}
+
 function HeroSection() {
   const { data: heroImageUrl, isLoading: heroLoading } = useHeroImageUrl();
   const { data: settings } = useSiteSettings();
-  const bgImage = heroImageUrl || null;
+  const bgImage = transformHeroUrl(heroImageUrl || null);
   const heroTitle = settings?.hero_title || 'Le Sucrée';
   const heroSubtitle = settings?.hero_subtitle || 'Pastelería Artesanal';
   const heroText = settings?.hero_text || 'Endulzar tus momentos con creaciones únicas, hechas con amor y los mejores ingredientes';
@@ -51,6 +59,7 @@ function HeroSection() {
         backgroundPosition: 'center',
       }}
     >
+
       {/* Gradient overlay */}
       <div
         className="absolute inset-0"
