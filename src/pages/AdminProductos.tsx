@@ -328,9 +328,35 @@ export default function AdminProductos() {
           if (!sync) return latest;
           return !latest || new Date(sync) > new Date(latest) ? sync : latest;
         }, null as string | null);
-        return lastSync ? (
-          <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
-        ) : null;
+        const statusDot =
+          lastSyncStatus === 'ok' ? { color: 'bg-green-500', label: 'OK' }
+          : lastSyncStatus === 'error' ? { color: 'bg-red-500', label: 'Error' }
+          : { color: 'bg-gray-300', label: 'Sin datos' };
+        const isStale = lastSync
+          ? (Date.now() - new Date(lastSync).getTime()) > 3 * 24 * 60 * 60 * 1000
+          : false;
+        if (!lastSync) {
+          return (
+            <div className="mb-4 flex items-center gap-2 text-xs text-warm-gray">
+              <span className={`w-2 h-2 rounded-full ${statusDot.color}`} />
+              <span>{statusDot.label}</span>
+            </div>
+          );
+        }
+        return (
+          <div className="mb-4">
+            <p className="text-xs text-warm-gray flex items-center gap-2">
+              <span>Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</span>
+              <span className="inline-flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${statusDot.color}`} />
+                <span>{statusDot.label}</span>
+              </span>
+            </p>
+            {isStale && (
+              <p className="text-xs text-amber-600 mt-1">La última sincronización tiene más de 3 días.</p>
+            )}
+          </div>
+        );
       })()}
 
 
