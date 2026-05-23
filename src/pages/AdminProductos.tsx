@@ -433,7 +433,16 @@ export default function AdminProductos() {
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><Pencil size={15} /></button>
-                          <button onClick={() => setDeleteConfirm(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-warm-gray hover:text-red-500"><Trash2 size={15} /></button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button aria-label="Más acciones" className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><MoreVertical size={15} /></button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => setDeleteConfirm(p.id)} className="text-red-600 focus:text-red-600">
+                                <Trash2 size={14} className="mr-2" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>
