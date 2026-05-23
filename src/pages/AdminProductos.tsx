@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
@@ -37,6 +38,7 @@ export default function AdminProductos() {
   const [syncing, setSyncing] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showPromoDrafts, setShowPromoDrafts] = useState(false);
+  const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
 
   const { data: promoDraftCount } = useQuery({
     queryKey: ['promo-draft-count'],
@@ -252,6 +254,15 @@ export default function AdminProductos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
+  const duplicateNames = useMemo(() => {
+    const counts = new Map<string, number>();
+    products?.forEach(p => {
+      const key = p.name.trim().toLowerCase();
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return new Set(Array.from(counts.entries()).filter(([, n]) => n > 1).map(([k]) => k));
+  }, [products]);
+
   const exportProductsCSV = () => {
     if (!filtered?.length) return;
     const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
@@ -277,9 +288,9 @@ export default function AdminProductos() {
             setSyncing(true);
             try {
               const { data, error } = await supabase.functions.invoke('sync-prices-from-sheet');
-              if (error) { toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
-              else { toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
-            } catch (err: any) { toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
+              if (error) { setLastSyncStatus('error'); toast.error(`Error al sincronizar precios: ${error?.message || 'Error desconocido'}`); }
+              else { setLastSyncStatus('ok'); toast.success(`Precios sincronizados: ${data.updated} productos actualizados`); qc.invalidateQueries({ queryKey: ['admin-products'] }); }
+            } catch (err: any) { setLastSyncStatus('error'); toast.error(`Error al sincronizar precios: ${err?.message || 'Error desconocido'}`); }
             finally { setSyncing(false); }
           }} disabled={syncing} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors disabled:opacity-50">
             <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> Sincronizar precios
@@ -326,9 +337,35 @@ export default function AdminProductos() {
           if (!sync) return latest;
           return !latest || new Date(sync) > new Date(latest) ? sync : latest;
         }, null as string | null);
-        return lastSync ? (
-          <p className="text-xs text-warm-gray mb-4">Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</p>
-        ) : null;
+        const statusDot =
+          lastSyncStatus === 'ok' ? { color: 'bg-green-500', label: 'OK' }
+          : lastSyncStatus === 'error' ? { color: 'bg-red-500', label: 'Error' }
+          : { color: 'bg-gray-300', label: 'Sin datos' };
+        const isStale = lastSync
+          ? (Date.now() - new Date(lastSync).getTime()) > 3 * 24 * 60 * 60 * 1000
+          : false;
+        if (!lastSync) {
+          return (
+            <div className="mb-4 flex items-center gap-2 text-xs text-warm-gray">
+              <span className={`w-2 h-2 rounded-full ${statusDot.color}`} />
+              <span>{statusDot.label}</span>
+            </div>
+          );
+        }
+        return (
+          <div className="mb-4">
+            <p className="text-xs text-warm-gray flex items-center gap-2">
+              <span>Última sincronización: {new Date(lastSync).toLocaleString('es-AR')}</span>
+              <span className="inline-flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${statusDot.color}`} />
+                <span>{statusDot.label}</span>
+              </span>
+            </p>
+            {isStale && (
+              <p className="text-xs text-amber-600 mt-1">La última sincronización tiene más de 3 días.</p>
+            )}
+          </div>
+        );
       })()}
 
 
@@ -360,6 +397,9 @@ export default function AdminProductos() {
                       <td className="py-3 pr-4 font-medium text-espresso">
                         <span className="flex items-center gap-1.5 flex-wrap">
                           {p.name}
+                          {duplicateNames.has(p.name.trim().toLowerCase()) && (
+                            <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
+                          )}
                           {(!p.description || !p.description.trim()) && <span title="Sin descripción"><AlertTriangle size={13} className="text-amber-500" /></span>}
                           {activePromoMap?.[p.id] && (
                             <span
@@ -393,7 +433,16 @@ export default function AdminProductos() {
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><Pencil size={15} /></button>
-                          <button onClick={() => setDeleteConfirm(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-warm-gray hover:text-red-500"><Trash2 size={15} /></button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button aria-label="Más acciones" className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><MoreVertical size={15} /></button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => setDeleteConfirm(p.id)} className="text-red-600 focus:text-red-600">
+                                <Trash2 size={14} className="mr-2" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>
@@ -416,8 +465,8 @@ export default function AdminProductos() {
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="font-display text-lg font-bold text-espresso">¿Estás seguro?</h3>
-            <p className="text-sm text-warm-gray mt-2">¿Querés eliminar este producto?</p>
+            <h3 className="font-display text-lg font-bold text-espresso">¿Eliminar este producto?</h3>
+            <p className="text-sm text-warm-gray mt-2">Esta acción no se puede deshacer. El producto se eliminará del catálogo.</p>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setDeleteConfirm(null)} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
               <button onClick={() => deleteMutation.mutate(deleteConfirm)} className="flex-1 rounded-full bg-red-500 text-white py-2 text-sm font-semibold hover:bg-red-600 transition-colors active:scale-95">Eliminar</button>
