@@ -2,8 +2,8 @@ import { memo, useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
-import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
-import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
+import { useCategories, buildCategoryLabels, type Category } from '@/hooks/useCategories';
+import { useActivePromotions, applyBestPromotion, type ActivePromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -13,15 +13,19 @@ interface Props {
   index?: number;
   variants?: { id: string; label: string; price: number }[];
   compact?: boolean;
+  categories?: Category[];
+  activePromotions?: Map<string, ActivePromotion[]>;
 }
 
-function ProductCardImpl({ product, index = 0, variants, compact = false }: Props) {
+function ProductCardImpl({ product, index = 0, variants, compact = false, categories: categoriesProp, activePromotions: activePromotionsProp }: Props) {
   const { addToCart, setIsOpen } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const { data: categories } = useCategories();
+  const { data: categoriesFromHook } = useCategories();
+  const promosMapFromHook = useActivePromotions();
+  const categories = categoriesProp ?? categoriesFromHook;
+  const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
-  const promosMap = useActivePromotions();
   const productPromos = promosMap.get(product.id);
 
   const hasVariants = variants && variants.length > 0;
@@ -66,10 +70,12 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
     }, 600);
   };
 
+  const animationDelay = `${Math.min(index, 6) * 0.05}s`;
+
   return (
     <div
       className="card-product flex flex-col animate-fade-in-up"
-      style={{ animationDelay: `${index * 0.05}s` }}
+      style={{ animationDelay }}
     >
       <div className="aspect-[4/3] overflow-hidden relative">
         <ProductImage
@@ -80,7 +86,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false }: Prop
         />
         {badgeLabel && (
           <span
-            className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-espresso/90 backdrop-blur-sm text-cream text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm transition-opacity duration-300"
+            className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-espresso text-cream text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm transition-opacity duration-300"
             aria-label={`Producto en oferta ${badgeLabel}`}
           >
             {badgeLabel}

@@ -7,6 +7,8 @@ import ProductCard from "@/components/ProductCard";
 import SectionDivider from "@/components/SectionDivider";
 import SEOHead from "@/components/SEOHead";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useCategories } from "@/hooks/useCategories";
+import { useActivePromotions } from "@/hooks/useActivePromotions";
 import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
@@ -127,6 +129,8 @@ function TrustBadges() {
 function FeaturedSection() {
   const reveal = useScrollReveal();
   const [selectedProduct, setSelectedProduct] = useState<Tables<"products"> | null>(null);
+  const { data: categories } = useCategories();
+  const promosMap = useActivePromotions();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
@@ -182,7 +186,7 @@ function FeaturedSection() {
             ))}
           {products?.map((p, i) => (
             <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
-              <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} compact />
+              <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} categories={categories} activePromotions={promosMap} compact />
             </div>
           ))}
         </div>

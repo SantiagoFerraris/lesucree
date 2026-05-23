@@ -140,7 +140,7 @@ export default function Catalogo() {
               ))}
               {paginatedProducts?.map((p, i) => (
                 <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
-                  <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} />
+                  <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} categories={dbCategories} activePromotions={promosMap} />
                 </div>
               ))}
             </div>
