@@ -38,6 +38,7 @@ export default function AdminProductos() {
   const [syncing, setSyncing] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showPromoDrafts, setShowPromoDrafts] = useState(false);
+  const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
 
   const { data: promoDraftCount } = useQuery({
     queryKey: ['promo-draft-count'],
