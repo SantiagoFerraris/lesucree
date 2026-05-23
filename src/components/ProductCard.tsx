@@ -70,10 +70,12 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
     }, 600);
   };
 
+  const animationDelay = `${Math.min(index, 6) * 0.05}s`;
+
   return (
     <div
       className="card-product flex flex-col animate-fade-in-up"
-      style={{ animationDelay: `${index * 0.05}s` }}
+      style={{ animationDelay }}
     >
       <div className="aspect-[4/3] overflow-hidden relative">
         <ProductImage
@@ -84,7 +86,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
         />
         {badgeLabel && (
           <span
-            className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-espresso/90 backdrop-blur-sm text-cream text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm transition-opacity duration-300"
+            className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-espresso text-cream text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm transition-opacity duration-300"
             aria-label={`Producto en oferta ${badgeLabel}`}
           >
             {badgeLabel}
