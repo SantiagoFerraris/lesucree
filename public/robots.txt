@@ -16,4 +16,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://lesucree.pages.dev/sitemap.xml
+Sitemap: https://lesucreepasteleria.com.ar/sitemap.xml
