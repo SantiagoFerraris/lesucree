@@ -254,6 +254,15 @@ export default function AdminProductos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
+  const duplicateNames = useMemo(() => {
+    const counts = new Map<string, number>();
+    products?.forEach(p => {
+      const key = p.name.trim().toLowerCase();
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return new Set(Array.from(counts.entries()).filter(([, n]) => n > 1).map(([k]) => k));
+  }, [products]);
+
   const exportProductsCSV = () => {
     if (!filtered?.length) return;
     const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
