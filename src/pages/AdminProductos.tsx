@@ -465,8 +465,8 @@ export default function AdminProductos() {
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="font-display text-lg font-bold text-espresso">¿Estás seguro?</h3>
-            <p className="text-sm text-warm-gray mt-2">¿Querés eliminar este producto?</p>
+            <h3 className="font-display text-lg font-bold text-espresso">¿Eliminar este producto?</h3>
+            <p className="text-sm text-warm-gray mt-2">Esta acción no se puede deshacer. El producto se eliminará del catálogo.</p>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setDeleteConfirm(null)} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
               <button onClick={() => deleteMutation.mutate(deleteConfirm)} className="flex-1 rounded-full bg-red-500 text-white py-2 text-sm font-semibold hover:bg-red-600 transition-colors active:scale-95">Eliminar</button>
