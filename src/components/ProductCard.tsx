@@ -2,8 +2,8 @@ import { memo, useState } from 'react';
 import { ShoppingBag, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/formatPrice';
-import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
-import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
+import { useCategories, buildCategoryLabels, type Category } from '@/hooks/useCategories';
+import { useActivePromotions, applyBestPromotion, type ActivePromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -13,6 +13,8 @@ interface Props {
   index?: number;
   variants?: { id: string; label: string; price: number }[];
   compact?: boolean;
+  categories?: Category[];
+  activePromotions?: Map<string, ActivePromotion[]>;
 }
 
 function ProductCardImpl({ product, index = 0, variants, compact = false }: Props) {
