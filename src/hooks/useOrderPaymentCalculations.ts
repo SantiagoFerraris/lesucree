@@ -10,6 +10,7 @@ export interface OrderPaymentInput {
   status?: string | null;
   min_deposit_percentage?: number;
   max_deposit_percentage?: number;
+  balance_paid_at?: string | null;
 }
 
 export interface OrderPaymentCalculations {
