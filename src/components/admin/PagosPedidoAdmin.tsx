@@ -235,7 +235,7 @@ setEditing(null);
               </div>
               <div>
                 <span className="text-xs text-warm-gray uppercase tracking-wider">Seña abonada</span>
-                <p className="font-bold text-espresso">{formatPrice(calc.amountPaid)}</p>
+                <p className="font-bold text-espresso">{formatPrice(Number(order.deposit_amount) || 0)}</p>
               </div>
               <div>
                 <span className="text-xs text-warm-gray uppercase tracking-wider">Saldo pendiente</span>
