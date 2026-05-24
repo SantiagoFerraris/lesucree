@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw, Filter, ChevronDown, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
