@@ -524,10 +524,30 @@ export default function AdminProductos() {
         <p className="text-warm-gray">Cargando...</p>
       ) : (
         <>
+          {selectedIds.size > 0 && (
+            <div className="sticky top-2 z-30 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-dusty-pink/40 bg-white/95 backdrop-blur px-3 py-2 shadow-sm">
+              <span className="text-sm text-espresso font-semibold">{selectedIds.size} seleccionados</span>
+              <div className="flex-1" />
+              <button onClick={handleBulkActivate} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-sage text-white hover:opacity-90 disabled:opacity-60">Activar</button>
+              <button onClick={handleBulkDeactivate} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-500 text-white hover:opacity-90 disabled:opacity-60">Desactivar</button>
+              <button onClick={() => setBulkCategoryOpen(true)} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-espresso text-white hover:opacity-90 disabled:opacity-60">Cambiar categoría</button>
+              <button onClick={clearSelection} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-warm-gray hover:bg-gray-50 disabled:opacity-60">Limpiar selección</button>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-warm-gray">
+                  <th className="py-3 pr-3 w-8">
+                    <input
+                      type="checkbox"
+                      aria-label="Seleccionar todos"
+                      checked={allVisibleSelected}
+                      ref={el => { if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected; }}
+                      onChange={toggleAllVisible}
+                      className="rounded"
+                    />
+                  </th>
                   <th className="py-3 pr-4">Imagen</th>
                   <th className="py-3 pr-4">Nombre</th>
                   <th className="py-3 pr-4 hidden md:table-cell">Categoría</th>
