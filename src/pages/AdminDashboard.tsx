@@ -150,8 +150,9 @@ export default function AdminDashboard() {
   })).filter(s => s.value > 0);
 
   // Upcoming pickups
+  const ACTIVE_FULFILLMENT = ['pendiente', 'confirmado', 'en_preparacion', 'listo'];
   const upcoming = orders
-    ?.filter(o => o.desired_date >= todayStr && o.status !== 'cancelled')
+    ?.filter(o => o.desired_date >= todayStr && o.status !== 'cancelled' && ACTIVE_FULFILLMENT.includes((o as any).fulfillment_status ?? 'pendiente'))
     .sort((a, b) => a.desired_date.localeCompare(b.desired_date))
     .slice(0, 5) ?? [];
 
