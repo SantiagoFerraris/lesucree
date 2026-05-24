@@ -100,6 +100,8 @@ export default function AdminPedidos() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkActionKey, setBulkActionKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
