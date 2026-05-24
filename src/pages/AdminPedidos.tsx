@@ -490,6 +490,26 @@ export default function AdminPedidos() {
           <button onClick={() => setShowExcelImport(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
             <Upload size={14} /> Importar Excel
           </button>
+          <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-[#E8DDD4] bg-white">
+            <label className="flex items-center gap-1 text-xs text-[#7C6354]">
+              <span>Desde</span>
+              <input
+                type="date"
+                value={exportFrom}
+                onChange={e => setExportFrom(e.target.value)}
+                className="text-xs px-1.5 py-1 rounded border border-[#E8DDD4] bg-white focus:outline-none focus:ring-1 focus:ring-dusty-pink"
+              />
+            </label>
+            <label className="flex items-center gap-1 text-xs text-[#7C6354]">
+              <span>Hasta</span>
+              <input
+                type="date"
+                value={exportTo}
+                onChange={e => setExportTo(e.target.value)}
+                className="text-xs px-1.5 py-1 rounded border border-[#E8DDD4] bg-white focus:outline-none focus:ring-1 focus:ring-dusty-pink"
+              />
+            </label>
+          </div>
           <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
             <Download size={14} /> Exportar CSV
           </button>
