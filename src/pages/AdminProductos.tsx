@@ -153,6 +153,9 @@ export default function AdminProductos() {
         featured: form.featured,
         image_url: form.image_url || null,
         status: form.status,
+        urgency_message: form.urgency_message.trim() || null,
+        visible_from: localInputToIso(form.visible_from),
+        visible_until: localInputToIso(form.visible_until),
       } as any;
 
       let productId: string;
