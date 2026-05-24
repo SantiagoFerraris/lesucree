@@ -307,6 +307,63 @@ export default function AdminProductos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
+  // ---- Bulk actions ----
+  const visibleIds = useMemo(() => (paginated || []).map(p => p.id), [paginated]);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some(id => selectedIds.has(id));
+  const toggleRow = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleAllVisible = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach(id => next.delete(id));
+      else visibleIds.forEach(id => next.add(id));
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const runBulkUpdate = async (patch: Record<string, any>, successMsg: string) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase.from('products').update(patch).in('id', ids);
+      if (error) throw error;
+      toast.success(successMsg);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    } catch (e: any) {
+      toast.error(e.message || 'Error al actualizar');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const requestBulk = (label: string, run: () => void) => {
+    const count = selectedIds.size;
+    if (count > 5) setBulkConfirm({ label, count, run });
+    else run();
+  };
+
+  const handleBulkActivate = () => requestBulk('activar', () => runBulkUpdate({ active: true }, 'Productos activados'));
+  const handleBulkDeactivate = () => requestBulk('desactivar', () => runBulkUpdate({ active: false }, 'Productos desactivados'));
+  const handleBulkChangeCategory = () => {
+    if (!bulkCategoryValue) { toast.error('Elegí una categoría'); return; }
+    const value = bulkCategoryValue;
+    const run = () => {
+      runBulkUpdate({ category: value }, 'Categoría actualizada');
+      setBulkCategoryOpen(false);
+      setBulkCategoryValue('');
+    };
+    requestBulk('cambiar categoría', run);
+  };
+
   const duplicateNames = useMemo(() => {
     const counts = new Map<string, number>();
     products?.forEach(p => {
