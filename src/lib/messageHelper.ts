@@ -15,7 +15,7 @@ export interface ReplySuggestion {
   reason: string;
 }
 
-const CATALOG_URL = 'https://lesucree.lovable.app/catalogo';
+const CATALOG_URL = 'https://lesucreepasteleria.com.ar/catalogo';
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   tortas: ['torta', 'tortita', 'pastel', 'cake', 'tarta', 'cumpleaños', 'cumple'],
