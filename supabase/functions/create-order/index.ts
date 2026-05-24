@@ -19,6 +19,7 @@ const OrderSchema = z.object({
   desiredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   preferredTime: z.string().min(1).max(50),
   notes: z.string().max(1000).optional().default(''),
+  giftMessage: z.string().max(200).optional(),
   items: z.array(OrderItemSchema).min(1).max(50),
   couponCode: z.string().trim().min(1).max(50).optional(),
 });
@@ -42,7 +43,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { customerName, customerPhone, customerEmail: rawEmail, desiredDate, preferredTime, notes, items, couponCode } = parsed.data;
+    const { customerName, customerPhone, customerEmail: rawEmail, desiredDate, preferredTime, notes, giftMessage, items, couponCode } = parsed.data;
     const customerEmail = (rawEmail && rawEmail.trim()) ? rawEmail.trim() : null;
     const rateLimitId = customerEmail || normalizePhone(customerPhone) || 'anon';
 
@@ -334,6 +335,7 @@ Deno.serve(async (req) => {
       desired_date: desiredDate,
       preferred_time: preferredTime,
       notes: notes || null,
+      gift_message: (giftMessage && giftMessage.trim()) ? giftMessage.trim() : null,
       items: orderItems,
       subtotal,
       coupon_id: couponId,

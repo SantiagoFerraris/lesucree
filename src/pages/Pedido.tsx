@@ -48,7 +48,7 @@ export default function Pedido() {
   const timeOptions = useMemo(() => parseHoursToOptions(businessHours), [businessHours]);
     const defaultTime = timeOptions[0] || 'Mañana (9-12)';
 
-  const [form, setForm] = useState({ name: '', phone: '', email: '', date: '', time: '', notes: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', date: '', time: '', notes: '', giftMessage: '' });
     const [loading, setLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [success, setSuccess] = useState<{ id: string; name: string; date: string; time: string } | null>(null);
@@ -173,6 +173,7 @@ export default function Pedido() {
                           desiredDate: form.date,
                           preferredTime: form.time,
                           notes: form.notes.trim(),
+                          giftMessage: form.giftMessage.trim() || undefined,
                           items: items.map(i => ({
                                       productId: i.productId,
                                       variantId: i.variantId || undefined,
@@ -203,7 +204,8 @@ export default function Pedido() {
         const serverCouponCode = orderResult.couponCode as string | null | undefined;
         const discountLine = serverDiscount > 0 ? `\n🎟 Cupón ${serverCouponCode}: -${formatPrice(serverDiscount)}` : '';
         const emailLine = form.email.trim() ? `\n📧 ${form.email.trim()}` : '';
-        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}${emailLine}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
+        const giftLine = form.giftMessage.trim() ? `📝 Mensaje: ${form.giftMessage.trim()}\n` : '';
+        const waText = `🛒 Nuevo Pedido #${orderId.slice(0, 8).toUpperCase()}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}${emailLine}\n📅 Retiro: ${form.date} - ${form.time}\n${form.notes.trim() ? `📝 Notas: ${form.notes.trim()}\n` : ''}${giftLine}\n📦 Productos:\n${itemsList}\n\n💵 Subtotal: ${formatPrice(serverSubtotal)}${discountLine}\n💰 Total: ${formatPrice(serverTotal)}`;
         openWhatsApp(whatsappNotification, waText);
 
         clearCart();
@@ -314,6 +316,15 @@ export default function Pedido() {
                                                                             <label htmlFor="pedido-notes" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Notas adicionales</label>
                                                                             <textarea id="pedido-notes" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputBase} border-input focus:ring-dusty-pink/30 min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
                                                                             <span className="text-xs text-warm-gray/50">{form.notes.length}/500</span>
+                                                            </div>
+
+                                                            <div>
+                                                                            <label htmlFor="pedido-gift" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Mensaje para incluir (opcional)</label>
+                                                                            <textarea id="pedido-gift" value={form.giftMessage} onChange={e => setForm(p => ({ ...p, giftMessage: e.target.value.slice(0, 200) }))} className={`${inputBase} border-input focus:ring-dusty-pink/30 min-h-[60px] resize-none`} maxLength={200} placeholder="Ej: ¡Feliz cumple, Lucía!" />
+                                                                            <div className="flex items-center justify-between">
+                                                                              <span className="text-xs text-warm-gray/70">Lo incluiremos junto al pedido.</span>
+                                                                              <span className="text-xs text-warm-gray/50">{form.giftMessage.length}/200</span>
+                                                                            </div>
                                                             </div>
                                               
                                                             <button type="submit" disabled={loading || cooldown > 0} className="w-full rounded-full bg-dusty-pink text-white px-8 py-3.5 text-[15px] font-semibold uppercase tracking-[0.1em] hover:bg-mauve hover:scale-[1.02] transition-all duration-300 active:scale-95 disabled:opacity-60 mt-4">

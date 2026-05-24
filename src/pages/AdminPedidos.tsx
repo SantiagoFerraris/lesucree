@@ -6,6 +6,7 @@ import ExcelImportModal from '@/components/admin/ExcelImportModal';
 import PagosPedidoAdmin from '@/components/admin/PagosPedidoAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { FULFILLMENT_LABELS, FULFILLMENT_COLORS, FULFILLMENT_VALUES, type FulfillmentStatus } from '@/lib/orderFulfillment';
 import { formatPrice } from '@/lib/formatPrice';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -137,6 +138,14 @@ export default function AdminPedidos() {
       if (error) throw error;
     },
     onSuccess: () => { toast.success('Estado de pago actualizado'); qc.invalidateQueries({ queryKey: ['admin-orders'] }); },
+  });
+
+  const updateFulfillment = useMutation({
+    mutationFn: async ({ id, fulfillment_status }: { id: string; fulfillment_status: FulfillmentStatus }) => {
+      const { error } = await supabase.from('orders').update({ fulfillment_status } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success('Estado de preparación actualizado'); qc.invalidateQueries({ queryKey: ['admin-orders'] }); },
   });
 
   const deleteOrders = useMutation({
@@ -549,9 +558,14 @@ export default function AdminPedidos() {
                     </div>
                     <span className="font-semibold text-sm text-[#3B2617] cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{formatPrice(o.total)}</span>
                     <span className="text-xs text-[#7C6354] truncate cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{getProductSummary(o.items as any[])}</span>
-                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${STATUS_COLORS[o.status] || ''}`}>
-                      {STATUS_LABELS[o.status] || o.status}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${STATUS_COLORS[o.status] || ''}`}>
+                        {STATUS_LABELS[o.status] || o.status}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${FULFILLMENT_COLORS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}`} title="Preparación">
+                        {FULFILLMENT_LABELS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}
+                      </span>
+                    </div>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                       {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
                     </span>
@@ -595,6 +609,9 @@ export default function AdminPedidos() {
                             <span className="text-xs text-[#7C6354]">{getProductSummary(o.items as any[])}</span>
                             <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || ''}`}>
                               {STATUS_LABELS[o.status] || o.status}
+                            </span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${FULFILLMENT_COLORS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}`}>
+                              {FULFILLMENT_LABELS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}
                             </span>
                             <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                               {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
@@ -652,6 +669,12 @@ export default function AdminPedidos() {
                       })()}
 
                       {o.notes && <p className="text-sm text-[#7C6354] bg-[#FFFBF5] rounded-lg p-3">{o.notes}</p>}
+                      {o.gift_message && (
+                        <div className="rounded-lg border-l-4 border-dusty-pink bg-blush/30 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-dusty-pink mb-1">Mensaje del cliente:</p>
+                          <p className="text-sm text-espresso italic">{o.gift_message}</p>
+                        </div>
+                      )}
                       <div className="space-y-1">
                         {(o.items as any[]).map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between text-sm">
@@ -687,6 +710,18 @@ export default function AdminPedidos() {
                             <option value="pendiente">Pendiente</option>
                             <option value="seña_recibida">Seña Recibida</option>
                             <option value="pagado_completo">Pagado Completo</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-semibold text-[#9B8578] uppercase">Preparación:</label>
+                          <select
+                            value={(o.fulfillment_status as FulfillmentStatus) || 'pendiente'}
+                            onChange={e => updateFulfillment.mutate({ id: o.id, fulfillment_status: e.target.value as FulfillmentStatus })}
+                            className="rounded-lg border border-[#E8DDD4] bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+                          >
+                            {FULFILLMENT_VALUES.map(v => (
+                              <option key={v} value={v}>{FULFILLMENT_LABELS[v]}</option>
+                            ))}
                           </select>
                         </div>
                       </div>
