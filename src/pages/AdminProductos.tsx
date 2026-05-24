@@ -246,6 +246,9 @@ export default function AdminProductos() {
       featured: p.featured ?? false,
       image_url: p.image_url || '',
       status: getProductStatus(p as any),
+      urgency_message: (p as any).urgency_message || '',
+      visible_from: isoToLocalInput((p as any).visible_from),
+      visible_until: isoToLocalInput((p as any).visible_until),
       variants: existingVariants,
     });
     setShowForm(true);
