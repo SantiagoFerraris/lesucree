@@ -65,6 +65,11 @@ export default function AdminProductos() {
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showPromoDrafts, setShowPromoDrafts] = useState(false);
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+  const [bulkCategoryValue, setBulkCategoryValue] = useState('');
+  const [bulkConfirm, setBulkConfirm] = useState<{ label: string; count: number; run: () => void } | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const { data: promoDraftCount } = useQuery({
     queryKey: ['promo-draft-count'],
@@ -302,6 +307,63 @@ export default function AdminProductos() {
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
+  // ---- Bulk actions ----
+  const visibleIds = useMemo(() => (paginated || []).map(p => p.id), [paginated]);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some(id => selectedIds.has(id));
+  const toggleRow = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleAllVisible = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach(id => next.delete(id));
+      else visibleIds.forEach(id => next.add(id));
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const runBulkUpdate = async (patch: Record<string, any>, successMsg: string) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase.from('products').update(patch).in('id', ids);
+      if (error) throw error;
+      toast.success(successMsg);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    } catch (e: any) {
+      toast.error(e.message || 'Error al actualizar');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const requestBulk = (label: string, run: () => void) => {
+    const count = selectedIds.size;
+    if (count > 5) setBulkConfirm({ label, count, run });
+    else run();
+  };
+
+  const handleBulkActivate = () => requestBulk('activar', () => runBulkUpdate({ active: true }, 'Productos activados'));
+  const handleBulkDeactivate = () => requestBulk('desactivar', () => runBulkUpdate({ active: false }, 'Productos desactivados'));
+  const handleBulkChangeCategory = () => {
+    if (!bulkCategoryValue) { toast.error('Elegí una categoría'); return; }
+    const value = bulkCategoryValue;
+    const run = () => {
+      runBulkUpdate({ category: value }, 'Categoría actualizada');
+      setBulkCategoryOpen(false);
+      setBulkCategoryValue('');
+    };
+    requestBulk('cambiar categoría', run);
+  };
+
   const duplicateNames = useMemo(() => {
     const counts = new Map<string, number>();
     products?.forEach(p => {
@@ -462,10 +524,30 @@ export default function AdminProductos() {
         <p className="text-warm-gray">Cargando...</p>
       ) : (
         <>
+          {selectedIds.size > 0 && (
+            <div className="sticky top-2 z-30 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-dusty-pink/40 bg-white/95 backdrop-blur px-3 py-2 shadow-sm">
+              <span className="text-sm text-espresso font-semibold">{selectedIds.size} seleccionados</span>
+              <div className="flex-1" />
+              <button onClick={handleBulkActivate} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-sage text-white hover:opacity-90 disabled:opacity-60">Activar</button>
+              <button onClick={handleBulkDeactivate} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-500 text-white hover:opacity-90 disabled:opacity-60">Desactivar</button>
+              <button onClick={() => setBulkCategoryOpen(true)} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-espresso text-white hover:opacity-90 disabled:opacity-60">Cambiar categoría</button>
+              <button onClick={clearSelection} disabled={bulkBusy} className="px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-warm-gray hover:bg-gray-50 disabled:opacity-60">Limpiar selección</button>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-warm-gray">
+                  <th className="py-3 pr-3 w-8">
+                    <input
+                      type="checkbox"
+                      aria-label="Seleccionar todos"
+                      checked={allVisibleSelected}
+                      ref={el => { if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected; }}
+                      onChange={toggleAllVisible}
+                      className="rounded"
+                    />
+                  </th>
                   <th className="py-3 pr-4">Imagen</th>
                   <th className="py-3 pr-4">Nombre</th>
                   <th className="py-3 pr-4 hidden md:table-cell">Categoría</th>
@@ -479,7 +561,16 @@ export default function AdminProductos() {
                 {paginated?.map((p, i) => {
                   const vars = getVariants(p.id);
                   return (
-                    <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'}`}>
+                    <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'} ${selectedIds.has(p.id) ? 'bg-blush/40' : ''}`}>
+                      <td className="py-3 pr-3 w-8">
+                        <input
+                          type="checkbox"
+                          aria-label={`Seleccionar ${p.name}`}
+                          checked={selectedIds.has(p.id)}
+                          onChange={() => toggleRow(p.id)}
+                          className="rounded"
+                        />
+                      </td>
                       <td className="py-3 pr-4">
                         <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
                       </td>
@@ -574,6 +665,48 @@ export default function AdminProductos() {
             </div>
           )}
         </>
+      )}
+
+      {/* Bulk change category */}
+      {bulkCategoryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-espresso">Cambiar categoría</h3>
+            <p className="text-sm text-warm-gray mt-2">Aplicar a {selectedIds.size} productos seleccionados.</p>
+            <select
+              value={bulkCategoryValue}
+              onChange={e => setBulkCategoryValue(e.target.value)}
+              className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink"
+            >
+              <option value="">Elegí una categoría…</option>
+              {categories.map(c => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => { setBulkCategoryOpen(false); setBulkCategoryValue(''); }} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
+              <button onClick={handleBulkChangeCategory} disabled={bulkBusy || !bulkCategoryValue} className="flex-1 rounded-full bg-espresso text-white py-2 text-sm font-semibold hover:opacity-90 transition-all active:scale-95 disabled:opacity-60">Aplicar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk >5 confirmation */}
+      {bulkConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-espresso">¿Aplicar a {bulkConfirm.count} productos?</h3>
+            <p className="text-sm text-warm-gray mt-2">Esta acción modificará {bulkConfirm.count} productos.</p>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setBulkConfirm(null)} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
+              <button
+                onClick={() => { const r = bulkConfirm.run; setBulkConfirm(null); r(); }}
+                disabled={bulkBusy}
+                className="flex-1 rounded-full bg-dusty-pink text-white py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95 disabled:opacity-60"
+              >Aplicar</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete confirmation */}
