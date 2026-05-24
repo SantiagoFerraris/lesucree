@@ -94,6 +94,14 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
             {badgeLabel}
           </span>
         )}
+        {statusBehavior.publicBadge && (
+          <span
+            className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full bg-cream text-espresso text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm"
+            aria-label={statusBehavior.publicBadge}
+          >
+            {statusBehavior.publicBadge}
+          </span>
+        )}
       </div>
       <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
