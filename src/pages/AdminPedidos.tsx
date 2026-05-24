@@ -140,6 +140,14 @@ export default function AdminPedidos() {
     onSuccess: () => { toast.success('Estado de pago actualizado'); qc.invalidateQueries({ queryKey: ['admin-orders'] }); },
   });
 
+  const updateFulfillment = useMutation({
+    mutationFn: async ({ id, fulfillment_status }: { id: string; fulfillment_status: FulfillmentStatus }) => {
+      const { error } = await supabase.from('orders').update({ fulfillment_status } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success('Estado de preparación actualizado'); qc.invalidateQueries({ queryKey: ['admin-orders'] }); },
+  });
+
   const deleteOrders = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase.from('orders').delete().in('id', ids);
