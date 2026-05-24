@@ -108,6 +108,17 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
           {categoryLabels[product.category] || product.category}
         </span>
         <h3 className="font-display text-lg font-bold text-espresso mt-1">{product.name}</h3>
+        {(() => {
+          const raw = (product as any).urgency_message as string | null | undefined;
+          const msg = raw?.trim();
+          if (!msg) return null;
+          const text = compact && msg.length > 60 ? msg.slice(0, 60) + '…' : msg;
+          return (
+            <span className="inline-flex items-center self-start mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-[0.05em] uppercase bg-dusty-pink/15 text-dusty-pink border border-dusty-pink/30">
+              {text}
+            </span>
+          );
+        })()}
         {product.description && (
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}

@@ -489,8 +489,12 @@ export type Database = {
           last_price_sync: string | null
           name: string
           price: number
+          sort_order: number
           status: string
           updated_at: string | null
+          urgency_message: string | null
+          visible_from: string | null
+          visible_until: string | null
         }
         Insert: {
           active?: boolean | null
@@ -503,8 +507,12 @@ export type Database = {
           last_price_sync?: string | null
           name: string
           price: number
+          sort_order?: number
           status?: string
           updated_at?: string | null
+          urgency_message?: string | null
+          visible_from?: string | null
+          visible_until?: string | null
         }
         Update: {
           active?: boolean | null
@@ -517,8 +525,12 @@ export type Database = {
           last_price_sync?: string | null
           name?: string
           price?: number
+          sort_order?: number
           status?: string
           updated_at?: string | null
+          urgency_message?: string | null
+          visible_from?: string | null
+          visible_until?: string | null
         }
         Relationships: []
       }

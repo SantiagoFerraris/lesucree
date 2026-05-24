@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -20,10 +20,34 @@ interface ProductFormData {
   featured: boolean;
   image_url: string;
   status: ProductStatus;
+  urgency_message: string;
+  visible_from: string; // datetime-local format YYYY-MM-DDTHH:MM, '' if unset
+  visible_until: string;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', variants: [] };
+
+// Convert ISO timestamp (timestamptz) to value for <input type="datetime-local">
+function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const tzMs = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzMs).toISOString().slice(0, 16);
+}
+function localInputToIso(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+function formatScheduleAR(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
@@ -60,7 +84,7 @@ export default function AdminProductos() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('products').select('*').order('category').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -129,6 +153,9 @@ export default function AdminProductos() {
         featured: form.featured,
         image_url: form.image_url || null,
         status: form.status,
+        urgency_message: form.urgency_message.trim() || null,
+        visible_from: localInputToIso(form.visible_from),
+        visible_until: localInputToIso(form.visible_until),
       } as any;
 
       let productId: string;
@@ -186,6 +213,20 @@ export default function AdminProductos() {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async ({ a, b }: { a: { id: string; sort_order: number }; b: { id: string; sort_order: number } }) => {
+      // Swap sort_order values between two products in the same category
+      const { error: e1 } = await supabase.from('products').update({ sort_order: b.sort_order } as any).eq('id', a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from('products').update({ sort_order: a.sort_order } as any).eq('id', b.id);
+      if (e2) throw e2;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    },
+    onError: (err: any) => toast.error(`Error al reordenar: ${err?.message || 'Error desconocido'}`),
+  });
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -219,6 +260,9 @@ export default function AdminProductos() {
       featured: p.featured ?? false,
       image_url: p.image_url || '',
       status: getProductStatus(p as any),
+      urgency_message: (p as any).urgency_message || '',
+      visible_from: isoToLocalInput((p as any).visible_from),
+      visible_until: isoToLocalInput((p as any).visible_until),
       variants: existingVariants,
     });
     setShowForm(true);
@@ -266,6 +310,47 @@ export default function AdminProductos() {
     });
     return new Set(Array.from(counts.entries()).filter(([, n]) => n > 1).map(([k]) => k));
   }, [products]);
+
+  // For each category, products sorted by sort_order (used to compute up/down neighbors).
+  const categorySortedProducts = useMemo(() => {
+    const map = new Map<string, Tables<'products'>[]>();
+    products?.forEach(p => {
+      const arr = map.get(p.category) || [];
+      arr.push(p);
+      map.set(p.category, arr);
+    });
+    map.forEach((arr) => {
+      arr.sort((a: any, b: any) => {
+        const sa = a.sort_order ?? 0;
+        const sb = b.sort_order ?? 0;
+        if (sa !== sb) return sa - sb;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+    });
+    return map;
+  }, [products]);
+
+  const getCategoryNeighbor = (p: Tables<'products'>, dir: -1 | 1): Tables<'products'> | null => {
+    const list = categorySortedProducts.get(p.category) || [];
+    const idx = list.findIndex(x => x.id === p.id);
+    if (idx === -1) return null;
+    const j = idx + dir;
+    if (j < 0 || j >= list.length) return null;
+    return list[j];
+  };
+
+  const handleMove = (p: Tables<'products'>, dir: -1 | 1) => {
+    const neighbor = getCategoryNeighbor(p, dir);
+    if (!neighbor) return;
+    let aSo = (p as any).sort_order ?? 0;
+    let bSo = (neighbor as any).sort_order ?? 0;
+    // If both share the same sort_order (e.g. legacy zeros), assign deterministic distinct values
+    // so the swap produces the intended ordering. dir=-1 means p moves up (lower number).
+    if (aSo === bSo) {
+      if (dir === -1) { aSo = 20; bSo = 10; } else { aSo = 10; bSo = 20; }
+    }
+    reorderMutation.mutate({ a: { id: p.id, sort_order: aSo }, b: { id: neighbor.id, sort_order: bSo } });
+  };
 
   const exportProductsCSV = () => {
     if (!filtered?.length) return;
@@ -409,6 +494,14 @@ export default function AdminProductos() {
                               </span>
                             );
                           })()}
+                          {((p as any).visible_from || (p as any).visible_until) && (
+                            <span
+                              title={`Visible: ${formatScheduleAR((p as any).visible_from)} → ${formatScheduleAR((p as any).visible_until)}`}
+                              className="inline-flex items-center text-blue-600"
+                            >
+                              <CalendarClock size={13} />
+                            </span>
+                          )}
                           {duplicateNames.has(p.name.trim().toLowerCase()) && (
                             <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
                           )}
@@ -443,7 +536,17 @@ export default function AdminProductos() {
                         </button>
                       </td>
                       <td className="py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {(() => {
+                            const canUp = !!getCategoryNeighbor(p, -1);
+                            const canDown = !!getCategoryNeighbor(p, 1);
+                            return (
+                              <>
+                                <button onClick={() => handleMove(p, -1)} disabled={!canUp || reorderMutation.isPending} aria-label="Mover hacia arriba" className={`p-1.5 rounded-lg transition-colors ${canUp ? 'text-warm-gray hover:bg-blush hover:text-espresso' : 'text-warm-gray/30 cursor-not-allowed'}`}><ArrowUp size={15} /></button>
+                                <button onClick={() => handleMove(p, 1)} disabled={!canDown || reorderMutation.isPending} aria-label="Mover hacia abajo" className={`p-1.5 rounded-lg transition-colors ${canDown ? 'text-warm-gray hover:bg-blush hover:text-espresso' : 'text-warm-gray/30 cursor-not-allowed'}`}><ArrowDown size={15} /></button>
+                              </>
+                            );
+                          })()}
                           <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><Pencil size={15} /></button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -537,6 +640,43 @@ export default function AdminProductos() {
                 <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm(p => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
               </div>
+
+              <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Mensaje de urgencia (opcional)</label>
+                <input
+                  type="text"
+                  maxLength={80}
+                  placeholder="Ej: Solo 3 disponibles este finde"
+                  value={form.urgency_message}
+                  onChange={e => setForm(p => ({ ...p, urgency_message: e.target.value }))}
+                  className={inputClass}
+                />
+                <p className="text-[11px] text-warm-gray mt-1">Si lo dejás vacío, no se muestra nada.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Visible desde</label>
+                  <input
+                    type="datetime-local"
+                    value={form.visible_from}
+                    onChange={e => setForm(p => ({ ...p, visible_from: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Visible hasta</label>
+                  <input
+                    type="datetime-local"
+                    value={form.visible_until}
+                    onChange={e => setForm(p => ({ ...p, visible_until: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-warm-gray -mt-2">Dejá ambos vacíos para mostrar siempre.</p>
+
+
 
 
               {/* Variants section */}

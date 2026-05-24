@@ -28,12 +28,16 @@ export default function Catalogo() {
   const { data: products, isLoading, isError, refetch } = useQuery({
     queryKey: ['products', category],
     queryFn: async () => {
+      const nowIso = new Date().toISOString();
       let q = supabase
         .from('products')
-        .select('id, name, description, price, category, image_url, featured, active, status')
+        .select('id, name, description, price, category, image_url, featured, active, status, sort_order, visible_from, visible_until, urgency_message')
         .eq('active', true)
         .neq('status', 'oculto')
-        .order('name')
+        .or(`visible_from.is.null,visible_from.lte.${nowIso}`)
+        .or(`visible_until.is.null,visible_until.gte.${nowIso}`)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
         .limit(200);
       if (category !== 'todos') q = q.eq('category', category);
       const { data, error } = await q;
