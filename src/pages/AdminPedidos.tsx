@@ -298,8 +298,22 @@ export default function AdminPedidos() {
 
   const exportCSV = () => {
     if (!filtered?.length) return;
+    // Apply optional date range on created_at (inclusive both ends).
+    const fromTs = exportFrom ? new Date(`${exportFrom}T00:00:00`).getTime() : null;
+    const toTs = exportTo ? new Date(`${exportTo}T23:59:59.999`).getTime() : null;
+    const rowsSource = filtered.filter(o => {
+      if (!fromTs && !toTs) return true;
+      const t = new Date(o.created_at).getTime();
+      if (fromTs && t < fromTs) return false;
+      if (toTs && t > toTs) return false;
+      return true;
+    });
+    if (!rowsSource.length) {
+      toast.error('No hay pedidos en el rango seleccionado');
+      return;
+    }
     const headers = ['ID', 'Cliente', 'Email', 'Teléfono', 'Fecha Pedido', 'Fecha Retiro', 'Horario', 'Productos', 'Total', 'Estado', 'Estado de Pago', 'Notas'];
-    const rows = filtered.map(o => [
+    const rows = rowsSource.map(o => [
       o.id.slice(0, 8).toUpperCase(),
       o.customer_name,
       o.customer_email,
@@ -317,7 +331,12 @@ export default function AdminPedidos() {
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `pedidos_${todayStr}.csv`; a.click();
+    const rangeSuffix = (exportFrom || exportTo)
+      ? `-${exportFrom || 'inicio'}-a-${exportTo || 'hoy'}`
+      : `_${todayStr}`;
+    a.href = url;
+    a.download = (exportFrom || exportTo) ? `pedidos${rangeSuffix}.csv` : `pedidos${rangeSuffix}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
