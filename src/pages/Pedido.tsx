@@ -173,6 +173,7 @@ export default function Pedido() {
                           desiredDate: form.date,
                           preferredTime: form.time,
                           notes: form.notes.trim(),
+                          giftMessage: form.giftMessage.trim() || undefined,
                           items: items.map(i => ({
                                       productId: i.productId,
                                       variantId: i.variantId || undefined,
