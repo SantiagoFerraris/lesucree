@@ -55,13 +55,14 @@ export default function Contacto() {
 
         const name = form.name.trim();
         const email = form.email.trim();
+        const phone = form.phone.trim();
         const message = form.message.trim();
 
-        if (!name || !email || !message) {
+        if (!name || !phone || !message) {
                 toast.error('Por favor completá todos los campos obligatorios');
                 return;
         }
-        if (!EMAIL_REGEX.test(email)) {
+        if (email && !EMAIL_REGEX.test(email)) {
                 toast.error('Ingresá un email válido');
                 return;
         }
@@ -73,7 +74,7 @@ export default function Contacto() {
         setLoading(true);
 
         const { data: result, error } = await supabase.functions.invoke('create-contact-message', {
-                body: { name, email, message },
+                body: { name, email: email || null, phone, message },
         });
 
         setLoading(false);
@@ -85,7 +86,7 @@ export default function Contacto() {
 
           toast.success('¡Mensaje enviado! Te responderemos pronto.');
 
-          const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}\n📧 Email: ${email}${form.phone.trim() ? `\n📞 Tel: ${form.phone.trim()}` : ''}\n💬 Mensaje: ${message}`;
+          const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}${email ? `\n📧 Email: ${email}` : ''}${form.phone.trim() ? `\n📞 Tel: ${form.phone.trim()}` : ''}\n💬 Mensaje: ${message}`;
                 openWhatsApp(whatsappNotification, waText);
 
           setForm({ name: '', email: '', phone: '', message: '' });
@@ -172,13 +173,13 @@ export default function Contacto() {
                                         </div>
                             
                                         <div>
-                                                    <label htmlFor="contacto-email" className="sr-only">Email</label>
-                                                    <input id="contacto-email" type="email" placeholder="Email *" aria-label="Email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputClass} maxLength={255} />
+                                                    <label htmlFor="contacto-email" className="sr-only">Email (opcional)</label>
+                                                    <input id="contacto-email" type="email" placeholder="Email (opcional)" aria-label="Email (opcional)" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputClass} maxLength={255} />
                                         </div>
                             
                                         <div>
                                                     <label htmlFor="contacto-phone" className="sr-only">Teléfono</label>
-                                                    <input id="contacto-phone" type="tel" placeholder="Teléfono (opcional)" aria-label="Teléfono" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} maxLength={20} />
+                                                    <input id="contacto-phone" type="tel" placeholder="Teléfono *" aria-label="Teléfono" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputClass} maxLength={20} />
                                         </div>
                             
                                         <div className="relative">
