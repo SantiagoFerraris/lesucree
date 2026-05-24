@@ -84,7 +84,7 @@ export default function AdminProductos() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('products').select('*').order('category').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
       if (error) throw error;
       return data;
     },
