@@ -311,6 +311,45 @@ export default function AdminProductos() {
     return new Set(Array.from(counts.entries()).filter(([, n]) => n > 1).map(([k]) => k));
   }, [products]);
 
+  // For each category, products sorted by sort_order (used to compute up/down neighbors).
+  const categorySortedProducts = useMemo(() => {
+    const map = new Map<string, Tables<'products'>[]>();
+    products?.forEach(p => {
+      const arr = map.get(p.category) || [];
+      arr.push(p);
+      map.set(p.category, arr);
+    });
+    map.forEach((arr) => {
+      arr.sort((a: any, b: any) => {
+        const sa = a.sort_order ?? 0;
+        const sb = b.sort_order ?? 0;
+        if (sa !== sb) return sa - sb;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+    });
+    return map;
+  }, [products]);
+
+  const getCategoryNeighbor = (p: Tables<'products'>, dir: -1 | 1): Tables<'products'> | null => {
+    const list = categorySortedProducts.get(p.category) || [];
+    const idx = list.findIndex(x => x.id === p.id);
+    if (idx === -1) return null;
+    const j = idx + dir;
+    if (j < 0 || j >= list.length) return null;
+    return list[j];
+  };
+
+  const handleMove = (p: Tables<'products'>, dir: -1 | 1) => {
+    const neighbor = getCategoryNeighbor(p, dir);
+    if (!neighbor) return;
+    const aSo = (p as any).sort_order ?? 0;
+    const bSo = (neighbor as any).sort_order ?? 0;
+    // If both are 0 (legacy), seed them so subsequent swaps work
+    const a = { id: p.id, sort_order: aSo === bSo ? aSo : aSo };
+    const b = { id: neighbor.id, sort_order: aSo === bSo ? aSo + (dir === -1 ? 10 : -10) : bSo };
+    reorderMutation.mutate({ a, b });
+  };
+
   const exportProductsCSV = () => {
     if (!filtered?.length) return;
     const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
