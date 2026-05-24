@@ -100,6 +100,8 @@ export default function AdminPedidos() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkActionKey, setBulkActionKey] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -296,8 +298,22 @@ export default function AdminPedidos() {
 
   const exportCSV = () => {
     if (!filtered?.length) return;
+    // Apply optional date range on created_at (inclusive both ends).
+    const fromTs = exportFrom ? new Date(`${exportFrom}T00:00:00`).getTime() : null;
+    const toTs = exportTo ? new Date(`${exportTo}T23:59:59.999`).getTime() : null;
+    const rowsSource = filtered.filter(o => {
+      if (!fromTs && !toTs) return true;
+      const t = new Date(o.created_at).getTime();
+      if (fromTs && t < fromTs) return false;
+      if (toTs && t > toTs) return false;
+      return true;
+    });
+    if (!rowsSource.length) {
+      toast.error('No hay pedidos en el rango seleccionado');
+      return;
+    }
     const headers = ['ID', 'Cliente', 'Email', 'Teléfono', 'Fecha Pedido', 'Fecha Retiro', 'Horario', 'Productos', 'Total', 'Estado', 'Estado de Pago', 'Notas'];
-    const rows = filtered.map(o => [
+    const rows = rowsSource.map(o => [
       o.id.slice(0, 8).toUpperCase(),
       o.customer_name,
       o.customer_email,
@@ -315,7 +331,12 @@ export default function AdminPedidos() {
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `pedidos_${todayStr}.csv`; a.click();
+    const rangeSuffix = (exportFrom || exportTo)
+      ? `-${exportFrom || 'inicio'}-a-${exportTo || 'hoy'}`
+      : `_${todayStr}`;
+    a.href = url;
+    a.download = (exportFrom || exportTo) ? `pedidos${rangeSuffix}.csv` : `pedidos${rangeSuffix}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -469,6 +490,26 @@ export default function AdminPedidos() {
           <button onClick={() => setShowExcelImport(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
             <Upload size={14} /> Importar Excel
           </button>
+          <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-[#E8DDD4] bg-white">
+            <label className="flex items-center gap-1 text-xs text-[#7C6354]">
+              <span>Desde</span>
+              <input
+                type="date"
+                value={exportFrom}
+                onChange={e => setExportFrom(e.target.value)}
+                className="text-xs px-1.5 py-1 rounded border border-[#E8DDD4] bg-white focus:outline-none focus:ring-1 focus:ring-dusty-pink"
+              />
+            </label>
+            <label className="flex items-center gap-1 text-xs text-[#7C6354]">
+              <span>Hasta</span>
+              <input
+                type="date"
+                value={exportTo}
+                onChange={e => setExportTo(e.target.value)}
+                className="text-xs px-1.5 py-1 rounded border border-[#E8DDD4] bg-white focus:outline-none focus:ring-1 focus:ring-dusty-pink"
+              />
+            </label>
+          </div>
           <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E8DDD4] bg-white text-sm text-[#7C6354] hover:bg-[#FFFBF5] transition-colors">
             <Download size={14} /> Exportar CSV
           </button>

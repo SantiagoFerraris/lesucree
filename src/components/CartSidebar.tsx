@@ -50,20 +50,29 @@ export default function CartSidebar() {
                     <h4 className="text-sm font-semibold text-espresso truncate">{item.productName}</h4>
                     {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
                     <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <button
-                        onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
-                        className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span className="text-sm font-semibold text-espresso w-5 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
-                        className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center text-warm-gray hover:border-dusty-pink hover:text-dusty-pink transition-colors"
-                      >
-                        <Plus size={12} />
-                      </button>
+                    <div className="flex items-center justify-between gap-2 mt-1.5">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => updateQuantity(item.productId, item.variantId, item.quantity - 1)}
+                          aria-label="Disminuir cantidad"
+                          className="w-11 h-11 -m-2.5 flex items-center justify-center text-warm-gray hover:text-dusty-pink transition-colors"
+                        >
+                          <span className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center">
+                            <Minus size={12} />
+                          </span>
+                        </button>
+                        <span className="text-sm font-semibold text-espresso w-5 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.productId, item.variantId, item.quantity + 1)}
+                          aria-label="Aumentar cantidad"
+                          className="w-11 h-11 -m-2.5 flex items-center justify-center text-warm-gray hover:text-dusty-pink transition-colors"
+                        >
+                          <span className="w-6 h-6 rounded-full border border-warm-gray/30 flex items-center justify-center">
+                            <Plus size={12} />
+                          </span>
+                        </button>
+                      </div>
+                      <p className="text-sm font-bold text-espresso whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
                     </div>
                   </div>
                   <button
@@ -88,7 +97,7 @@ export default function CartSidebar() {
         {items.length > 0 && (
           <div className="p-5 border-t border-blush space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-body text-warm-gray">Subtotal</span>
+              <span className="font-body text-warm-gray">Total:</span>
               <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
             </div>
             <Link

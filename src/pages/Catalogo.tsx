@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw, Filter, ChevronDown, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
@@ -18,6 +18,9 @@ export default function Catalogo() {
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
   const [page, setPage] = useState(1);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [chipsExpanded, setChipsExpanded] = useState(false);
+  const [overflowCount, setOverflowCount] = useState(0);
   const reveal = useScrollReveal();
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,37 @@ export default function Catalogo() {
     }
   };
 
+  // Detect chip overflow on desktop carousel (for "+N más" toggle)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || chipsExpanded) { setOverflowCount(0); return; }
+    const measure = () => {
+      const containerRight = el.getBoundingClientRect().right;
+      const children = Array.from(el.children) as HTMLElement[];
+      let hidden = 0;
+      children.forEach(c => {
+        if (c.getBoundingClientRect().right > containerRight + 1) hidden++;
+      });
+      setOverflowCount(hidden);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [filterOptions.length, chipsExpanded]);
+
+  const currentCategoryLabel = (filterOptions.find(o => o.value === category)?.label || 'Todos').toUpperCase();
+
+  // Lock body scroll when mobile filter overlay is open
+  useEffect(() => {
+    if (mobileFilterOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [mobileFilterOpen]);
+
   return (
     <section className="pt-[72px]">
       <SEOHead title="Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée" description="Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano." path="/catalogo" />
@@ -97,18 +131,37 @@ export default function Catalogo() {
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Catálogo</h1>
           <p className="text-center text-sm text-warm-gray mt-2">Pedidos con 48hs de anticipación</p>
 
-          <div className="relative mt-6 sm:mt-10">
+          {/* Mobile: full-screen filter trigger */}
+          <div className="mt-6 sm:hidden">
             <button
-              onClick={() => scrollCategories('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
-              aria-label="Scroll izquierda"
+              onClick={() => setMobileFilterOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={mobileFilterOpen}
+              className="w-full min-h-[44px] flex items-center justify-between gap-2 rounded-full bg-white border border-dusty-pink/40 text-espresso px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none"
             >
-              <ChevronLeft size={16} />
+              <span className="flex items-center gap-2">
+                <Filter size={16} className="text-dusty-pink" />
+                <span>FILTRAR — {currentCategoryLabel}</span>
+              </span>
+              <ChevronDown size={16} className="text-dusty-pink" />
             </button>
+          </div>
+
+          {/* Desktop: chip carousel (unchanged behavior) + "+N más" overflow toggle */}
+          <div className="relative mt-6 sm:mt-10 hidden sm:block">
+            {!chipsExpanded && (
+              <button
+                onClick={() => scrollCategories('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
+                aria-label="Scroll izquierda"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
 
             <div
               ref={scrollRef}
-              className="flex gap-1.5 sm:gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide mx-10 px-1"
+              className={`flex gap-1.5 sm:gap-2 md:gap-3 pb-2 px-1 ${chipsExpanded ? 'flex-wrap justify-center' : 'flex-nowrap overflow-x-auto scrollbar-hide mx-10'}`}
             >
               {filterOptions.map(c => (
                 <button
@@ -122,14 +175,58 @@ export default function Catalogo() {
               ))}
             </div>
 
-            <button
-              onClick={() => scrollCategories('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
-              aria-label="Scroll derecha"
-            >
-              <ChevronRight size={16} />
-            </button>
+            {!chipsExpanded && (
+              <button
+                onClick={() => scrollCategories('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
+                aria-label="Scroll derecha"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+
+            {(overflowCount > 0 || chipsExpanded) && (
+              <div className="flex justify-center mt-2">
+                <button
+                  onClick={() => setChipsExpanded(v => !v)}
+                  className="text-xs font-semibold uppercase tracking-[0.06em] text-dusty-pink hover:text-mauve transition-colors px-3 py-1 rounded-full"
+                >
+                  {chipsExpanded ? 'Mostrar menos' : `+${overflowCount} más`}
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Mobile full-screen filter overlay (mirrors Navbar mobile menu pattern) */}
+          {mobileFilterOpen && (
+            <div className="fixed inset-x-0 top-[72px] bottom-0 z-[60] bg-cream sm:hidden animate-fade-in">
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                aria-label="Cerrar"
+                className="absolute top-4 right-4 p-2 text-espresso active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded"
+              >
+                <X size={24} />
+              </button>
+              <div className="flex h-full flex-col items-center pt-10 px-6 overflow-y-auto">
+                <h2 className="font-script text-[32px] sm:text-[40px] text-espresso text-center">Categorías</h2>
+                <div className="flex flex-col items-center gap-5 mt-8 w-full">
+                  {filterOptions.map(c => (
+                    <button
+                      key={c.value}
+                      onClick={() => {
+                        setCategory(c.value);
+                        setPage(1);
+                        setTimeout(() => setMobileFilterOpen(false), 200);
+                      }}
+                      className={`min-h-[44px] nav-link text-lg ${category === c.value ? 'nav-link-active' : ''}`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div ref={gridRef}>
             <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
