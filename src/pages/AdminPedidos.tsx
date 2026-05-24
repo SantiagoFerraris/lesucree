@@ -681,7 +681,8 @@ export default function AdminPedidos() {
                       {/* Payment summary strip */}
                       {(() => {
                         const total = Number(o.total) || 0;
-                        const paid = Number(o.deposit_amount) || 0;
+                        const isBalancePaid = !!o.balance_paid_at;
+                        const paid = isBalancePaid ? total : Math.min(total, Math.max(0, Number(o.deposit_amount) || 0));
                         const remaining = Math.max(0, total - paid);
                         const progress = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
                         return (
