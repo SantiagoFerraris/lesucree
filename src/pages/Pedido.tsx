@@ -412,19 +412,9 @@ export default function Pedido() {
                                                                                     <span className="font-display text-xl font-bold text-espresso">{formatPrice(finalTotal)}</span>
                                                                                 </div>
                                                                              </div>
-                                                                             {(() => {
-                                                                                 const minPct = Number(settings?.min_deposit_percentage || 30);
-                                                                                 const maxPct = Number(settings?.max_deposit_percentage || 70);
-                                                                                 const minAmt = Math.round(finalTotal * minPct / 100);
-                                                                                 const maxAmt = Math.round(finalTotal * maxPct / 100);
-                                                                                 return (
-                                                                                     <div className="mt-3 rounded-xl bg-blush/30 border border-dusty-pink/30 p-3 text-xs text-espresso/80 leading-relaxed">
-                                                                                         💳 Estás pagando una seña del <strong>{minPct}% al {maxPct}%</strong> del total
-                                                                                         (<strong>{formatPrice(minAmt)} – {formatPrice(maxAmt)}</strong>).
-                                                                                         El saldo se abona el día del retiro.
-                                                                                     </div>
-                                                                                 );
-                                                                             })()}
+                                                                             <div className="mt-3 rounded-xl bg-blush/30 border border-dusty-pink/30 p-3 text-xs text-espresso/80 leading-relaxed">
+                                                                                 💳 Para confirmar tu pedido se requiere una seña del <strong>50%</strong>. El saldo restante se abona el día del retiro.
+                                                                             </div>
                                                              </div>
                                               </div>
                                   </div>
