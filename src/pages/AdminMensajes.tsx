@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2, Search, CheckCircle, Circle, Mail, MessageCircle, Lightbulb, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { Trash2, Search, CheckCircle, Circle, MessageCircle, Lightbulb, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateReplySuggestion } from '@/lib/messageHelper';
 import { buildWhatsAppUrl } from '@/lib/insightEngine';
-import { getWhatsAppLink } from '@/lib/whatsapp';
+
 
 export default function AdminMensajes() {
   const qc = useQueryClient();
