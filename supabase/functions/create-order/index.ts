@@ -335,6 +335,7 @@ Deno.serve(async (req) => {
       desired_date: desiredDate,
       preferred_time: preferredTime,
       notes: notes || null,
+      gift_message: (giftMessage && giftMessage.trim()) ? giftMessage.trim() : null,
       items: orderItems,
       subtotal,
       coupon_id: couponId,
