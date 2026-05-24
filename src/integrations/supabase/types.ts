@@ -155,7 +155,7 @@ export type Database = {
       contact_messages: {
         Row: {
           created_at: string | null
-          email: string
+          email: string | null
           id: string
           is_auto: boolean | null
           message: string
@@ -163,12 +163,13 @@ export type Database = {
           name: string
           notified_at: string | null
           order_id: string | null
+          phone: string | null
           read: boolean | null
           sent: boolean | null
         }
         Insert: {
           created_at?: string | null
-          email: string
+          email?: string | null
           id?: string
           is_auto?: boolean | null
           message: string
@@ -176,12 +177,13 @@ export type Database = {
           name: string
           notified_at?: string | null
           order_id?: string | null
+          phone?: string | null
           read?: boolean | null
           sent?: boolean | null
         }
         Update: {
           created_at?: string | null
-          email?: string
+          email?: string | null
           id?: string
           is_auto?: boolean | null
           message?: string
@@ -189,6 +191,7 @@ export type Database = {
           name?: string
           notified_at?: string | null
           order_id?: string | null
+          phone?: string | null
           read?: boolean | null
           sent?: boolean | null
         }
