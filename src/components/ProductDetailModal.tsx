@@ -73,14 +73,25 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
           )}
 
           <div className="mt-4 flex items-baseline gap-3 flex-wrap">
-            <p className="font-body text-2xl font-semibold text-espresso">{formatPrice(currentPrice)}</p>
-            {hasDiscount && (
+            {statusBehavior.showPrice ? (
               <>
-                <span className="text-sm text-warm-gray line-through">{formatPrice(basePrice)}</span>
-                <span className="text-[11px] uppercase tracking-[0.1em] font-semibold px-2 py-1 rounded-full bg-dusty-pink/15 text-dusty-pink">
-                  {promo?.discount_type === 'percentage' ? `-${promo.discount_value}%` : 'Oferta'}
-                </span>
+                <p className="font-body text-2xl font-semibold text-espresso">{formatPrice(currentPrice)}</p>
+                {hasDiscount && (
+                  <>
+                    <span className="text-sm text-warm-gray line-through">{formatPrice(basePrice)}</span>
+                    <span className="text-[11px] uppercase tracking-[0.1em] font-semibold px-2 py-1 rounded-full bg-dusty-pink/15 text-dusty-pink">
+                      {promo?.discount_type === 'percentage' ? `-${promo.discount_value}%` : 'Oferta'}
+                    </span>
+                  </>
+                )}
               </>
+            ) : (
+              <p className="font-body text-base text-warm-gray italic">Precio a confirmar</p>
+            )}
+            {statusBehavior.publicBadge && (
+              <span className="text-[11px] uppercase tracking-[0.1em] font-semibold px-2 py-1 rounded-full bg-cream text-espresso border border-espresso/20">
+                {statusBehavior.publicBadge}
+              </span>
             )}
           </div>
           {hasDiscount && promo?.banner_text && (
@@ -101,7 +112,12 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <button
               onClick={handleAdd}
-              className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-[0.08em] transition-all active:scale-95 ${added ? 'bg-sage text-white' : 'bg-dusty-pink text-white hover:bg-mauve'}`}
+              disabled={!statusBehavior.canAddToCart}
+              className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-[0.08em] transition-all active:scale-95 ${
+                !statusBehavior.canAddToCart
+                  ? 'bg-warm-gray/20 text-warm-gray cursor-not-allowed'
+                  : added ? 'bg-sage text-white' : 'bg-dusty-pink text-white hover:bg-mauve'
+              }`}
             >
               {added ? <><Check size={16} /> ¡Agregado!</> : <><ShoppingBag size={16} /> Agregar al Pedido</>}
             </button>
