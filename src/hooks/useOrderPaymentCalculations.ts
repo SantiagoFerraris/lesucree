@@ -22,6 +22,7 @@ export interface OrderPaymentCalculations {
   isDepositConfirmed: boolean;
   canConfirmDeposit: boolean;
   depositPercentage: number;
+  isBalancePaid: boolean;
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
