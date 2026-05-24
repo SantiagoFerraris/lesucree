@@ -489,6 +489,7 @@ export type Database = {
           last_price_sync: string | null
           name: string
           price: number
+          status: string
           updated_at: string | null
         }
         Insert: {
@@ -502,6 +503,7 @@ export type Database = {
           last_price_sync?: string | null
           name: string
           price: number
+          status?: string
           updated_at?: string | null
         }
         Update: {
@@ -515,6 +517,7 @@ export type Database = {
           last_price_sync?: string | null
           name?: string
           price?: number
+          status?: string
           updated_at?: string | null
         }
         Relationships: []
