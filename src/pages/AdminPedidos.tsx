@@ -60,11 +60,6 @@ const PAGE_SIZE = 10;
 
 const PAYMENT_SORT_ORDER: Record<string, number> = { pendiente: 0, 'seña_recibida': 1, 'pagado_completo': 2 };
 
-import { getWhatsAppLink } from '@/lib/whatsapp';
-
-function buildWhatsAppUrl(phone: string, message: string): string {
-  return getWhatsAppLink(phone, message) ?? '#';
-}
 
 function getStatusBorder(status: string): string {
   if (status === 'pending') return 'border-l-4 border-l-[#F59E0B]';

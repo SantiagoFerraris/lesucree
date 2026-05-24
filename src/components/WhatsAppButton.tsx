@@ -1,9 +1,10 @@
-import { WHATSAPP_URL } from '@/lib/constants';
+import { WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 export default function WhatsAppButton() {
   return (
     <a
-      href={WHATSAPP_URL}
+      href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-20 md:bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:outline-none animate-whatsapp-pulse"

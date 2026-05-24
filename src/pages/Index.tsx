@@ -9,7 +9,8 @@ import SEOHead from "@/components/SEOHead";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useCategories } from "@/hooks/useCategories";
 import { useActivePromotions } from "@/hooks/useActivePromotions";
-import { WHATSAPP_URL, WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
+import { WHATSAPP_NUMBER, INSTAGRAM_URL, INSTAGRAM_HANDLE } from "@/lib/constants";
+import { getWhatsAppLink } from "@/lib/whatsapp";
 import { formatPrice } from "@/lib/formatPrice";
 import ProductImage from "@/components/ProductImage";
 import { useCart } from "@/contexts/CartContext";
@@ -202,7 +203,7 @@ function FeaturedSection() {
             Ver Catálogo
           </Link>
           <a
-            href={WHATSAPP_URL}
+            href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-[#25D366] hover:text-[#1da851] font-semibold transition-colors text-sm"
@@ -332,7 +333,7 @@ function WhatsAppCTA() {
           Tortas personalizadas, pedidos especiales o consultas — Escribime por WhatsApp y te respondo lo antes posible.
         </p>
         <a
-          href={WHATSAPP_URL}
+          href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full bg-[#25D366] text-white px-12 py-5 text-[16px] font-semibold uppercase tracking-[0.1em] hover:bg-[#1da851] hover:scale-[1.02] transition-all duration-300 active:scale-95 shadow-lg mt-8 max-w-md mx-auto animate-whatsapp-pulse"

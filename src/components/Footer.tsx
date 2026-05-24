@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Instagram, MapPin, Phone, Clock } from 'lucide-react';
-import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_URL, WHATSAPP_NUMBER } from '@/lib/constants';
+import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_NUMBER } from '@/lib/constants';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 export default function Footer() {
   return (
@@ -41,7 +42,7 @@ export default function Footer() {
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="Instagram de Le Sucrée">
               <Instagram size={16} /> {INSTAGRAM_HANDLE}
             </a>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="WhatsApp de Le Sucrée">
+            <a href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="WhatsApp de Le Sucrée">
               📱 WhatsApp
             </a>
           </div>
