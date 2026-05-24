@@ -135,12 +135,15 @@ function FeaturedSection() {
   const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
     queryFn: async () => {
+      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, description, price, category, image_url, featured, active, status")
+        .select("id, name, description, price, category, image_url, featured, active, status, sort_order, visible_from, visible_until, urgency_message")
         .eq("featured", true)
         .eq("active", true)
         .neq("status", "oculto")
+        .or(`visible_from.is.null,visible_from.lte.${nowIso}`)
+        .or(`visible_until.is.null,visible_until.gte.${nowIso}`)
         .limit(6);
       if (error) throw error;
       return data as Tables<"products">[];
