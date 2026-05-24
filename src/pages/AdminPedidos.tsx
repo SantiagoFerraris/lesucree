@@ -610,6 +610,9 @@ export default function AdminPedidos() {
                             <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[o.status] || ''}`}>
                               {STATUS_LABELS[o.status] || o.status}
                             </span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${FULFILLMENT_COLORS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}`}>
+                              {FULFILLMENT_LABELS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}
+                            </span>
                             <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                               {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
                             </span>
