@@ -401,6 +401,14 @@ export default function AdminProductos() {
                       <td className="py-3 pr-4 font-medium text-espresso">
                         <span className="flex items-center gap-1.5 flex-wrap">
                           {p.name}
+                          {(() => {
+                            const st = getProductStatus(p as any);
+                            return (
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${PRODUCT_STATUS_BEHAVIOR[st].adminChipClasses}`}>
+                                {PRODUCT_STATUS_LABELS[st]}
+                              </span>
+                            );
+                          })()}
                           {duplicateNames.has(p.name.trim().toLowerCase()) && (
                             <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
                           )}
