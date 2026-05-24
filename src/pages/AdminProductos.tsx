@@ -536,7 +536,17 @@ export default function AdminProductos() {
                         </button>
                       </td>
                       <td className="py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {(() => {
+                            const canUp = !!getCategoryNeighbor(p, -1);
+                            const canDown = !!getCategoryNeighbor(p, 1);
+                            return (
+                              <>
+                                <button onClick={() => handleMove(p, -1)} disabled={!canUp || reorderMutation.isPending} aria-label="Mover hacia arriba" className={`p-1.5 rounded-lg transition-colors ${canUp ? 'text-warm-gray hover:bg-blush hover:text-espresso' : 'text-warm-gray/30 cursor-not-allowed'}`}><ArrowUp size={15} /></button>
+                                <button onClick={() => handleMove(p, 1)} disabled={!canDown || reorderMutation.isPending} aria-label="Mover hacia abajo" className={`p-1.5 rounded-lg transition-colors ${canDown ? 'text-warm-gray hover:bg-blush hover:text-espresso' : 'text-warm-gray/30 cursor-not-allowed'}`}><ArrowDown size={15} /></button>
+                              </>
+                            );
+                          })()}
                           <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-blush transition-colors text-warm-gray hover:text-espresso"><Pencil size={15} /></button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
