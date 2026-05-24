@@ -6,6 +6,7 @@ import { getWhatsAppLink } from '@/lib/whatsapp';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCart } from '@/contexts/CartContext';
 import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
+import { getProductStatusBehavior } from '@/lib/productStatus';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
@@ -18,6 +19,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const { addToCart, setIsOpen } = useCart();
   const promosMap = useActivePromotions();
   const productPromos = promosMap.get(product.id);
+  const statusBehavior = getProductStatusBehavior(product as any);
 
   const basePrice = selectedVariant?.price ?? product.price;
   const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
