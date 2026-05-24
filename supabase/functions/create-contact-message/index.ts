@@ -12,8 +12,8 @@ function stripHtmlTags(str: string): string {
 
 const ContactSchema = z.object({
   name: z.string().trim().min(1).max(200),
-  email: z.string().trim().email().max(320).optional().or(z.literal('').transform(() => undefined)),
-  phone: z.string().trim().max(20).optional().or(z.literal('').transform(() => undefined)),
+  email: z.preprocess((v) => (v === null || v === '' ? undefined : v), z.string().trim().email().max(320).optional()),
+  phone: z.preprocess((v) => (v === null || v === '' ? undefined : v), z.string().trim().max(20).optional()),
   message: z.string().trim().min(1).max(1000).transform(stripHtmlTags),
 });
 
