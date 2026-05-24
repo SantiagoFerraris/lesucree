@@ -76,6 +76,7 @@ export default function PagosPedidoAdmin({ order, open, onOpenChange }: Props) {
     status: order?.status,
     min_deposit_percentage: cfg.minPct,
     max_deposit_percentage: cfg.maxPct,
+    balance_paid_at: order?.balance_paid_at,
   });
 
   const configMissing = !cfg.alias || !cfg.pickupAddress;
@@ -178,6 +179,20 @@ setEditing(null);
       return;
     }
     toast.success('Seña actualizada');
+    qc.invalidateQueries({ queryKey: ['admin-orders'] });
+    qc.invalidateQueries({ queryKey: ['pending-payments'] });
+  };
+
+  const saveBalancePaid = async () => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ balance_paid_at: new Date().toISOString() } as any)
+      .eq('id', order.id);
+    if (error) {
+      toast.error('No se pudo registrar el pago');
+      return;
+    }
+    toast.success('✅ Saldo registrado — pedido pagado completo');
     qc.invalidateQueries({ queryKey: ['admin-orders'] });
     qc.invalidateQueries({ queryKey: ['pending-payments'] });
   };
@@ -319,8 +334,21 @@ setEditing(null);
               ) : (
                 <li>• Sin pagos registrados</li>
               )}
-              {calc.remainingBalance > 0 && (
+              {!calc.isBalancePaid && calc.remainingBalance > 0 && (
                 <li>• Próximo pago: <span className="text-espresso font-semibold">{formatPrice(calc.remainingBalance)}</span> – vence el {formatDateSpanish(order.desired_date)}</li>
+              )}
+              {!calc.isBalancePaid && calc.remainingBalance > 0 && calc.isDepositConfirmed && (
+                <li className="mt-2">
+                  <button
+                    onClick={saveBalancePaid}
+                    className="flex items-center gap-2 rounded-lg bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 size={13} /> Marcar saldo pagado ({formatPrice(calc.remainingBalance)})
+                  </button>
+                </li>
+              )}
+              {calc.isBalancePaid && order.balance_paid_at && (
+                <li>• Saldo abonado: <span className="text-emerald-700 font-semibold">{formatPrice(Number(order.total) - Number(order.deposit_amount))}</span> el {formatDateSpanish(order.balance_paid_at)} ✅</li>
               )}
             </ul>
           </div>
