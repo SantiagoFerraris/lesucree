@@ -6,6 +6,7 @@ import { useCategories, buildCategoryLabels, type Category } from '@/hooks/useCa
 import { useActivePromotions, applyBestPromotion, type ActivePromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
+import { getProductStatusBehavior } from '@/lib/productStatus';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Props {
