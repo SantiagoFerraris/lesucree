@@ -669,6 +669,12 @@ export default function AdminPedidos() {
                       })()}
 
                       {o.notes && <p className="text-sm text-[#7C6354] bg-[#FFFBF5] rounded-lg p-3">{o.notes}</p>}
+                      {o.gift_message && (
+                        <div className="rounded-lg border-l-4 border-dusty-pink bg-blush/30 p-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-dusty-pink mb-1">Mensaje del cliente:</p>
+                          <p className="text-sm text-espresso italic">{o.gift_message}</p>
+                        </div>
+                      )}
                       <div className="space-y-1">
                         {(o.items as any[]).map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between text-sm">
