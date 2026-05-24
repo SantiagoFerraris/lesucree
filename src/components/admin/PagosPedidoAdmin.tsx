@@ -334,8 +334,21 @@ setEditing(null);
               ) : (
                 <li>• Sin pagos registrados</li>
               )}
-              {calc.remainingBalance > 0 && (
+              {!calc.isBalancePaid && calc.remainingBalance > 0 && (
                 <li>• Próximo pago: <span className="text-espresso font-semibold">{formatPrice(calc.remainingBalance)}</span> – vence el {formatDateSpanish(order.desired_date)}</li>
+              )}
+              {!calc.isBalancePaid && calc.remainingBalance > 0 && calc.isDepositConfirmed && (
+                <li className="mt-2">
+                  <button
+                    onClick={saveBalancePaid}
+                    className="flex items-center gap-2 rounded-lg bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 size={13} /> Marcar saldo pagado ({formatPrice(calc.remainingBalance)})
+                  </button>
+                </li>
+              )}
+              {calc.isBalancePaid && order.balance_paid_at && (
+                <li>• Saldo abonado: <span className="text-emerald-700 font-semibold">{formatPrice(Number(order.total) - Number(order.deposit_amount))}</span> el {formatDateSpanish(order.balance_paid_at)} ✅</li>
               )}
             </ul>
           </div>
