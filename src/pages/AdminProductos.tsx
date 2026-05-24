@@ -516,6 +516,18 @@ export default function AdminProductos() {
                 </select>
               </div>
               <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Estado</label>
+                <select
+                  value={form.status}
+                  onChange={e => setForm(p => ({ ...p, status: e.target.value as ProductStatus }))}
+                  className={inputClass}
+                >
+                  {PRODUCT_STATUS_VALUES.map(s => (
+                    <option key={s} value={s}>{PRODUCT_STATUS_LABELS[s]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Imagen</label>
                 {form.image_url && <img src={form.image_url} alt="Preview" className="w-24 h-24 rounded-lg object-cover mt-2 mb-2" />}
                 <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} className="text-sm" disabled={uploading} />
