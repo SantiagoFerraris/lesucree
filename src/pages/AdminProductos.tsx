@@ -217,6 +217,7 @@ export default function AdminProductos() {
       category: p.category,
       featured: p.featured ?? false,
       image_url: p.image_url || '',
+      status: getProductStatus(p as any),
       variants: existingVariants,
     });
     setShowForm(true);
