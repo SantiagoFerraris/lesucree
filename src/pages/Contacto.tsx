@@ -6,6 +6,7 @@ import { WHATSAPP_NUMBER, WHATSAPP_NOTIFICATION_NUMBER, INSTAGRAM_URL, INSTAGRAM
 import { getWhatsAppLink, openWhatsApp } from '@/lib/whatsapp';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import SectionDivider from '@/components/SectionDivider';
+import FAQ from '@/components/FAQ';
 import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
@@ -196,6 +197,7 @@ export default function Contacto() {
                 </div>
                       </div>
               </div>
+        <FAQ />
         </section>
       );
 }
