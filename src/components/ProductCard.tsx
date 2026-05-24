@@ -6,6 +6,7 @@ import { useCategories, buildCategoryLabels, type Category } from '@/hooks/useCa
 import { useActivePromotions, applyBestPromotion, type ActivePromotion } from '@/hooks/useActivePromotions';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
+import { getProductStatusBehavior } from '@/lib/productStatus';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Props {
@@ -27,6 +28,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
   const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
   const productPromos = promosMap.get(product.id);
+  const statusBehavior = getProductStatusBehavior(product as any);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
@@ -92,6 +94,14 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
             {badgeLabel}
           </span>
         )}
+        {statusBehavior.publicBadge && (
+          <span
+            className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full bg-cream text-espresso text-[10px] font-semibold tracking-[0.1em] uppercase shadow-sm"
+            aria-label={statusBehavior.publicBadge}
+          >
+            {statusBehavior.publicBadge}
+          </span>
+        )}
       </div>
       <div className="p-6 flex flex-col flex-1">
         <span className="text-xs uppercase tracking-[0.08em] font-semibold text-warm-gray">
@@ -102,8 +112,8 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
 
-        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) */}
-        {!compact && minVariantPrice !== null && (
+        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) and when status hides price */}
+        {!compact && statusBehavior.showPrice && minVariantPrice !== null && (
           <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
             <span className={minVariantOriginal !== null && minVariantPrice < minVariantOriginal ? 'font-bold text-dusty-pink' : ''}>
               Desde {formatPrice(minVariantPrice)}
@@ -138,20 +148,29 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
             <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
-              <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
-              {hasDiscount && (
-                <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(basePrice)}</span>
+              {statusBehavior.showPrice ? (
+                <>
+                  <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
+                  {hasDiscount && (
+                    <span className="text-sm text-warm-gray/80 line-through font-medium">{formatPrice(basePrice)}</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-sm text-warm-gray font-medium">Precio a confirmar</span>
               )}
             </span>
             <button
               onClick={handleAdd}
+              disabled={!statusBehavior.canAddToCart}
               className={`flex items-center gap-1.5 text-xs uppercase tracking-[0.08em] font-semibold px-5 py-2.5 rounded-full border-[1.5px] transition-all duration-300 active:scale-95 ${
-                added
-                  ? 'bg-sage text-white border-sage'
-                  : 'border-espresso text-espresso hover:bg-espresso hover:text-white'
+                !statusBehavior.canAddToCart
+                  ? 'border-warm-gray/40 text-warm-gray/60 cursor-not-allowed'
+                  : added
+                    ? 'bg-sage text-white border-sage'
+                    : 'border-espresso text-espresso hover:bg-espresso hover:text-white'
               }`}
             >
-                            {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
+              {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
             </button>
           </div>
         )}

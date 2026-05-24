@@ -9,6 +9,7 @@ import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Tables } from '@/integrations/supabase/types';
+import { PRODUCT_STATUS_VALUES, PRODUCT_STATUS_LABELS, PRODUCT_STATUS_BEHAVIOR, getProductStatus, type ProductStatus } from '@/lib/productStatus';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
 interface ProductFormData {
@@ -18,10 +19,11 @@ interface ProductFormData {
   category: string;
   featured: boolean;
   image_url: string;
+  status: ProductStatus;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', variants: [] };
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
@@ -126,7 +128,8 @@ export default function AdminProductos() {
         category: form.category,
         featured: form.featured,
         image_url: form.image_url || null,
-      };
+        status: form.status,
+      } as any;
 
       let productId: string;
       if (editing) {
@@ -215,6 +218,7 @@ export default function AdminProductos() {
       category: p.category,
       featured: p.featured ?? false,
       image_url: p.image_url || '',
+      status: getProductStatus(p as any),
       variants: existingVariants,
     });
     setShowForm(true);
@@ -397,6 +401,14 @@ export default function AdminProductos() {
                       <td className="py-3 pr-4 font-medium text-espresso">
                         <span className="flex items-center gap-1.5 flex-wrap">
                           {p.name}
+                          {(() => {
+                            const st = getProductStatus(p as any);
+                            return (
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${PRODUCT_STATUS_BEHAVIOR[st].adminChipClasses}`}>
+                                {PRODUCT_STATUS_LABELS[st]}
+                              </span>
+                            );
+                          })()}
                           {duplicateNames.has(p.name.trim().toLowerCase()) && (
                             <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
                           )}
@@ -500,6 +512,18 @@ export default function AdminProductos() {
                 <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className={inputClass}>
                   {categories.map(c => (
                     <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Estado</label>
+                <select
+                  value={form.status}
+                  onChange={e => setForm(p => ({ ...p, status: e.target.value as ProductStatus }))}
+                  className={inputClass}
+                >
+                  {PRODUCT_STATUS_VALUES.map(s => (
+                    <option key={s} value={s}>{PRODUCT_STATUS_LABELS[s]}</option>
                   ))}
                 </select>
               </div>
