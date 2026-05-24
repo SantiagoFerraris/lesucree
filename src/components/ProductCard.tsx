@@ -28,6 +28,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
   const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
   const productPromos = promosMap.get(product.id);
+  const statusBehavior = getProductStatusBehavior(product as any);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
