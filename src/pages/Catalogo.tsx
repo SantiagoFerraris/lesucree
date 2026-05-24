@@ -18,6 +18,9 @@ export default function Catalogo() {
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
   const [page, setPage] = useState(1);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [chipsExpanded, setChipsExpanded] = useState(false);
+  const [overflowCount, setOverflowCount] = useState(0);
   const reveal = useScrollReveal();
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
