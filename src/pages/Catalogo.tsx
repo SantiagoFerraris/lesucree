@@ -92,6 +92,37 @@ export default function Catalogo() {
     }
   };
 
+  // Detect chip overflow on desktop carousel (for "+N más" toggle)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || chipsExpanded) { setOverflowCount(0); return; }
+    const measure = () => {
+      const containerRight = el.getBoundingClientRect().right;
+      const children = Array.from(el.children) as HTMLElement[];
+      let hidden = 0;
+      children.forEach(c => {
+        if (c.getBoundingClientRect().right > containerRight + 1) hidden++;
+      });
+      setOverflowCount(hidden);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [filterOptions.length, chipsExpanded]);
+
+  const currentCategoryLabel = (filterOptions.find(o => o.value === category)?.label || 'Todos').toUpperCase();
+
+  // Lock body scroll when mobile filter overlay is open
+  useEffect(() => {
+    if (mobileFilterOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [mobileFilterOpen]);
+
   return (
     <section className="pt-[72px]">
       <SEOHead title="Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée" description="Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano." path="/catalogo" />
