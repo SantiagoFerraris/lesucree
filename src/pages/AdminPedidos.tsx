@@ -558,9 +558,14 @@ export default function AdminPedidos() {
                     </div>
                     <span className="font-semibold text-sm text-[#3B2617] cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{formatPrice(o.total)}</span>
                     <span className="text-xs text-[#7C6354] truncate cursor-pointer" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{getProductSummary(o.items as any[])}</span>
-                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${STATUS_COLORS[o.status] || ''}`}>
-                      {STATUS_LABELS[o.status] || o.status}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${STATUS_COLORS[o.status] || ''}`}>
+                        {STATUS_LABELS[o.status] || o.status}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${FULFILLMENT_COLORS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}`} title="Preparación">
+                        {FULFILLMENT_LABELS[(o.fulfillment_status as FulfillmentStatus) || 'pendiente']}
+                      </span>
+                    </div>
                     <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold inline-block w-fit ${PAYMENT_COLORS[o.payment_status] || PAYMENT_COLORS.pendiente}`}>
                       {PAYMENT_LABELS[o.payment_status] || 'Pago Pendiente'}
                     </span>
