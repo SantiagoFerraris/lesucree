@@ -76,6 +76,7 @@ export default function PagosPedidoAdmin({ order, open, onOpenChange }: Props) {
     status: order?.status,
     min_deposit_percentage: cfg.minPct,
     max_deposit_percentage: cfg.maxPct,
+    balance_paid_at: order?.balance_paid_at,
   });
 
   const configMissing = !cfg.alias || !cfg.pickupAddress;
