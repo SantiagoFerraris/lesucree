@@ -30,8 +30,9 @@ export default function Catalogo() {
     queryFn: async () => {
       let q = supabase
         .from('products')
-        .select('id, name, description, price, category, image_url, featured, active')
+        .select('id, name, description, price, category, image_url, featured, active, status')
         .eq('active', true)
+        .neq('status', 'oculto')
         .order('name')
         .limit(200);
       if (category !== 'todos') q = q.eq('category', category);
