@@ -48,7 +48,7 @@ export default function Pedido() {
   const timeOptions = useMemo(() => parseHoursToOptions(businessHours), [businessHours]);
     const defaultTime = timeOptions[0] || 'Mañana (9-12)';
 
-  const [form, setForm] = useState({ name: '', phone: '', email: '', date: '', time: '', notes: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', date: '', time: '', notes: '', giftMessage: '' });
     const [loading, setLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [success, setSuccess] = useState<{ id: string; name: string; date: string; time: string } | null>(null);
