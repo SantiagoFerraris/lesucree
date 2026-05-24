@@ -86,7 +86,7 @@ export default function Contacto() {
 
           toast.success('¡Mensaje enviado! Te responderemos pronto.');
 
-          const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}\n📧 Email: ${email}${form.phone.trim() ? `\n📞 Tel: ${form.phone.trim()}` : ''}\n💬 Mensaje: ${message}`;
+          const waText = `📩 Nuevo mensaje de contacto\n\n👤 Nombre: ${name}${email ? `\n📧 Email: ${email}` : ''}${form.phone.trim() ? `\n📞 Tel: ${form.phone.trim()}` : ''}\n💬 Mensaje: ${message}`;
                 openWhatsApp(whatsappNotification, waText);
 
           setForm({ name: '', email: '', phone: '', message: '' });
