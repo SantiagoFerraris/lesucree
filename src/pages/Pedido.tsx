@@ -317,6 +317,15 @@ export default function Pedido() {
                                                                             <textarea id="pedido-notes" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value.slice(0, 500) }))} className={`${inputBase} border-input focus:ring-dusty-pink/30 min-h-[80px] resize-none`} maxLength={500} placeholder="Indicaciones especiales, alergias, dedicatorias..." />
                                                                             <span className="text-xs text-warm-gray/50">{form.notes.length}/500</span>
                                                             </div>
+
+                                                            <div>
+                                                                            <label htmlFor="pedido-gift" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Mensaje para incluir (opcional)</label>
+                                                                            <textarea id="pedido-gift" value={form.giftMessage} onChange={e => setForm(p => ({ ...p, giftMessage: e.target.value.slice(0, 200) }))} className={`${inputBase} border-input focus:ring-dusty-pink/30 min-h-[60px] resize-none`} maxLength={200} placeholder="Ej: ¡Feliz cumple, Lucía!" />
+                                                                            <div className="flex items-center justify-between">
+                                                                              <span className="text-xs text-warm-gray/70">Lo incluiremos junto al pedido.</span>
+                                                                              <span className="text-xs text-warm-gray/50">{form.giftMessage.length}/200</span>
+                                                                            </div>
+                                                            </div>
                                               
                                                             <button type="submit" disabled={loading || cooldown > 0} className="w-full rounded-full bg-dusty-pink text-white px-8 py-3.5 text-[15px] font-semibold uppercase tracking-[0.1em] hover:bg-mauve hover:scale-[1.02] transition-all duration-300 active:scale-95 disabled:opacity-60 mt-4">
                                                               {loading ? 'Enviando...' : cooldown > 0 ? `Esperá ${cooldown}s` : 'Enviar Pedido'}
