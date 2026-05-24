@@ -58,6 +58,7 @@ export function useOrderPaymentCalculations(input: OrderPaymentInput): OrderPaym
       isDepositConfirmed,
       canConfirmDeposit,
       depositPercentage: pct,
+      isBalancePaid,
     };
   }, [
     input.total_price,
@@ -67,5 +68,6 @@ export function useOrderPaymentCalculations(input: OrderPaymentInput): OrderPaym
     input.status,
     input.min_deposit_percentage,
     input.max_deposit_percentage,
+    input.balance_paid_at,
   ]);
 }
