@@ -147,21 +147,11 @@ export default function Catalogo() {
             </button>
           </div>
 
-          {/* Desktop: chip carousel (unchanged behavior) + "+N más" overflow toggle */}
+          {/* Desktop: chip row + "+N más" overflow toggle (no scroll arrows) */}
           <div className="relative mt-6 sm:mt-10 hidden sm:block">
-            {!chipsExpanded && (
-              <button
-                onClick={() => scrollCategories('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
-                aria-label="Scroll izquierda"
-              >
-                <ChevronLeft size={16} />
-              </button>
-            )}
-
             <div
               ref={scrollRef}
-              className={`flex gap-1.5 sm:gap-2 md:gap-3 pb-2 px-1 ${chipsExpanded ? 'flex-wrap justify-center' : 'flex-nowrap overflow-x-auto scrollbar-hide mx-10'}`}
+              className={`flex gap-1.5 sm:gap-2 md:gap-3 pb-2 px-1 ${chipsExpanded ? 'flex-wrap justify-center' : 'flex-nowrap overflow-hidden justify-center'}`}
             >
               {filterOptions.map(c => (
                 <button
@@ -174,16 +164,6 @@ export default function Catalogo() {
                 </button>
               ))}
             </div>
-
-            {!chipsExpanded && (
-              <button
-                onClick={() => scrollCategories('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-dusty-pink/30 flex items-center justify-center text-dusty-pink hover:bg-dusty-pink hover:text-white transition-all shadow-sm"
-                aria-label="Scroll derecha"
-              >
-                <ChevronRight size={16} />
-              </button>
-            )}
 
             {(overflowCount > 0 || chipsExpanded) && (
               <div className="flex justify-center mt-2">
