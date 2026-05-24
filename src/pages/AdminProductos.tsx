@@ -213,6 +213,20 @@ export default function AdminProductos() {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async ({ a, b }: { a: { id: string; sort_order: number }; b: { id: string; sort_order: number } }) => {
+      // Swap sort_order values between two products in the same category
+      const { error: e1 } = await supabase.from('products').update({ sort_order: b.sort_order } as any).eq('id', a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from('products').update({ sort_order: a.sort_order } as any).eq('id', b.id);
+      if (e2) throw e2;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    },
+    onError: (err: any) => toast.error(`Error al reordenar: ${err?.message || 'Error desconocido'}`),
+  });
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
