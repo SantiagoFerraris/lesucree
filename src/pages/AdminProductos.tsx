@@ -494,6 +494,14 @@ export default function AdminProductos() {
                               </span>
                             );
                           })()}
+                          {((p as any).visible_from || (p as any).visible_until) && (
+                            <span
+                              title={`Visible: ${formatScheduleAR((p as any).visible_from)} → ${formatScheduleAR((p as any).visible_until)}`}
+                              className="inline-flex items-center text-blue-600"
+                            >
+                              <CalendarClock size={13} />
+                            </span>
+                          )}
                           {duplicateNames.has(p.name.trim().toLowerCase()) && (
                             <span title="Hay otro producto con el mismo nombre"><AlertTriangle size={13} className="text-amber-500" /></span>
                           )}
