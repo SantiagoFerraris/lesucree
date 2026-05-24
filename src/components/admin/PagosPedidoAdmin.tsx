@@ -183,6 +183,20 @@ setEditing(null);
     qc.invalidateQueries({ queryKey: ['pending-payments'] });
   };
 
+  const saveBalancePaid = async () => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ balance_paid_at: new Date().toISOString() } as any)
+      .eq('id', order.id);
+    if (error) {
+      toast.error('No se pudo registrar el pago');
+      return;
+    }
+    toast.success('✅ Saldo registrado — pedido pagado completo');
+    qc.invalidateQueries({ queryKey: ['admin-orders'] });
+    qc.invalidateQueries({ queryKey: ['pending-payments'] });
+  };
+
   if (!open) return null;
 
   const statusBadge =
