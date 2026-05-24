@@ -367,6 +367,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          balance_paid_at: string | null
           coupon_id: string | null
           created_at: string | null
           customer_email: string | null
@@ -392,6 +393,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          balance_paid_at?: string | null
           coupon_id?: string | null
           created_at?: string | null
           customer_email?: string | null
@@ -417,6 +419,7 @@ export type Database = {
           total: number
         }
         Update: {
+          balance_paid_at?: string | null
           coupon_id?: string | null
           created_at?: string | null
           customer_email?: string | null
