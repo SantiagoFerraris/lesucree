@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateReplySuggestion } from '@/lib/messageHelper';
 import { buildWhatsAppUrl } from '@/lib/insightEngine';
+import { getWhatsAppLink } from '@/lib/whatsapp';
 
 
 export default function AdminMensajes() {
@@ -146,7 +147,7 @@ export default function AdminMensajes() {
                                   return (
                                     <button
                                       type="button"
-                                      onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer'); }}
+                                      onClick={e => { e.stopPropagation(); const url = getWhatsAppLink(digits) ?? '#'; if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer'); }}
                                       className={baseCls}
                                     >
                                       <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
@@ -223,7 +224,7 @@ export default function AdminMensajes() {
                                 return (
                                   <button
                                     type="button"
-                                    onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${digits}?text=${encodeURIComponent(suggestion.text)}`, '_blank', 'noopener,noreferrer'); }}
+                                    onClick={e => { e.stopPropagation(); const url = getWhatsAppLink(digits, suggestion.text) ?? '#'; if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer'); }}
                                     className={baseCls}
                                   >
                                     <MessageCircle size={12} className="text-green-600" />
