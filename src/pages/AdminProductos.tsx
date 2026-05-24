@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -20,10 +20,34 @@ interface ProductFormData {
   featured: boolean;
   image_url: string;
   status: ProductStatus;
+  urgency_message: string;
+  visible_from: string; // datetime-local format YYYY-MM-DDTHH:MM, '' if unset
+  visible_until: string;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', variants: [] };
+
+// Convert ISO timestamp (timestamptz) to value for <input type="datetime-local">
+function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const tzMs = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzMs).toISOString().slice(0, 16);
+}
+function localInputToIso(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+function formatScheduleAR(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
