@@ -65,6 +65,11 @@ export default function AdminProductos() {
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showPromoDrafts, setShowPromoDrafts] = useState(false);
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+  const [bulkCategoryValue, setBulkCategoryValue] = useState('');
+  const [bulkConfirm, setBulkConfirm] = useState<{ label: string; count: number; run: () => void } | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const { data: promoDraftCount } = useQuery({
     queryKey: ['promo-draft-count'],
