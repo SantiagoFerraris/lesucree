@@ -12,7 +12,8 @@ function stripHtmlTags(str: string): string {
 
 const ContactSchema = z.object({
   name: z.string().trim().min(1).max(200),
-  email: z.string().trim().email().max(320),
+  email: z.string().trim().email().max(320).optional().or(z.literal('').transform(() => undefined)),
+  phone: z.string().trim().max(20).optional().or(z.literal('').transform(() => undefined)),
   message: z.string().trim().min(1).max(1000).transform(stripHtmlTags),
 });
 
@@ -31,7 +32,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { name, email, message } = parsed.data;
+    const { name, email, phone, message } = parsed.data;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -40,12 +41,13 @@ Deno.serve(async (req) => {
     // Cleanup old rate limit entries
     try { await supabaseAdmin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
 
-    // Rate limiting: max 3 per email per 5 minutes
+    // Rate limiting: max 3 per identifier per 5 minutes (email if provided, else phone, else name)
+    const rateIdentifier = email || phone || name;
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { count } = await supabaseAdmin
       .from('rate_limits')
       .select('*', { count: 'exact', head: true })
-      .eq('identifier', email)
+      .eq('identifier', rateIdentifier)
       .eq('action_type', 'contact')
       .gte('created_at', fiveMinAgo);
 
@@ -56,12 +58,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabaseAdmin.from('rate_limits').insert({ identifier: email, action_type: 'contact' });
+    await supabaseAdmin.from('rate_limits').insert({ identifier: rateIdentifier, action_type: 'contact' });
 
     // Insert message
     const { data: msg, error: insertError } = await supabaseAdmin
       .from('contact_messages')
-      .insert({ name, email, message })
+      .insert({ name, email: email ?? null, phone: phone ?? null, message })
       .select('id')
       .single();
 
