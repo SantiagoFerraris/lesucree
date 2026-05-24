@@ -492,6 +492,7 @@ export type Database = {
           sort_order: number
           status: string
           updated_at: string | null
+          urgency_message: string | null
           visible_from: string | null
           visible_until: string | null
         }
@@ -509,6 +510,7 @@ export type Database = {
           sort_order?: number
           status?: string
           updated_at?: string | null
+          urgency_message?: string | null
           visible_from?: string | null
           visible_until?: string | null
         }
@@ -526,6 +528,7 @@ export type Database = {
           sort_order?: number
           status?: string
           updated_at?: string | null
+          urgency_message?: string | null
           visible_from?: string | null
           visible_until?: string | null
         }
