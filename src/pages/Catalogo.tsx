@@ -147,12 +147,9 @@ export default function Catalogo() {
             </button>
           </div>
 
-          {/* Desktop: chip row + "+N más" overflow toggle (no scroll arrows) */}
-          <div className="relative mt-6 sm:mt-10 hidden sm:block">
-            <div
-              ref={scrollRef}
-              className={`flex gap-1.5 sm:gap-2 md:gap-3 pb-2 px-1 ${chipsExpanded ? 'flex-wrap justify-center' : 'flex-nowrap overflow-hidden justify-center'}`}
-            >
+          {/* Desktop: chip row wraps onto multiple lines, no overflow/scroll/arrows */}
+          <div className="mt-6 sm:mt-10 hidden sm:block">
+            <div className="flex flex-wrap justify-center gap-2 pb-2 px-1">
               {filterOptions.map(c => (
                 <button
                   key={c.value}
@@ -164,17 +161,6 @@ export default function Catalogo() {
                 </button>
               ))}
             </div>
-
-            {(overflowCount > 0 || chipsExpanded) && (
-              <div className="flex justify-center mt-2">
-                <button
-                  onClick={() => setChipsExpanded(v => !v)}
-                  className="text-xs font-semibold uppercase tracking-[0.06em] text-dusty-pink hover:text-mauve transition-colors px-3 py-1 rounded-full"
-                >
-                  {chipsExpanded ? 'Mostrar menos' : `+${overflowCount} más`}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Mobile full-screen filter overlay (mirrors Navbar mobile menu pattern) */}
