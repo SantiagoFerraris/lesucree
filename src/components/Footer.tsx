@@ -19,6 +19,8 @@ export default function Footer() {
               { to: '/catalogo', label: 'Catálogo' },
               { to: '/historia', label: 'Historia' },
               { to: '/contacto', label: 'Contacto' },
+              { to: '/politica-de-privacidad', label: 'Política de Privacidad' },
+              { to: '/terminos-y-condiciones', label: 'Términos y Condiciones' },
             ].map(l => (
               <Link key={l.to} to={l.to} className="text-sm opacity-80 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded">
                 {l.label}
