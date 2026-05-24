@@ -374,6 +374,7 @@ export type Database = {
           desired_date: string
           discount_amount: number
           fulfillment_status: string
+          gift_message: string | null
           id: string
           is_deposit_confirmed: boolean | null
           items: Json
@@ -398,6 +399,7 @@ export type Database = {
           desired_date: string
           discount_amount?: number
           fulfillment_status?: string
+          gift_message?: string | null
           id?: string
           is_deposit_confirmed?: boolean | null
           items: Json
@@ -422,6 +424,7 @@ export type Database = {
           desired_date?: string
           discount_amount?: number
           fulfillment_status?: string
+          gift_message?: string | null
           id?: string
           is_deposit_confirmed?: boolean | null
           items?: Json
