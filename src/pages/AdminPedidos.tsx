@@ -6,6 +6,7 @@ import ExcelImportModal from '@/components/admin/ExcelImportModal';
 import PagosPedidoAdmin from '@/components/admin/PagosPedidoAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { FULFILLMENT_LABELS, FULFILLMENT_COLORS, FULFILLMENT_VALUES, type FulfillmentStatus } from '@/lib/orderFulfillment';
 import { formatPrice } from '@/lib/formatPrice';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
