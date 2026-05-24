@@ -667,6 +667,48 @@ export default function AdminProductos() {
         </>
       )}
 
+      {/* Bulk change category */}
+      {bulkCategoryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-espresso">Cambiar categoría</h3>
+            <p className="text-sm text-warm-gray mt-2">Aplicar a {selectedIds.size} productos seleccionados.</p>
+            <select
+              value={bulkCategoryValue}
+              onChange={e => setBulkCategoryValue(e.target.value)}
+              className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink"
+            >
+              <option value="">Elegí una categoría…</option>
+              {categories.map(c => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => { setBulkCategoryOpen(false); setBulkCategoryValue(''); }} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
+              <button onClick={handleBulkChangeCategory} disabled={bulkBusy || !bulkCategoryValue} className="flex-1 rounded-full bg-espresso text-white py-2 text-sm font-semibold hover:opacity-90 transition-all active:scale-95 disabled:opacity-60">Aplicar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk >5 confirmation */}
+      {bulkConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-espresso">¿Aplicar a {bulkConfirm.count} productos?</h3>
+            <p className="text-sm text-warm-gray mt-2">Esta acción modificará {bulkConfirm.count} productos.</p>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setBulkConfirm(null)} className="flex-1 rounded-full border border-gray-200 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-95">Cancelar</button>
+              <button
+                onClick={() => { const r = bulkConfirm.run; setBulkConfirm(null); r(); }}
+                disabled={bulkBusy}
+                className="flex-1 rounded-full bg-dusty-pink text-white py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95 disabled:opacity-60"
+              >Aplicar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirmation */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
