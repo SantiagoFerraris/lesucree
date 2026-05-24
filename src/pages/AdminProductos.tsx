@@ -9,6 +9,7 @@ import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Tables } from '@/integrations/supabase/types';
+import { PRODUCT_STATUS_VALUES, PRODUCT_STATUS_LABELS, PRODUCT_STATUS_BEHAVIOR, getProductStatus, type ProductStatus } from '@/lib/productStatus';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
 interface ProductFormData {
@@ -18,10 +19,11 @@ interface ProductFormData {
   category: string;
   featured: boolean;
   image_url: string;
+  status: ProductStatus;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', variants: [] };
 const PAGE_SIZE = 10;
 
 export default function AdminProductos() {
