@@ -137,24 +137,34 @@ export default function AdminMensajes() {
                             <p className="text-sm text-espresso mt-2 whitespace-pre-wrap ml-7">{m.message}</p>
                             {/* Reply buttons */}
                             <div className="flex gap-2 ml-7 mt-3">
-                              <a
-                                href={`mailto:${m.email}?subject=Re: Mensaje de contacto - Le Sucrée`}
-                                onClick={e => e.stopPropagation()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
-                              >
-                                <Mail size={13} /> Responder por Email
-                              </a>
-                              {(m as any).phone && (
-                                <a
-                                  href={getWhatsAppLink((m as any).phone) ?? '#'}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={e => e.stopPropagation()}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors"
-                                >
-                                  <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
-                                </a>
-                              )}
+                              {(() => {
+                                const phone = (m as any).phone as string | null | undefined;
+                                const digits = phone ? phone.replace(/\D/g, '') : '';
+                                const hasPhone = digits.length > 0;
+                                const baseCls = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-warm-gray hover:bg-cream/50 transition-colors";
+                                if (hasPhone) {
+                                  return (
+                                    <button
+                                      type="button"
+                                      onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer'); }}
+                                      className={baseCls}
+                                    >
+                                      <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
+                                    </button>
+                                  );
+                                }
+                                return (
+                                  <button
+                                    type="button"
+                                    disabled
+                                    title="Este contacto no dejó teléfono"
+                                    onClick={e => e.stopPropagation()}
+                                    className={`${baseCls} opacity-50 cursor-not-allowed`}
+                                  >
+                                    <MessageCircle size={13} className="text-green-600" /> Responder por WhatsApp
+                                  </button>
+                                );
+                              })()}
                             </div>
                           </>
                         )}
@@ -204,14 +214,36 @@ export default function AdminMensajes() {
                               <Copy size={12} />
                               Copiar respuesta
                             </button>
-                            <a
-                              href={`mailto:${m.email}?subject=Re: Tu consulta en Le Sucrée&body=${encodeURIComponent(suggestion.text)}`}
-                              onClick={e => e.stopPropagation()}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-espresso/20 text-espresso text-xs font-semibold hover:bg-cream transition-colors"
-                            >
-                              <Mail size={12} />
-                              Responder por email
-                            </a>
+                            {(() => {
+                              const phone = (m as any).phone as string | null | undefined;
+                              const digits = phone ? phone.replace(/\D/g, '') : '';
+                              const hasPhone = digits.length > 0;
+                              const baseCls = "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-espresso/20 text-espresso text-xs font-semibold hover:bg-cream transition-colors";
+                              if (hasPhone) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={e => { e.stopPropagation(); window.open(`https://wa.me/${digits}?text=${encodeURIComponent(suggestion.text)}`, '_blank', 'noopener,noreferrer'); }}
+                                    className={baseCls}
+                                  >
+                                    <MessageCircle size={12} className="text-green-600" />
+                                    Responder por WhatsApp
+                                  </button>
+                                );
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  disabled
+                                  title="Este contacto no dejó teléfono"
+                                  onClick={e => e.stopPropagation()}
+                                  className={`${baseCls} opacity-50 cursor-not-allowed`}
+                                >
+                                  <MessageCircle size={12} className="text-green-600" />
+                                  Responder por WhatsApp
+                                </button>
+                              );
+                            })()}
                           </div>
                         </div>
                       )}
