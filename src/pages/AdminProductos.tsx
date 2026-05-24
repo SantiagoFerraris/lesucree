@@ -561,7 +561,16 @@ export default function AdminProductos() {
                 {paginated?.map((p, i) => {
                   const vars = getVariants(p.id);
                   return (
-                    <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'}`}>
+                    <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'} ${selectedIds.has(p.id) ? 'bg-blush/40' : ''}`}>
+                      <td className="py-3 pr-3 w-8">
+                        <input
+                          type="checkbox"
+                          aria-label={`Seleccionar ${p.name}`}
+                          checked={selectedIds.has(p.id)}
+                          onChange={() => toggleRow(p.id)}
+                          className="rounded"
+                        />
+                      </td>
                       <td className="py-3 pr-4">
                         <img src={p.image_url || 'https://images.unsplash.com/photo-1486427944544-d2c246c4df4f?w=48&h=48&fit=crop'} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
                       </td>
