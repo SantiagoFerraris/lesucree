@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { customerName, customerPhone, customerEmail: rawEmail, desiredDate, preferredTime, notes, items, couponCode } = parsed.data;
+    const { customerName, customerPhone, customerEmail: rawEmail, desiredDate, preferredTime, notes, giftMessage, items, couponCode } = parsed.data;
     const customerEmail = (rawEmail && rawEmail.trim()) ? rawEmail.trim() : null;
     const rateLimitId = customerEmail || normalizePhone(customerPhone) || 'anon';
 
