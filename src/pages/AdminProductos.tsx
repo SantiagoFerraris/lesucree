@@ -641,6 +641,43 @@ export default function AdminProductos() {
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
               </div>
 
+              <div>
+                <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Mensaje de urgencia (opcional)</label>
+                <input
+                  type="text"
+                  maxLength={80}
+                  placeholder="Ej: Solo 3 disponibles este finde"
+                  value={form.urgency_message}
+                  onChange={e => setForm(p => ({ ...p, urgency_message: e.target.value }))}
+                  className={inputClass}
+                />
+                <p className="text-[11px] text-warm-gray mt-1">Si lo dejás vacío, no se muestra nada.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Visible desde</label>
+                  <input
+                    type="datetime-local"
+                    value={form.visible_from}
+                    onChange={e => setForm(p => ({ ...p, visible_from: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Visible hasta</label>
+                  <input
+                    type="datetime-local"
+                    value={form.visible_until}
+                    onChange={e => setForm(p => ({ ...p, visible_until: e.target.value }))}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-warm-gray -mt-2">Dejá ambos vacíos para mostrar siempre.</p>
+
+
+
 
               {/* Variants section */}
               <div className="border-t border-gray-100 pt-4">
