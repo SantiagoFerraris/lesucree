@@ -35,12 +35,14 @@ export function useOrderPaymentCalculations(input: OrderPaymentInput): OrderPaym
     const maxPct = input.max_deposit_percentage ?? 70;
 
     const depositRequired = Math.min(total, Math.round(total * (pct / 100)));
-    const amountPaid = clamp(Number(input.deposit_amount) || 0, 0, total);
+    const depositAmt = clamp(Number(input.deposit_amount) || 0, 0, total);
+    const isBalancePaid = !!input.balance_paid_at;
+    const amountPaid = isBalancePaid ? total : depositAmt;
     const remainingBalance = Math.max(0, total - amountPaid);
     const paymentProgress = total > 0 ? clamp((amountPaid / total) * 100, 0, 100) : 0;
 
     let paymentStatus: PaymentStatus = 'pending';
-    if (amountPaid >= total && total > 0) paymentStatus = 'complete';
+    if (isBalancePaid || (amountPaid >= total && total > 0)) paymentStatus = 'complete';
     else if (amountPaid > 0) paymentStatus = 'partial';
 
     const isDepositConfirmed = !!input.is_deposit_confirmed;
