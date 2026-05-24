@@ -342,12 +342,14 @@ export default function AdminProductos() {
   const handleMove = (p: Tables<'products'>, dir: -1 | 1) => {
     const neighbor = getCategoryNeighbor(p, dir);
     if (!neighbor) return;
-    const aSo = (p as any).sort_order ?? 0;
-    const bSo = (neighbor as any).sort_order ?? 0;
-    // If both are 0 (legacy), seed them so subsequent swaps work
-    const a = { id: p.id, sort_order: aSo === bSo ? aSo : aSo };
-    const b = { id: neighbor.id, sort_order: aSo === bSo ? aSo + (dir === -1 ? 10 : -10) : bSo };
-    reorderMutation.mutate({ a, b });
+    let aSo = (p as any).sort_order ?? 0;
+    let bSo = (neighbor as any).sort_order ?? 0;
+    // If both share the same sort_order (e.g. legacy zeros), assign deterministic distinct values
+    // so the swap produces the intended ordering. dir=-1 means p moves up (lower number).
+    if (aSo === bSo) {
+      if (dir === -1) { aSo = 20; bSo = 10; } else { aSo = 10; bSo = 20; }
+    }
+    reorderMutation.mutate({ a: { id: p.id, sort_order: aSo }, b: { id: neighbor.id, sort_order: bSo } });
   };
 
   const exportProductsCSV = () => {
