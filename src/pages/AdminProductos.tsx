@@ -128,7 +128,8 @@ export default function AdminProductos() {
         category: form.category,
         featured: form.featured,
         image_url: form.image_url || null,
-      };
+        status: form.status,
+      } as any;
 
       let productId: string;
       if (editing) {
