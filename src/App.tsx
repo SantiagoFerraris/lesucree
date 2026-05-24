@@ -16,6 +16,8 @@ const Nosotros = lazy(() => import("./pages/Nosotros"));
 const Contacto = lazy(() => import("./pages/Contacto"));
 const Pedido = lazy(() => import("./pages/Pedido"));
 const Zumbita = lazy(() => import("./pages/Zumbita"));
+const PoliticaPrivacidad = lazy(() => import("./pages/PoliticaPrivacidad"));
+const TerminosCondiciones = lazy(() => import("./pages/TerminosCondiciones"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const AdminLayout = lazy(() => import("./pages/AdminLayout"));
@@ -78,6 +80,8 @@ const App = () => (
                   <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
                   <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
                   <Route path="/zumbita" element={<PublicSuspense><Zumbita /></PublicSuspense>} />
+                  <Route path="/politica-de-privacidad" element={<PublicSuspense><PoliticaPrivacidad /></PublicSuspense>} />
+                  <Route path="/terminos-y-condiciones" element={<PublicSuspense><TerminosCondiciones /></PublicSuspense>} />
                 </Route>
 
                 {/* Admin password reset (public, must be outside AdminLayout auth gate) */}
