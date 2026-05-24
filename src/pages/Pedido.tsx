@@ -333,7 +333,7 @@ export default function Pedido() {
                                               </form>
                                   
                                     {/* Order summary - sticky */}
-                                              <div className="lg:sticky lg:top-[100px] self-start">
+                                              <div className="order-first lg:order-last lg:sticky lg:top-[100px] self-start">
                                                             <div className="bg-white rounded-2xl p-6 shadow-sm border border-blush">
                                                                             <h3 className="font-display text-lg font-bold text-espresso mb-4">Resumen del Pedido</h3>
                                                                             <div className="space-y-3">
