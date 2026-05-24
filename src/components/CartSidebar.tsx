@@ -97,7 +97,7 @@ export default function CartSidebar() {
         {items.length > 0 && (
           <div className="p-5 border-t border-blush space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-body text-warm-gray">Subtotal</span>
+              <span className="font-body text-warm-gray">Total:</span>
               <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
             </div>
             <Link
