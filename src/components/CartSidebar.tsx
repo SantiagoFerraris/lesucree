@@ -9,6 +9,8 @@ export default function CartSidebar() {
 
   if (!isOpen) return null;
 
+  const hasCustomizable = items.some(i => i.isCustomizable);
+
   return (
     <>
       <div className="fixed inset-0 z-[9990] bg-espresso/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsOpen(false)} />
