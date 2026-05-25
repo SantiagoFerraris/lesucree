@@ -74,7 +74,9 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
           )}
 
           <div className="mt-4 flex items-baseline gap-3 flex-wrap">
-            {statusBehavior.showPrice ? (
+            {isCustomizable ? (
+              <p className="text-sm text-dusty-pink italic">Consulta con nosotros el diseño y presupuesto final para tu torta</p>
+            ) : statusBehavior.showPrice ? (
               <>
                 <p className="font-body text-2xl font-semibold text-espresso">{formatPrice(currentPrice)}</p>
                 {hasDiscount && (
