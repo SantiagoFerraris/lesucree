@@ -124,8 +124,8 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
 
-        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) and when status hides price */}
-        {!compact && statusBehavior.showPrice && minVariantPrice !== null && (
+        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos), when status hides price, and for customizable products */}
+        {!compact && !isCustomizable && statusBehavior.showPrice && minVariantPrice !== null && (
           <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
             <span className={minVariantOriginal !== null && minVariantPrice < minVariantOriginal ? 'font-bold text-dusty-pink' : ''}>
               Desde {formatPrice(minVariantPrice)}
