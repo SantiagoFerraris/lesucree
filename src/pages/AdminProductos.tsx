@@ -162,6 +162,7 @@ export default function AdminProductos() {
         urgency_message: form.urgency_message.trim() || null,
         visible_from: localInputToIso(form.visible_from),
         visible_until: localInputToIso(form.visible_until),
+        is_customizable: form.is_customizable,
       } as any;
 
       let productId: string;
