@@ -776,6 +776,13 @@ export default function AdminProductos() {
                 <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm(p => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
               </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_customizable" checked={form.is_customizable} onChange={e => setForm(p => ({ ...p, is_customizable: e.target.checked }))} className="rounded" />
+                  <label htmlFor="is_customizable" className="text-sm text-espresso">Producto Personalizable</label>
+                </div>
+                <p className="text-xs text-warm-gray mt-1 ml-6">Marca esto si requiere presupuesto personalizado (no mostrará precio)</p>
+              </div>
 
               <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Mensaje de urgencia (opcional)</label>
