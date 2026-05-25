@@ -392,10 +392,19 @@ export default function Pedido() {
                                                                                 {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
                                                                             </div>
 
+                                                                            {hasCustomizable && (
+                                                                                <div className="mt-4 rounded-lg bg-blush/30 border border-dusty-pink/30 px-4 py-3 text-sm text-espresso/80">
+                                                                                    <p>
+                                                                                        * Los productos personalizados no incluyen presupuesto en este resumen.
+                                                                                        Será confirmado en una llamada telefónica según los detalles de tu pedido.
+                                                                                    </p>
+                                                                                </div>
+                                                                            )}
+
                                                                             <div className="border-t border-blush mt-4 pt-4 space-y-2">
                                                                                 <div className="flex items-center justify-between text-sm">
                                                                                     <span className="font-body text-warm-gray">Subtotal</span>
-                                                                                    <span className="font-body text-espresso">{formatPrice(subtotal)}</span>
+                                                                                    <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
                                                                                 </div>
                                                                                 {discount > 0 && (
                                                                                     <div className="flex items-center justify-between text-sm">
