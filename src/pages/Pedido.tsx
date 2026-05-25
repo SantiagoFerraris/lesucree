@@ -350,7 +350,11 @@ export default function Pedido() {
                                                                                                           </button>
                                                                                 </div>
                                                       </div>
-                                                      <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
+                                                      {item.isCustomizable ? (
+                                                        <p className="text-xs italic text-warm-gray">Presupuesto a confirmar</p>
+                                                      ) : (
+                                                        <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
+                                                      )}
                                 </div>
                               ))}
                                                                             </div>
