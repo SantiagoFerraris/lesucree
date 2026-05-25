@@ -19,7 +19,8 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const { addToCart, setIsOpen } = useCart();
   const promosMap = useActivePromotions();
   const productPromos = promosMap.get(product.id);
-  const statusBehavior = getProductStatusBehavior(product as any);
+  const isCustomizable = (product as any).isCustomizable === true;
+  const statusBehavior = getProductStatusBehavior(product as any, isCustomizable);
 
   const basePrice = selectedVariant?.price ?? product.price;
   const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
@@ -73,7 +74,9 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
           )}
 
           <div className="mt-4 flex items-baseline gap-3 flex-wrap">
-            {statusBehavior.showPrice ? (
+            {isCustomizable ? (
+              <p className="text-sm text-dusty-pink italic">Consulta con nosotros el diseño y presupuesto final para tu torta</p>
+            ) : statusBehavior.showPrice ? (
               <>
                 <p className="font-body text-2xl font-semibold text-espresso">{formatPrice(currentPrice)}</p>
                 {hasDiscount && (
@@ -119,7 +122,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
                   : added ? 'bg-sage text-white' : 'bg-dusty-pink text-white hover:bg-mauve'
               }`}
             >
-              {added ? <><Check size={16} /> ¡Agregado!</> : <><ShoppingBag size={16} /> Agregar al Pedido</>}
+              {added ? <><Check size={16} /> ¡Agregado!</> : <><ShoppingBag size={16} /> {isCustomizable ? 'Continuar Consulta' : 'Agregar al Pedido'}</>}
             </button>
             <a href={consultUrl} target="_blank" rel="noopener noreferrer" className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] text-white px-6 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-[#1da851] transition-all active:scale-95">
               Consultar por WhatsApp

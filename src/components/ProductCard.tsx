@@ -28,7 +28,8 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
   const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
   const productPromos = promosMap.get(product.id);
-  const statusBehavior = getProductStatusBehavior(product as any);
+  const isCustomizable = (product as any).isCustomizable === true;
+  const statusBehavior = getProductStatusBehavior(product as any, isCustomizable);
 
   const hasVariants = variants && variants.length > 0;
   const selectedVariant = hasVariants ? variants[selectedVariantIndex] : undefined;
@@ -123,8 +124,8 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
           <p className="text-sm text-warm-gray mt-1 line-clamp-2">{product.description}</p>
         )}
 
-        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos) and when status hides price */}
-        {!compact && statusBehavior.showPrice && minVariantPrice !== null && (
+        {/* Price display — hide "Desde" in compact mode (Nuestros Favoritos), when status hides price, and for customizable products */}
+        {!compact && !isCustomizable && statusBehavior.showPrice && minVariantPrice !== null && (
           <p className="font-body text-base font-semibold text-espresso mt-2 flex items-baseline gap-2 flex-wrap">
             <span className={minVariantOriginal !== null && minVariantPrice < minVariantOriginal ? 'font-bold text-dusty-pink' : ''}>
               Desde {formatPrice(minVariantPrice)}
@@ -159,7 +160,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
             <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
-              {statusBehavior.showPrice ? (
+              {isCustomizable ? null : statusBehavior.showPrice ? (
                 <>
                   <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
                   {hasDiscount && (
@@ -181,7 +182,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
                     : 'border-espresso text-espresso hover:bg-espresso hover:text-white'
               }`}
             >
-              {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
+              {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> {isCustomizable ? 'Personalizar' : 'Agregar'}</>}
             </button>
           </div>
         )}
