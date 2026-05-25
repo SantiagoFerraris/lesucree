@@ -51,7 +51,11 @@ export default function CartSidebar() {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold text-espresso truncate">{item.productName}</h4>
                     {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
-                    <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
+                    {item.isCustomizable ? (
+                      <p className="text-sm text-warm-gray italic mt-1">Presupuesto a confirmar</p>
+                    ) : (
+                      <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
+                    )}
                     <div className="flex items-center justify-between gap-2 mt-1.5">
                       <div className="flex items-center gap-1">
                         <button
