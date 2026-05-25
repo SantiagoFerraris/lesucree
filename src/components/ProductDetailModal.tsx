@@ -37,6 +37,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
       variantLabel: selectedVariant?.label,
       price: currentPrice,
       imageUrl: product.image_url || undefined,
+      isCustomizable,
     }, qty);
     setAdded(true);
     setTimeout(() => { setAdded(false); onClose(); setIsOpen(true); }, 800);
