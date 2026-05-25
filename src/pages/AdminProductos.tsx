@@ -23,10 +23,11 @@ interface ProductFormData {
   urgency_message: string;
   visible_from: string; // datetime-local format YYYY-MM-DDTHH:MM, '' if unset
   visible_until: string;
+  is_customizable: boolean;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', is_customizable: false, variants: [] };
 
 // Convert ISO timestamp (timestamptz) to value for <input type="datetime-local">
 function isoToLocalInput(iso: string | null | undefined): string {
