@@ -23,10 +23,11 @@ interface ProductFormData {
   urgency_message: string;
   visible_from: string; // datetime-local format YYYY-MM-DDTHH:MM, '' if unset
   visible_until: string;
+  is_customizable: boolean;
   variants: VariantForm[];
 }
 
-const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', variants: [] };
+const emptyForm: ProductFormData = { name: '', description: '', price: '', category: 'tortas', featured: false, image_url: '', status: 'activo', urgency_message: '', visible_from: '', visible_until: '', is_customizable: false, variants: [] };
 
 // Convert ISO timestamp (timestamptz) to value for <input type="datetime-local">
 function isoToLocalInput(iso: string | null | undefined): string {
@@ -161,6 +162,7 @@ export default function AdminProductos() {
         urgency_message: form.urgency_message.trim() || null,
         visible_from: localInputToIso(form.visible_from),
         visible_until: localInputToIso(form.visible_until),
+        is_customizable: form.is_customizable,
       } as any;
 
       let productId: string;
@@ -268,6 +270,7 @@ export default function AdminProductos() {
       urgency_message: (p as any).urgency_message || '',
       visible_from: isoToLocalInput((p as any).visible_from),
       visible_until: isoToLocalInput((p as any).visible_until),
+      is_customizable: (p as any).is_customizable ?? false,
       variants: existingVariants,
     });
     setShowForm(true);
@@ -772,6 +775,13 @@ export default function AdminProductos() {
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm(p => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 <label htmlFor="featured" className="text-sm text-espresso">Destacado en inicio</label>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_customizable" checked={form.is_customizable} onChange={e => setForm(p => ({ ...p, is_customizable: e.target.checked }))} className="rounded" />
+                  <label htmlFor="is_customizable" className="text-sm text-espresso">Producto Personalizable</label>
+                </div>
+                <p className="text-xs text-warm-gray mt-1 ml-6">Marca esto si requiere presupuesto personalizado (no mostrará precio)</p>
               </div>
 
               <div>
