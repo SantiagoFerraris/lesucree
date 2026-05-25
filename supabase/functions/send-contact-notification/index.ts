@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Internal-only: require service-role bearer token (set by trusted edge functions).
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const authHeader = req.headers.get('Authorization') || '';
+  if (authHeader !== `Bearer ${serviceRoleKey}`) {
+    return GENERIC_OK();
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const parsed = BodySchema.safeParse(body);
