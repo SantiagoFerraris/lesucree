@@ -19,7 +19,8 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
   const { addToCart, setIsOpen } = useCart();
   const promosMap = useActivePromotions();
   const productPromos = promosMap.get(product.id);
-  const statusBehavior = getProductStatusBehavior(product as any);
+  const isCustomizable = (product as any).isCustomizable === true;
+  const statusBehavior = getProductStatusBehavior(product as any, isCustomizable);
 
   const basePrice = selectedVariant?.price ?? product.price;
   const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
