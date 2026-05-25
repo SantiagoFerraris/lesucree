@@ -498,6 +498,7 @@ export type Database = {
           featured: boolean | null
           id: string
           image_url: string | null
+          is_customizable: boolean | null
           last_price_sync: string | null
           name: string
           price: number
@@ -516,6 +517,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          is_customizable?: boolean | null
           last_price_sync?: string | null
           name: string
           price: number
@@ -534,6 +536,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          is_customizable?: boolean | null
           last_price_sync?: string | null
           name?: string
           price?: number
