@@ -680,7 +680,10 @@ export default function AdminPedidos() {
 
                       {/* Payment summary strip */}
                       {(() => {
-                        const total = Number(o.total) || 0;
+                        const filteredTotal = (o.items as any[])
+                          .filter((item: any) => !item.isCustomizable)
+                          .reduce((sum: number, item: any) => sum + (Number(item.unitPrice) || 0) * (Number(item.quantity) || 0), 0);
+                        const total = filteredTotal || Number(o.total) || 0;
                         const isBalancePaid = !!o.balance_paid_at;
                         const paid = isBalancePaid ? total : Math.min(total, Math.max(0, Number(o.deposit_amount) || 0));
                         const remaining = Math.max(0, total - paid);
@@ -705,6 +708,15 @@ export default function AdminPedidos() {
                         );
                       })()}
 
+                      {(o.items as any[]).some((item: any) => item.isCustomizable) && (
+                        <div className="rounded-lg bg-blush/30 border border-dusty-pink/30 p-3 text-sm text-espresso/80">
+                          <p>
+                            ⚠️ Este pedido incluye productos personalizados. El presupuesto debe ser confirmado
+                            y actualizado manualmente después de validar detalles con el cliente.
+                          </p>
+                        </div>
+                      )}
+
                       {o.notes && <p className="text-sm text-[#7C6354] bg-[#FFFBF5] rounded-lg p-3">{o.notes}</p>}
                       {o.gift_message && (
                         <div className="rounded-lg border-l-4 border-dusty-pink bg-blush/30 p-3">
@@ -718,7 +730,11 @@ export default function AdminPedidos() {
                             <span className="text-[#3B2617]">
                               {item.productName}{item.variantLabel ? ` — ${item.variantLabel}` : ''} x{item.quantity}
                             </span>
-                            <span className="text-[#3B2617] font-semibold">{formatPrice(item.unitPrice * item.quantity)}</span>
+                            {item.isCustomizable ? (
+                              <span className="text-[#9B8578] italic">Presupuesto a confirmar</span>
+                            ) : (
+                              <span className="text-[#3B2617] font-semibold">{formatPrice(item.unitPrice * item.quantity)}</span>
+                            )}
                           </div>
                         ))}
                       </div>

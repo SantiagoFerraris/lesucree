@@ -64,8 +64,12 @@ export default function Pedido() {
     const [couponError, setCouponError] = useState<string | null>(null);
 
     const subtotal = getCartTotal();
+    const subtotalForDisplay = items
+        .filter(i => !i.isCustomizable)
+        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const hasCustomizable = items.some(i => i.isCustomizable === true);
     const discount = appliedCoupon?.discountAmount ?? 0;
-    const finalTotal = Math.max(0, subtotal - discount);
+    const finalTotal = Math.max(0, subtotalForDisplay - discount);
 
     // Re-validate coupon when cart changes
     useEffect(() => {
@@ -346,7 +350,11 @@ export default function Pedido() {
                                                                                                           </button>
                                                                                 </div>
                                                       </div>
-                                                      <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
+                                                      {item.isCustomizable ? (
+                                                        <p className="text-xs italic text-warm-gray">Presupuesto a confirmar</p>
+                                                      ) : (
+                                                        <p className="text-sm font-semibold text-espresso">{formatPrice(item.price * item.quantity)}</p>
+                                                      )}
                                 </div>
                               ))}
                                                                             </div>
@@ -384,10 +392,19 @@ export default function Pedido() {
                                                                                 {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
                                                                             </div>
 
+                                                                            {hasCustomizable && (
+                                                                                <div className="mt-4 rounded-lg bg-blush/30 border border-dusty-pink/30 px-4 py-3 text-sm text-espresso/80">
+                                                                                    <p>
+                                                                                        * Los productos personalizados no incluyen presupuesto en este resumen.
+                                                                                        Será confirmado en una llamada telefónica según los detalles de tu pedido.
+                                                                                    </p>
+                                                                                </div>
+                                                                            )}
+
                                                                             <div className="border-t border-blush mt-4 pt-4 space-y-2">
                                                                                 <div className="flex items-center justify-between text-sm">
                                                                                     <span className="font-body text-warm-gray">Subtotal</span>
-                                                                                    <span className="font-body text-espresso">{formatPrice(subtotal)}</span>
+                                                                                    <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
                                                                                 </div>
                                                                                 {discount > 0 && (
                                                                                     <div className="flex items-center justify-between text-sm">
