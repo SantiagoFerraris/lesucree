@@ -395,8 +395,7 @@ export default function Pedido() {
                                                                             {hasCustomizable && (
                                                                                 <div className="mt-4 rounded-lg bg-blush/30 border border-dusty-pink/30 px-4 py-3 text-sm text-espresso/80">
                                                                                     <p>
-                                                                                        * Los productos personalizados no incluyen presupuesto en este resumen.
-                                                                                        Será confirmado en una llamada telefónica según los detalles de tu pedido.
+                                                                                        * Consultar presupuesto para productos personalizados.
                                                                                     </p>
                                                                                 </div>
                                                                             )}
