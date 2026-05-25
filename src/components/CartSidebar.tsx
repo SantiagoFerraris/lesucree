@@ -108,7 +108,11 @@ export default function CartSidebar() {
           <div className="p-5 border-t border-blush space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-body text-warm-gray">Total:</span>
-              <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
+              {items.length > 0 && items.every(i => i.isCustomizable === true) ? (
+                <span className="font-display text-xl font-bold text-warm-gray italic">Presupuesto a confirmar</span>
+              ) : (
+                <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
+              )}
             </div>
             {hasCustomizable && (
               <p className="text-xs text-warm-gray italic">* Presupuesto final se confirma en el siguiente paso</p>
