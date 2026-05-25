@@ -730,7 +730,11 @@ export default function AdminPedidos() {
                             <span className="text-[#3B2617]">
                               {item.productName}{item.variantLabel ? ` — ${item.variantLabel}` : ''} x{item.quantity}
                             </span>
-                            <span className="text-[#3B2617] font-semibold">{formatPrice(item.unitPrice * item.quantity)}</span>
+                            {item.isCustomizable ? (
+                              <span className="text-[#9B8578] italic">Presupuesto a confirmar</span>
+                            ) : (
+                              <span className="text-[#3B2617] font-semibold">{formatPrice(item.unitPrice * item.quantity)}</span>
+                            )}
                           </div>
                         ))}
                       </div>
