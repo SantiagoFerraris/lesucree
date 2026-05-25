@@ -122,7 +122,7 @@ export default function ProductDetailModal({ product, variants, onClose }: { pro
                   : added ? 'bg-sage text-white' : 'bg-dusty-pink text-white hover:bg-mauve'
               }`}
             >
-              {added ? <><Check size={16} /> ¡Agregado!</> : <><ShoppingBag size={16} /> Agregar al Pedido</>}
+              {added ? <><Check size={16} /> ¡Agregado!</> : <><ShoppingBag size={16} /> {isCustomizable ? 'Continuar Consulta' : 'Agregar al Pedido'}</>}
             </button>
             <a href={consultUrl} target="_blank" rel="noopener noreferrer" className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] text-white px-6 py-3 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-[#1da851] transition-all active:scale-95">
               Consultar por WhatsApp
