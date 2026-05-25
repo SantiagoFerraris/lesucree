@@ -110,6 +110,9 @@ export default function CartSidebar() {
               <span className="font-body text-warm-gray">Total:</span>
               <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
             </div>
+            {hasCustomizable && (
+              <p className="text-xs text-warm-gray italic">* Presupuesto final se confirma en el siguiente paso</p>
+            )}
             <Link
               to="/pedido"
               onClick={() => setIsOpen(false)}
