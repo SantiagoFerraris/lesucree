@@ -160,7 +160,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
         {!compact && (
           <div className="flex items-center justify-between mt-auto pt-4">
             <span className="font-body text-lg font-semibold text-espresso flex items-baseline gap-2">
-              {statusBehavior.showPrice ? (
+              {isCustomizable ? null : statusBehavior.showPrice ? (
                 <>
                   <span className={hasDiscount ? 'font-bold text-dusty-pink' : ''}>{formatPrice(displayPrice)}</span>
                   {hasDiscount && (
@@ -182,7 +182,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
                     : 'border-espresso text-espresso hover:bg-espresso hover:text-white'
               }`}
             >
-              {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> Agregar</>}
+              {added ? <><Check size={14} /> ¡Agregado!</> : <><ShoppingBag size={14} /> {isCustomizable ? 'Personalizar' : 'Agregar'}</>}
             </button>
           </div>
         )}
