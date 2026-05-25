@@ -28,7 +28,9 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
   const promosMap = activePromotionsProp ?? promosMapFromHook;
   const categoryLabels = buildCategoryLabels(categories);
   const productPromos = promosMap.get(product.id);
-  const isCustomizable = (product as any).is_customizable === true;
+  console.log('Product:', product);
+  console.log('is_customizable:', (product as any).is_customizable);
+  const isCustomizable = (product as any).is_customizable === true || (product as any).isCustomizable === true;
   const statusBehavior = getProductStatusBehavior(product as any, isCustomizable);
 
   const hasVariants = variants && variants.length > 0;
