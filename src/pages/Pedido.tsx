@@ -64,8 +64,12 @@ export default function Pedido() {
     const [couponError, setCouponError] = useState<string | null>(null);
 
     const subtotal = getCartTotal();
+    const subtotalForDisplay = items
+        .filter(i => !i.isCustomizable)
+        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const hasCustomizable = items.some(i => i.isCustomizable === true);
     const discount = appliedCoupon?.discountAmount ?? 0;
-    const finalTotal = Math.max(0, subtotal - discount);
+    const finalTotal = Math.max(0, subtotalForDisplay - discount);
 
     // Re-validate coupon when cart changes
     useEffect(() => {
