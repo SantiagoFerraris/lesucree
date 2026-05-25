@@ -75,8 +75,22 @@ export function getProductStatus(p: { status?: string | null }): ProductStatus {
   return (PRODUCT_STATUS_VALUES as string[]).includes(s) ? s : 'activo';
 }
 
-export function getProductStatusBehavior(p: { status?: string | null }): ProductStatusBehavior {
-  return PRODUCT_STATUS_BEHAVIOR[getProductStatus(p)];
+export function getProductStatusBehavior(
+  p: { status?: string | null },
+  isCustomizable?: boolean,
+): ProductStatusBehavior {
+  const status = getProductStatus(p);
+  const behavior = PRODUCT_STATUS_BEHAVIOR[status];
+
+  // Customizable products with status "activo" remain addable to cart and keep
+  // showPrice = true; the ProductCard handles the "Desde $X" / "Personalizar"
+  // display separately. For other statuses (agotado, proximamente, oculto,
+  // temporada) the standard behavior already applies and should not change.
+  if (isCustomizable && status === 'activo') {
+    return { ...behavior, canAddToCart: true, showPrice: true };
+  }
+
+  return behavior;
 }
 
 /** Public visibility check that combines both fields for backwards compatibility. */
