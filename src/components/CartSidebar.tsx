@@ -78,7 +78,11 @@ export default function CartSidebar() {
                           </span>
                         </button>
                       </div>
-                      <p className="text-sm font-bold text-espresso whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
+                      {item.isCustomizable ? (
+                        <p className="text-sm text-warm-gray italic whitespace-nowrap">A confirmar</p>
+                      ) : (
+                        <p className="text-sm font-bold text-espresso whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
+                      )}
                     </div>
                   </div>
                   <button
