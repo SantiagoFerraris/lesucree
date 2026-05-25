@@ -404,7 +404,11 @@ export default function Pedido() {
                                                                             <div className="border-t border-blush mt-4 pt-4 space-y-2">
                                                                                 <div className="flex items-center justify-between text-sm">
                                                                                     <span className="font-body text-warm-gray">Subtotal</span>
-                                                                                    <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
+                                                                                    {hasCustomizable && items.filter(i => !i.isCustomizable).length === 0 ? (
+                                                                                        <span className="font-body text-warm-gray italic">Presupuesto a confirmar</span>
+                                                                                    ) : (
+                                                                                        <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
+                                                                                    )}
                                                                                 </div>
                                                                                 {discount > 0 && (
                                                                                     <div className="flex items-center justify-between text-sm">
@@ -414,7 +418,11 @@ export default function Pedido() {
                                                                                 )}
                                                                                 <div className="flex items-center justify-between pt-2 border-t border-blush/60">
                                                                                     <span className="font-body font-semibold text-warm-gray">Total</span>
-                                                                                    <span className="font-display text-xl font-bold text-espresso">{formatPrice(finalTotal)}</span>
+                                                                                    {hasCustomizable && items.filter(i => !i.isCustomizable).length === 0 ? (
+                                                                                        <span className="font-display text-xl font-bold text-warm-gray italic">Presupuesto a confirmar</span>
+                                                                                    ) : (
+                                                                                        <span className="font-display text-xl font-bold text-espresso">{formatPrice(finalTotal)}</span>
+                                                                                    )}
                                                                                 </div>
                                                                              </div>
                                                                              <div className="mt-3 rounded-xl bg-blush/30 border border-dusty-pink/30 p-3 text-xs text-espresso/80 leading-relaxed">
