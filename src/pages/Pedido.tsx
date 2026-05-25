@@ -404,7 +404,11 @@ export default function Pedido() {
                                                                             <div className="border-t border-blush mt-4 pt-4 space-y-2">
                                                                                 <div className="flex items-center justify-between text-sm">
                                                                                     <span className="font-body text-warm-gray">Subtotal</span>
-                                                                                    <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
+                                                                                    {hasCustomizable && items.filter(i => !i.isCustomizable).length === 0 ? (
+                                                                                        <span className="font-body text-warm-gray italic">Presupuesto a confirmar</span>
+                                                                                    ) : (
+                                                                                        <span className="font-body text-espresso">{formatPrice(subtotalForDisplay)}</span>
+                                                                                    )}
                                                                                 </div>
                                                                                 {discount > 0 && (
                                                                                     <div className="flex items-center justify-between text-sm">
