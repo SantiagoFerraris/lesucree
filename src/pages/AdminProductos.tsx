@@ -270,6 +270,7 @@ export default function AdminProductos() {
       urgency_message: (p as any).urgency_message || '',
       visible_from: isoToLocalInput((p as any).visible_from),
       visible_until: isoToLocalInput((p as any).visible_until),
+      is_customizable: (p as any).is_customizable ?? false,
       variants: existingVariants,
     });
     setShowForm(true);
