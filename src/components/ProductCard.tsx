@@ -64,6 +64,7 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
       variantLabel: selectedVariant?.label,
       price: displayPrice,
       imageUrl: product.image_url || undefined,
+      isCustomizable,
     });
     setAdded(true);
     toast.success(`${product.name} agregado al pedido`);

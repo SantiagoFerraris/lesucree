@@ -9,6 +9,8 @@ export default function CartSidebar() {
 
   if (!isOpen) return null;
 
+  const hasCustomizable = items.some(i => i.isCustomizable);
+
   return (
     <>
       <div className="fixed inset-0 z-[9990] bg-espresso/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsOpen(false)} />
@@ -49,7 +51,11 @@ export default function CartSidebar() {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold text-espresso truncate">{item.productName}</h4>
                     {item.variantLabel && <p className="text-xs text-warm-gray">{item.variantLabel}</p>}
-                    <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
+                    {item.isCustomizable ? (
+                      <p className="text-sm text-warm-gray italic mt-1">Presupuesto a confirmar</p>
+                    ) : (
+                      <p className="text-sm font-semibold text-espresso mt-1">{formatPrice(item.price)}</p>
+                    )}
                     <div className="flex items-center justify-between gap-2 mt-1.5">
                       <div className="flex items-center gap-1">
                         <button
@@ -72,7 +78,11 @@ export default function CartSidebar() {
                           </span>
                         </button>
                       </div>
-                      <p className="text-sm font-bold text-espresso whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
+                      {item.isCustomizable ? (
+                        <p className="text-sm text-warm-gray italic whitespace-nowrap">A confirmar</p>
+                      ) : (
+                        <p className="text-sm font-bold text-espresso whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
+                      )}
                     </div>
                   </div>
                   <button
@@ -100,6 +110,9 @@ export default function CartSidebar() {
               <span className="font-body text-warm-gray">Total:</span>
               <span className="font-display text-xl font-bold text-espresso">{formatPrice(getCartTotal())}</span>
             </div>
+            {hasCustomizable && (
+              <p className="text-xs text-warm-gray italic">* Presupuesto final se confirma en el siguiente paso</p>
+            )}
             <Link
               to="/pedido"
               onClick={() => setIsOpen(false)}
