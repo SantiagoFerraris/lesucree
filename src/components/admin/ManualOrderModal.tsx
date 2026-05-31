@@ -38,7 +38,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [items, setItems] = useState<OrderItem[]>([{ productName: '', variantLabel: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ category: '', productName: '', variantLabel: '', quantity: 1 }]);
   const [createdAt, setCreatedAt] = useState<Date>(today);
   const [desiredDate, setDesiredDate] = useState<Date | undefined>();
   const [preferredTime, setPreferredTime] = useState('');
@@ -49,17 +49,25 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [status, setStatus] = useState('confirmed');
   const [notes, setNotes] = useState('');
 
-  const { data: productNames = [] } = useQuery({
-    queryKey: ['product-names-autocomplete'],
+  const { data: products = [] } = useQuery<ProductOption[]>({
+    queryKey: ['manual-order-products'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('name').eq('active', true).order('name');
-      return data?.map(p => p.name) || [];
+      const { data } = await supabase.from('products').select('name, category').eq('active', true).order('name');
+      return (data as any[])?.map(p => ({ name: p.name as string, category: (p.category as string) || '' })) || [];
+    },
+  });
+
+  const { data: categories = [] } = useQuery<CategoryOption[]>({
+    queryKey: ['manual-order-categories'],
+    queryFn: async () => {
+      const { data } = await supabase.from('categories').select('value, label').order('sort_order');
+      return (data as any[])?.map(c => ({ value: c.value as string, label: c.label as string })) || [];
     },
   });
 
   const resetForm = () => {
     setCustomerName(''); setCustomerEmail(''); setCustomerPhone('');
-    setItems([{ productName: '', variantLabel: '', quantity: 1 }]);
+    setItems([{ category: '', productName: '', variantLabel: '', quantity: 1 }]);
     setCreatedAt(today); setDesiredDate(undefined); setPreferredTime('');
     setTotal(''); setPaymentStatus('pendiente'); setDepositAmount('');
     setPaymentMethod(''); setStatus('confirmed'); setNotes('');
