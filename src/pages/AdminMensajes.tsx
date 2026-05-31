@@ -52,9 +52,13 @@ export default function AdminMensajes() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-messages'] }); },
   });
 
-  const filtered = messages?.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const AUTO_EMAIL = 'manual@lesucree.com';
+  const filtered = messages?.filter(m => {
+    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
+    const isAuto = (m.email || '').toLowerCase() === AUTO_EMAIL;
+    const matchSender = senderFilter === 'todos' || (senderFilter === 'auto' ? isAuto : !isAuto);
+    return matchSearch && matchSender;
+  });
 
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
