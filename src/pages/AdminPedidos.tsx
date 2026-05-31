@@ -402,7 +402,7 @@ export default function AdminPedidos() {
         <select
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value); setPage(0); setSelected(new Set()); }}
-          className="rounded-lg border border-[#E8DDD4] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+          className="w-full sm:w-[160px] rounded-lg border border-[#E8DDD4] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 min-h-[40px]"
         >
           <option value="todos">Todos los estados</option>
           <option value="pending">Pendiente ({statusCounts.pending || 0})</option>
