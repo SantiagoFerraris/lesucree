@@ -13,6 +13,7 @@ export default function AdminMensajes() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [suggestionOpen, setSuggestionOpen] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const [senderFilter, setSenderFilter] = useState<'todos' | 'auto' | 'cliente'>('todos');
   const [page, setPage] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const PAGE_SIZE = 10;
@@ -51,9 +52,13 @@ export default function AdminMensajes() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-messages'] }); },
   });
 
-  const filtered = messages?.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const AUTO_EMAIL = 'manual@lesucree.com';
+  const filtered = messages?.filter(m => {
+    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
+    const isAuto = (m.email || '').toLowerCase() === AUTO_EMAIL;
+    const matchSender = senderFilter === 'todos' || (senderFilter === 'auto' ? isAuto : !isAuto);
+    return matchSearch && matchSender;
+  });
 
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
   const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -88,11 +93,31 @@ export default function AdminMensajes() {
       <h2 className="font-display text-2xl font-bold text-espresso mb-2">Mensajes</h2>
       {unreadCount > 0 && <p className="text-xs text-warm-gray mb-4">{unreadCount} sin leer</p>}
 
-      <div className="relative mb-6">
+      <div className="relative mb-3">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar por nombre o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
           className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
+
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {([
+          { value: 'todos', label: 'Todos' },
+          { value: 'auto', label: '🤖 Automáticos', shortLabel: '🤖 Auto' },
+          { value: 'cliente', label: '👤 Cliente' },
+        ] as const).map(f => (
+          <button
+            key={f.value}
+            onClick={() => { setSenderFilter(f.value); setPage(0); }}
+            className={`min-h-[36px] px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              senderFilter === f.value ? 'bg-espresso text-white' : 'bg-cream text-warm-gray hover:bg-blush'
+            }`}
+          >
+            <span className="sm:hidden">{(f as any).shortLabel || f.label}</span>
+            <span className="hidden sm:inline">{f.label}</span>
+          </button>
+        ))}
+      </div>
+
 
       {isLoading ? (
         <p className="text-warm-gray">Cargando...</p>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, X, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 
 interface OrderItem {
+  category: string;
   productName: string;
   variantLabel: string;
   quantity: number;
@@ -26,38 +27,9 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-function ProductAutocomplete({ value, onChange, products }: { value: string; onChange: (v: string) => void; products: string[] }) {
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const filtered = value.length >= 2 ? products.filter(p => p.toLowerCase().includes(value.toLowerCase())).slice(0, 6) : [];
+interface ProductOption { name: string; category: string }
+interface CategoryOption { value: string; label: string }
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setShowSuggestions(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <Input
-        value={value}
-        onChange={e => { onChange(e.target.value); setShowSuggestions(true); }}
-        onFocus={() => setShowSuggestions(true)}
-        placeholder="Ej: Torta de chocolate"
-      />
-      {showSuggestions && filtered.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#E8DDD4] rounded-lg shadow-lg max-h-40 overflow-y-auto">
-          {filtered.map(p => (
-            <button key={p} type="button" onClick={() => { onChange(p); setShowSuggestions(false); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-[#FFFBF5] text-[#3B2617]">{p}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
@@ -66,7 +38,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [items, setItems] = useState<OrderItem[]>([{ productName: '', variantLabel: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ category: '', productName: '', variantLabel: '', quantity: 1 }]);
   const [createdAt, setCreatedAt] = useState<Date>(today);
   const [desiredDate, setDesiredDate] = useState<Date | undefined>();
   const [preferredTime, setPreferredTime] = useState('');
@@ -77,17 +49,25 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [status, setStatus] = useState('confirmed');
   const [notes, setNotes] = useState('');
 
-  const { data: productNames = [] } = useQuery({
-    queryKey: ['product-names-autocomplete'],
+  const { data: products = [] } = useQuery<ProductOption[]>({
+    queryKey: ['manual-order-products'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('name').eq('active', true).order('name');
-      return data?.map(p => p.name) || [];
+      const { data } = await supabase.from('products').select('name, category').eq('active', true).order('name');
+      return (data as any[])?.map(p => ({ name: p.name as string, category: (p.category as string) || '' })) || [];
+    },
+  });
+
+  const { data: categories = [] } = useQuery<CategoryOption[]>({
+    queryKey: ['manual-order-categories'],
+    queryFn: async () => {
+      const { data } = await supabase.from('categories').select('value, label').order('sort_order');
+      return (data as any[])?.map(c => ({ value: c.value as string, label: c.label as string })) || [];
     },
   });
 
   const resetForm = () => {
     setCustomerName(''); setCustomerEmail(''); setCustomerPhone('');
-    setItems([{ productName: '', variantLabel: '', quantity: 1 }]);
+    setItems([{ category: '', productName: '', variantLabel: '', quantity: 1 }]);
     setCreatedAt(today); setDesiredDate(undefined); setPreferredTime('');
     setTotal(''); setPaymentStatus('pendiente'); setDepositAmount('');
     setPaymentMethod(''); setStatus('confirmed'); setNotes('');
@@ -180,9 +160,38 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 {items.length > 1 && (
                   <button type="button" onClick={() => removeItem(i)} className="absolute top-2 right-2 text-[#9B8578] hover:text-red-500"><X size={14} /></button>
                 )}
-                <div>
-                  <Label>Producto *</Label>
-                  <ProductAutocomplete value={item.productName} onChange={v => updateItem(i, 'productName', v)} products={productNames} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Categoría *</Label>
+                    <Select
+                      value={item.category}
+                      onValueChange={v => {
+                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '' } : it));
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                      <SelectContent>
+                        {categories.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Producto *</Label>
+                    <Select
+                      value={item.productName}
+                      onValueChange={v => updateItem(i, 'productName', v)}
+                      disabled={!item.category}
+                    >
+                      <SelectTrigger><SelectValue placeholder={item.category ? 'Seleccionar producto...' : 'Elegí una categoría'} /></SelectTrigger>
+                      <SelectContent>
+                        {products.filter(p => p.category === item.category).map(p => (
+                          <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -196,7 +205,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
             ))}
-            <button type="button" onClick={() => setItems(prev => [...prev, { productName: '', variantLabel: '', quantity: 1 }])}
+            <button type="button" onClick={() => setItems(prev => [...prev, { category: '', productName: '', variantLabel: '', quantity: 1 }])}
               className="flex items-center gap-1.5 text-xs text-[#7C6354] hover:text-[#3B2617] font-semibold">
               <Plus size={14} /> Agregar otro producto
             </button>
