@@ -26,38 +26,9 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-function ProductAutocomplete({ value, onChange, products }: { value: string; onChange: (v: string) => void; products: string[] }) {
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const filtered = value.length >= 2 ? products.filter(p => p.toLowerCase().includes(value.toLowerCase())).slice(0, 6) : [];
+interface ProductOption { name: string; category: string }
+interface CategoryOption { value: string; label: string }
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setShowSuggestions(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <Input
-        value={value}
-        onChange={e => { onChange(e.target.value); setShowSuggestions(true); }}
-        onFocus={() => setShowSuggestions(true)}
-        placeholder="Ej: Torta de chocolate"
-      />
-      {showSuggestions && filtered.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#E8DDD4] rounded-lg shadow-lg max-h-40 overflow-y-auto">
-          {filtered.map(p => (
-            <button key={p} type="button" onClick={() => { onChange(p); setShowSuggestions(false); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-[#FFFBF5] text-[#3B2617]">{p}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
