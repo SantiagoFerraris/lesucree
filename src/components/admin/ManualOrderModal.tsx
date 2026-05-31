@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 
 interface OrderItem {
+  category: string;
   productName: string;
   variantLabel: string;
   quantity: number;
