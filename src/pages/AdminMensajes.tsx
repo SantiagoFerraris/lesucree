@@ -13,6 +13,7 @@ export default function AdminMensajes() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [suggestionOpen, setSuggestionOpen] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const [senderFilter, setSenderFilter] = useState<'todos' | 'auto' | 'cliente'>('todos');
   const [page, setPage] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const PAGE_SIZE = 10;
