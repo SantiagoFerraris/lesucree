@@ -160,9 +160,38 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 {items.length > 1 && (
                   <button type="button" onClick={() => removeItem(i)} className="absolute top-2 right-2 text-[#9B8578] hover:text-red-500"><X size={14} /></button>
                 )}
-                <div>
-                  <Label>Producto *</Label>
-                  <ProductAutocomplete value={item.productName} onChange={v => updateItem(i, 'productName', v)} products={productNames} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Categoría *</Label>
+                    <Select
+                      value={item.category}
+                      onValueChange={v => {
+                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '' } : it));
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                      <SelectContent>
+                        {categories.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Producto *</Label>
+                    <Select
+                      value={item.productName}
+                      onValueChange={v => updateItem(i, 'productName', v)}
+                      disabled={!item.category}
+                    >
+                      <SelectTrigger><SelectValue placeholder={item.category ? 'Seleccionar producto...' : 'Elegí una categoría'} /></SelectTrigger>
+                      <SelectContent>
+                        {products.filter(p => p.category === item.category).map(p => (
+                          <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -176,7 +205,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
             ))}
-            <button type="button" onClick={() => setItems(prev => [...prev, { productName: '', variantLabel: '', quantity: 1 }])}
+            <button type="button" onClick={() => setItems(prev => [...prev, { category: '', productName: '', variantLabel: '', quantity: 1 }])}
               className="flex items-center gap-1.5 text-xs text-[#7C6354] hover:text-[#3B2617] font-semibold">
               <Plus size={14} /> Agregar otro producto
             </button>
