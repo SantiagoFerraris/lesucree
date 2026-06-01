@@ -249,7 +249,7 @@ export default function AdminClientes() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-          <input placeholder="Buscar por nombre o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
+          <input placeholder="Buscar por nombre, teléfono o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
             className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
         </div>
         <select value={segmentFilter} onChange={e => { setSegmentFilter(e.target.value as Segment); setPage(0); setSelected(new Set()); }}
