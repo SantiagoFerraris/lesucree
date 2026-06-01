@@ -70,10 +70,26 @@ export default function AdminClientes() {
   const customers = useMemo(() => {
     if (!orders) return [];
     const map: Record<string, { name: string; email: string; phone: string; orders: any[]; totalSpent: number; lastOrder: string; firstOrder: string }> = {};
-    const getKey = (o: any) => (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : o.customer_name;
+    const GENERIC_EMAILS = ['importado@lesucree.com', 'manual@lesucree.com'];
+    const cleanEmail = (e: string) => (e && !GENERIC_EMAILS.includes(e)) ? e : '';
+    const norm = (s: string) => (s || '').trim().toLowerCase();
+    const normPhone = (s: string) => (s || '').replace(/\D/g, '');
+    const getKey = (o: any) => {
+      const n = norm(o.customer_name);
+      if (n) return `name:${n}`;
+      const p = normPhone(o.customer_phone);
+      if (p) return `phone:${p}`;
+      const e = norm(cleanEmail(o.customer_email));
+      if (e) return `email:${e}`;
+      return `unknown:${o.id}`;
+    };
     orders.forEach(o => {
       const key = getKey(o);
-      if (!map[key]) map[key] = { name: o.customer_name, email: (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : '', phone: o.customer_phone, orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
+      if (!map[key]) map[key] = { name: o.customer_name || '', email: cleanEmail(o.customer_email), phone: o.customer_phone || '', orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
+      // Fill missing contact fields from later orders if available
+      if (!map[key].email) map[key].email = cleanEmail(o.customer_email);
+      if (!map[key].phone) map[key].phone = o.customer_phone || '';
+      if (!map[key].name) map[key].name = o.customer_name || '';
       map[key].orders.push(o);
       if (o.status !== 'cancelled') map[key].totalSpent += Number(o.total);
       if (o.created_at > map[key].lastOrder) map[key].lastOrder = o.created_at;
@@ -100,7 +116,11 @@ export default function AdminClientes() {
   };
 
   const filtered = customers.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.email.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase().trim();
+    const matchSearch = !q ||
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.phone || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q);
     const matchSegment = segmentFilter === 'all' || getSegment(c) === segmentFilter;
     return matchSearch && matchSegment;
   });
@@ -154,7 +174,7 @@ export default function AdminClientes() {
     onError: () => toast.error('Error al eliminar. Intentá de nuevo.'),
   });
 
-  const clientKey = (c: { email: string; name: string }) => c.email || c.name;
+  const clientKey = (c: { email: string; name: string; phone: string }) => c.name || c.phone || c.email;
   const handleDeleteClick = (customer: typeof customers[0]) => {
     const key = clientKey(customer);
     setDeleteTarget({ keys: [key], emails: [customer.email], names: [customer.name] });
@@ -229,7 +249,7 @@ export default function AdminClientes() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-          <input placeholder="Buscar por nombre o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
+          <input placeholder="Buscar por nombre, teléfono o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
             className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
         </div>
         <select value={segmentFilter} onChange={e => { setSegmentFilter(e.target.value as Segment); setPage(0); setSelected(new Set()); }}
@@ -274,9 +294,9 @@ export default function AdminClientes() {
                     <div className="flex items-center gap-3 flex-wrap min-w-0">
                       <Checkbox checked={selected.has(key)} onCheckedChange={() => toggleSelect(key)} onClick={e => e.stopPropagation()} />
                        <div className="flex items-center gap-3 flex-wrap min-w-0 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : key)}>
-                         <span className="font-semibold text-sm text-espresso">{c.name}</span>
+                         <span className="font-semibold text-sm text-espresso">{c.name || c.phone || c.email || 'Sin nombre'}</span>
                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SEGMENT_STYLES[segment]}`}>{SEGMENT_LABELS[segment]}</span>
-                         <span className="text-xs text-warm-gray">{c.email || 'Sin email'}</span>
+                         <span className="text-xs text-warm-gray">{c.email || c.phone || 'Sin contacto'}</span>
                          <span className="text-xs px-2 py-0.5 rounded-full bg-cream text-warm-gray font-semibold">
                            {c.orders.length} {c.orders.length === 1 ? 'pedido' : 'pedidos'}
                          </span>
