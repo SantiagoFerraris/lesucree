@@ -116,7 +116,11 @@ export default function AdminClientes() {
   };
 
   const filtered = customers.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.email.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase().trim();
+    const matchSearch = !q ||
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.phone || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q);
     const matchSegment = segmentFilter === 'all' || getSegment(c) === segmentFilter;
     return matchSearch && matchSegment;
   });
