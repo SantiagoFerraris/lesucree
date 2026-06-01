@@ -174,7 +174,7 @@ export default function AdminClientes() {
     onError: () => toast.error('Error al eliminar. Intentá de nuevo.'),
   });
 
-  const clientKey = (c: { email: string; name: string }) => c.email || c.name;
+  const clientKey = (c: { email: string; name: string; phone: string }) => c.name || c.phone || c.email;
   const handleDeleteClick = (customer: typeof customers[0]) => {
     const key = clientKey(customer);
     setDeleteTarget({ keys: [key], emails: [customer.email], names: [customer.name] });
