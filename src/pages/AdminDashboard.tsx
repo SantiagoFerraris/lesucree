@@ -292,11 +292,26 @@ export default function AdminDashboard() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
-        <KpiCard icon={ShoppingBag} label="Pedidos Pendientes" value={String(pendingCount)} loading={isLoading} />
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <KpiCard
+          icon={HourglassEmoji}
+          label="Órdenes por Confirmar"
+          value={String(pendingCount)}
+          loading={isLoading}
+          borderLeftAccent="#FF6B6B"
+          valueColor="#FF6B6B"
+        />
+        <KpiCard
+          icon={HammerEmoji}
+          label="En Preparación"
+          value={String(prepCount)}
+          loading={isLoading}
+          borderLeftAccent="#FFA500"
+          valueColor="#FFA500"
+        />
         <KpiCard icon={Clock} label="Retiros de Hoy" value={String(todayPickups)} loading={isLoading} />
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
+        <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
         <KpiCard
           icon={Sparkles}
           label="Solicitudes Zumbita"
