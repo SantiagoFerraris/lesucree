@@ -70,10 +70,26 @@ export default function AdminClientes() {
   const customers = useMemo(() => {
     if (!orders) return [];
     const map: Record<string, { name: string; email: string; phone: string; orders: any[]; totalSpent: number; lastOrder: string; firstOrder: string }> = {};
-    const getKey = (o: any) => (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : o.customer_name;
+    const GENERIC_EMAILS = ['importado@lesucree.com', 'manual@lesucree.com'];
+    const cleanEmail = (e: string) => (e && !GENERIC_EMAILS.includes(e)) ? e : '';
+    const norm = (s: string) => (s || '').trim().toLowerCase();
+    const normPhone = (s: string) => (s || '').replace(/\D/g, '');
+    const getKey = (o: any) => {
+      const n = norm(o.customer_name);
+      if (n) return `name:${n}`;
+      const p = normPhone(o.customer_phone);
+      if (p) return `phone:${p}`;
+      const e = norm(cleanEmail(o.customer_email));
+      if (e) return `email:${e}`;
+      return `unknown:${o.id}`;
+    };
     orders.forEach(o => {
       const key = getKey(o);
-      if (!map[key]) map[key] = { name: o.customer_name, email: (o.customer_email && o.customer_email !== 'importado@lesucree.com') ? o.customer_email : '', phone: o.customer_phone, orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
+      if (!map[key]) map[key] = { name: o.customer_name || '', email: cleanEmail(o.customer_email), phone: o.customer_phone || '', orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
+      // Fill missing contact fields from later orders if available
+      if (!map[key].email) map[key].email = cleanEmail(o.customer_email);
+      if (!map[key].phone) map[key].phone = o.customer_phone || '';
+      if (!map[key].name) map[key].name = o.customer_name || '';
       map[key].orders.push(o);
       if (o.status !== 'cancelled') map[key].totalSpent += Number(o.total);
       if (o.created_at > map[key].lastOrder) map[key].lastOrder = o.created_at;
