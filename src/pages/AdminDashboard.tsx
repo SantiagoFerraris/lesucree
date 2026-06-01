@@ -133,6 +133,7 @@ export default function AdminDashboard() {
   }).reduce((s, o) => s + Number(o.total), 0) ?? 0;
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
+  const prepCount = orders?.filter(o => (o as any).fulfillment_status === 'en_preparacion').length ?? 0;
   const todayPickups = orders?.filter(o => o.desired_date === todayStr && o.status !== 'cancelled').length ?? 0;
   const unreadCount = unreadMessages?.length ?? 0;
 
