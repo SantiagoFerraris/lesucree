@@ -27,11 +27,15 @@ const PAYMENT_LABELS: Record<string, string> = {
   pendiente: 'Pago Pendiente', 'seña_recibida': 'Seña Recibida', 'pagado_completo': 'Pagado',
 };
 
-function KpiCard({ icon: Icon, label, value, loading, badge, onClick }: { icon: any; label: string; value: string; loading: boolean; badge?: string | null; onClick?: () => void }) {
+const HourglassEmoji = ({ size: _s, ...props }: any) => <span {...props}>⏳</span>;
+const HammerEmoji = ({ size: _s, ...props }: any) => <span {...props}>🔨</span>;
+
+function KpiCard({ icon: Icon, label, value, loading, badge, onClick, borderLeftAccent, valueColor }: { icon: any; label: string; value: string; loading: boolean; badge?: string | null; onClick?: () => void; borderLeftAccent?: string; valueColor?: string }) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl shadow-sm border border-gray-100 p-5 ${onClick ? 'cursor-pointer hover:border-gray-200 transition-colors' : ''}`}
+      className={`bg-white rounded-xl shadow-sm border border-gray-100 p-5 ${borderLeftAccent ? 'border-l-4' : ''} ${onClick ? 'cursor-pointer hover:border-gray-200 transition-colors' : ''}`}
+      style={borderLeftAccent ? { borderLeftColor: borderLeftAccent } : undefined}
     >
       <div className="flex items-center gap-3 mb-2">
         <div className="w-9 h-9 rounded-lg bg-cream flex items-center justify-center">
@@ -44,7 +48,7 @@ function KpiCard({ icon: Icon, label, value, loading, badge, onClick }: { icon: 
           </span>
         )}
       </div>
-      {loading ? <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" /> : <p className="text-2xl font-bold text-espresso font-display">{value}</p>}
+      {loading ? <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" /> : <p className={`text-2xl font-bold font-display ${!valueColor ? 'text-espresso' : ''}`} style={valueColor ? { color: valueColor } : undefined}>{value}</p>}
     </div>
   );
 }
@@ -133,6 +137,7 @@ export default function AdminDashboard() {
   }).reduce((s, o) => s + Number(o.total), 0) ?? 0;
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
+  const prepCount = orders?.filter(o => (o as any).fulfillment_status === 'en_preparacion').length ?? 0;
   const todayPickups = orders?.filter(o => o.desired_date === todayStr && o.status !== 'cancelled').length ?? 0;
   const unreadCount = unreadMessages?.length ?? 0;
 
@@ -287,11 +292,26 @@ export default function AdminDashboard() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
-        <KpiCard icon={ShoppingBag} label="Pedidos Pendientes" value={String(pendingCount)} loading={isLoading} />
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <KpiCard
+          icon={HourglassEmoji}
+          label="Órdenes por Confirmar"
+          value={String(pendingCount)}
+          loading={isLoading}
+          borderLeftAccent="#FF6B6B"
+          valueColor="#FF6B6B"
+        />
+        <KpiCard
+          icon={HammerEmoji}
+          label="En Preparación"
+          value={String(prepCount)}
+          loading={isLoading}
+          borderLeftAccent="#FFA500"
+          valueColor="#FFA500"
+        />
         <KpiCard icon={Clock} label="Retiros de Hoy" value={String(todayPickups)} loading={isLoading} />
         <KpiCard icon={MessageSquare} label="Mensajes sin leer" value={String(unreadCount)} loading={messagesLoading} />
+        <KpiCard icon={DollarSign} label="Ventas del Mes" value={formatPrice(monthlyRevenue)} loading={isLoading} />
         <KpiCard
           icon={Sparkles}
           label="Solicitudes Zumbita"
