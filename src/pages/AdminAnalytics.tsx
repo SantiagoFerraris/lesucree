@@ -71,7 +71,7 @@ export default function AdminAnalytics() {
   const lastMonthOrders = useMemo(() => orders?.filter(o => o.created_at >= lastMonthStart && o.created_at <= lastMonthEnd && o.status !== 'cancelled') || [], [orders, lastMonthStart, lastMonthEnd]);
 
   const monthRevenue = thisMonthOrders.reduce((s, o) => s + Number(o.total), 0);
-  const avgTicket = thisMonthOrders.length > 0 ? monthRevenue / thisMonthOrders.length : 0;
+  const avgTicket = thisMonthOrders.length > 0 ? Math.round(monthRevenue / thisMonthOrders.length) : 0;
 
   const allMonthOrders = orders?.filter(o => o.created_at >= monthStart) || [];
   const completedThisMonth = allMonthOrders.filter(o => o.status === 'completed' || o.status === 'picked_up').length;
