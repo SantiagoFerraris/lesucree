@@ -391,7 +391,7 @@ export default function AdminDashboard() {
           <p className="text-warm-gray text-sm">No hay retiros próximos.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="text-xs text-warm-gray uppercase tracking-wider border-b border-gray-100">
                   <th className="text-left py-2 pr-3">Cliente</th>
@@ -447,7 +447,7 @@ export default function AdminDashboard() {
           <p className="text-warm-gray text-sm">No hay promociones activas en este momento.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[420px] text-sm">
               <thead>
                 <tr className="text-xs text-warm-gray uppercase tracking-wider border-b border-gray-100">
                   <th className="text-left py-2 pr-3">Promoción</th>

@@ -538,7 +538,7 @@ export default function AdminProductos() {
             </div>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b text-left text-warm-gray">
                   <th className="py-3 pr-3 w-8">

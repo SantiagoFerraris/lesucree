@@ -183,7 +183,7 @@ export default function AdminLayout() {
 
       {/* Main content */}
       <main className="flex-1 md:ml-56 pt-14 md:pt-0 pb-20 md:pb-0">
-        <div className="p-6 md:p-8">
+        <div className="p-3 sm:p-6 md:p-8">
           <Outlet />
         </div>
       </main>
