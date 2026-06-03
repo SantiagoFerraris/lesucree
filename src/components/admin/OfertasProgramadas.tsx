@@ -304,7 +304,7 @@ export default function OfertasProgramadas() {
         </div>
       ) : (
         <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[500px] text-sm">
             <thead>
               <tr className="border-b text-left text-warm-gray">
                 <th className="py-3 px-4">Promoción</th>

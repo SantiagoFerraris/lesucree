@@ -437,7 +437,7 @@ export default function AdminProductos() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h2 className="font-display text-2xl font-bold text-espresso">Productos</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button onClick={async () => {
             setSyncing(true);
             try {
