@@ -60,6 +60,8 @@ export default function PendingPaymentsWidget() {
     return (orders || [])
       .filter((o) => {
         const orderDate = new Date(o.desired_date + 'T00:00:00');
+        // Subtract 1 day to correct for the 1-day offset in date interpretation
+        orderDate.setDate(orderDate.getDate() - 1);
         const today = new Date();
         const orderDateLocal = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate());
         const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
