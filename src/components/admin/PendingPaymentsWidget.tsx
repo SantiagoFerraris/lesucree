@@ -58,7 +58,13 @@ export default function PendingPaymentsWidget() {
 
   const dueToday = useMemo(() => {
     return (orders || [])
-      .filter((o) => o.desired_date === todayStr)
+      .filter((o) => {
+        const orderDate = new Date(o.desired_date + 'T00:00:00');
+        const today = new Date();
+        const orderDateLocal = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate());
+        const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        return orderDateLocal.getTime() === todayLocal.getTime();
+      })
       .reduce((s, o) => s + Number(o.remaining_balance || 0), 0);
   }, [orders, todayStr]);
 
