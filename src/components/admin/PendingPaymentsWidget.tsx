@@ -53,11 +53,11 @@ export default function PendingPaymentsWidget() {
   });
 
   const diasVencimiento = settings?.dias_vencimiento ?? 3;
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+  const todayStr = getTodayArgentina();
 
   const dueToday = useMemo(() => {
     return (orders || [])
-      .filter((o) => o.desired_date === todayStr)
+      .filter((o) => toArgentinaDate(o.desired_date) === todayStr && o.status?.toLowerCase() !== 'retirado' && o.status?.toLowerCase() !== 'picked_up')
       .reduce((s, o) => s + Number(o.remaining_balance || 0), 0);
   }, [orders, todayStr]);
 
