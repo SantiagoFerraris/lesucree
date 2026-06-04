@@ -57,7 +57,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  // Use Argentina timezone (UTC-3, no DST) to derive "today" so date comparisons don't shift after 21:00 AR
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
   const { data: orders, isLoading } = useQuery({
