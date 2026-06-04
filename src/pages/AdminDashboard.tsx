@@ -140,7 +140,13 @@ export default function AdminDashboard() {
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
   const prepCount = orders?.filter(o => (o as any).fulfillment_status === 'en_preparacion').length ?? 0;
-  const todayPickups = orders?.filter(o => o.desired_date === todayStr && o.status !== 'cancelled').length ?? 0;
+  const todayPickups = orders?.filter(o =>
+    toArgentinaDate(o.desired_date) === todayStr &&
+    o.status !== 'cancelled' &&
+    o.status?.toLowerCase() !== 'picked_up' &&
+    o.status?.toLowerCase() !== 'retirado' &&
+    (o as any).fulfillment_status?.toLowerCase() !== 'retirado'
+  ).length ?? 0;
   const unreadCount = unreadMessages?.length ?? 0;
 
   // Last 7 days chart
