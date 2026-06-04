@@ -100,9 +100,9 @@ export default function AdminPedidos() {
   const [exportTo, setExportTo] = useState('');
 
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const tomorrowStr = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
-  const weekEnd = (() => { const d = new Date(today); d.setDate(d.getDate() + 7); return d.toISOString().split('T')[0]; })();
+  const todayStr = getTodayArgentina();
+  const tomorrowStr = (() => { const [y, m, d] = todayStr.split('-').map(Number); const dt = new Date(y, m - 1, d + 1); return dt.toLocaleDateString('en-CA'); })();
+  const weekEnd = (() => { const [y, m, d] = todayStr.split('-').map(Number); const dt = new Date(y, m - 1, d + 7); return dt.toLocaleDateString('en-CA'); })();
 
   // Close sort dropdown on outside click
   useEffect(() => {
