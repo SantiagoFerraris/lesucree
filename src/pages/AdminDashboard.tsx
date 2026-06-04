@@ -162,7 +162,7 @@ export default function AdminDashboard() {
     .sort((a, b) => a.desired_date.localeCompare(b.desired_date))
     .slice(0, 5) ?? [];
 
-  const tomorrowStr = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
+  const tomorrowStr = (() => { const [y, m, d] = todayStr.split('-').map(Number); const dt = new Date(Date.UTC(y, m - 1, d + 1)); return dt.toISOString().split('T')[0]; })();
 
   const formatDate = (d: string) => {
     if (!d) return '—';
