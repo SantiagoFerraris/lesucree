@@ -4,14 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Wallet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
+import { getTodayArgentina, daysUntilArgentina, toArgentinaDate } from '@/lib/argentinaTimezone';
 
 function daysUntil(dateStr: string): number {
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
-  const [ty, tm, td] = todayStr.split('-').map(Number);
-  const [oy, om, od] = dateStr.split('-').map(Number);
-  const todayUTC = Date.UTC(ty, tm - 1, td);
-  const targetUTC = Date.UTC(oy, om - 1, od);
-  return Math.round((targetUTC - todayUTC) / 86400000);
+  return daysUntilArgentina(dateStr);
 }
 
 function urgencyColor(days: number, diasVencimiento: number): string {
