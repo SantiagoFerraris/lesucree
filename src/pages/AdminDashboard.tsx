@@ -12,6 +12,7 @@ import OpportunitiesLayer from '@/components/admin/OpportunitiesLayer';
 import RetentionLayer from '@/components/admin/RetentionLayer';
 import ActionHistoryModal from '@/components/admin/ActionHistoryModal';
 import PendingPaymentsWidget from '@/components/admin/PendingPaymentsWidget';
+import { getTodayArgentina, toArgentinaDate } from '@/lib/argentinaTimezone';
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
   const qc = useQueryClient();
   const today = new Date();
   // Use Argentina timezone (UTC-3, no DST) to derive "today" so date comparisons don't shift after 21:00 AR
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+  const todayStr = getTodayArgentina();
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
   const { data: orders, isLoading } = useQuery({
@@ -139,7 +140,13 @@ export default function AdminDashboard() {
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length ?? 0;
   const prepCount = orders?.filter(o => (o as any).fulfillment_status === 'en_preparacion').length ?? 0;
-  const todayPickups = orders?.filter(o => o.desired_date === todayStr && o.status !== 'cancelled').length ?? 0;
+  const todayPickups = orders?.filter(o =>
+    toArgentinaDate(o.desired_date) === todayStr &&
+    o.status !== 'cancelled' &&
+    o.status?.toLowerCase() !== 'picked_up' &&
+    o.status?.toLowerCase() !== 'retirado' &&
+    (o as any).fulfillment_status?.toLowerCase() !== 'retirado'
+  ).length ?? 0;
   const unreadCount = unreadMessages?.length ?? 0;
 
   // Last 7 days chart

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { FULFILLMENT_LABELS, FULFILLMENT_COLORS, FULFILLMENT_VALUES, type FulfillmentStatus } from '@/lib/orderFulfillment';
 import { formatPrice } from '@/lib/formatPrice';
+import { getTodayArgentina, daysUntilArgentina } from '@/lib/argentinaTimezone';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -99,9 +100,9 @@ export default function AdminPedidos() {
   const [exportTo, setExportTo] = useState('');
 
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const tomorrowStr = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
-  const weekEnd = (() => { const d = new Date(today); d.setDate(d.getDate() + 7); return d.toISOString().split('T')[0]; })();
+  const todayStr = getTodayArgentina();
+  const tomorrowStr = (() => { const [y, m, d] = todayStr.split('-').map(Number); const dt = new Date(y, m - 1, d + 1); return dt.toLocaleDateString('en-CA'); })();
+  const weekEnd = (() => { const [y, m, d] = todayStr.split('-').map(Number); const dt = new Date(y, m - 1, d + 7); return dt.toLocaleDateString('en-CA'); })();
 
   // Close sort dropdown on outside click
   useEffect(() => {
@@ -278,13 +279,12 @@ export default function AdminPedidos() {
     if (status === 'completed' || status === 'picked_up' || status === 'cancelled') {
       return null;
     }
-    const deliveryDate = new Date(desiredDate + 'T12:00:00');
-    const todayDate = new Date(todayStr + 'T12:00:00');
-    const diffDays = Math.round((deliveryDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = daysUntilArgentina(desiredDate);
 
     if (diffDays < 0) return { text: `⚠ Hace ${Math.abs(diffDays)} día${Math.abs(diffDays) !== 1 ? 's' : ''}`, className: 'bg-[#FEE2E2] text-[#DC2626]' };
     if (diffDays === 0) return { text: '🔴 HOY', className: 'bg-[#FEF3C7] text-[#D97706]' };
     if (diffDays === 1) return { text: '🟡 Mañana', className: 'bg-[#FEF9C3] text-[#A16207]' };
+    if (diffDays === 2) return { text: 'En 2 días', className: 'bg-[#F0FDF4] text-[#15803D]' };
     return { text: `En ${diffDays} días`, className: 'bg-[#F0FDF4] text-[#15803D]' };
   };
 
