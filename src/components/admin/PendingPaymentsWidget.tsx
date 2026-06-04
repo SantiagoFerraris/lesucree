@@ -6,9 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 
 function daysUntil(dateStr: string): number {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr + 'T12:00:00');
-  return Math.round((target.getTime() - today.getTime()) / 86400000);
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+  const [ty, tm, td] = todayStr.split('-').map(Number);
+  const [oy, om, od] = dateStr.split('-').map(Number);
+  const todayUTC = Date.UTC(ty, tm - 1, td);
+  const targetUTC = Date.UTC(oy, om - 1, od);
+  return Math.round((targetUTC - todayUTC) / 86400000);
 }
 
 function urgencyColor(days: number, diasVencimiento: number): string {
@@ -54,19 +57,11 @@ export default function PendingPaymentsWidget() {
   });
 
   const diasVencimiento = settings?.dias_vencimiento ?? 3;
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
 
   const dueToday = useMemo(() => {
     return (orders || [])
-      .filter((o) => {
-        const orderDate = new Date(o.desired_date + 'T00:00:00');
-        // Subtract 1 day to correct for the 1-day offset in date interpretation
-        orderDate.setDate(orderDate.getDate() - 1);
-        const today = new Date();
-        const orderDateLocal = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate());
-        const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        return orderDateLocal.getTime() === todayLocal.getTime();
-      })
+      .filter((o) => o.desired_date === todayStr)
       .reduce((s, o) => s + Number(o.remaining_balance || 0), 0);
   }, [orders, todayStr]);
 
