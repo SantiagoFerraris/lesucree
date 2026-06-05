@@ -17,6 +17,7 @@ const PERIOD_OPTIONS = [
   { value: 0, label: 'Todo' },
 ];
 const CAT_COLORS = ['#5D4E37', '#8B6F47', '#D4A574', '#D4B896', '#A08060', '#C4A882'];
+const INTERNAL_CATS = ['bares', 'bares_cookies'];
 
 function KpiCard({ icon: Icon, label, value, loading }: { icon: any; label: string; value: string; loading: boolean }) {
   return (
