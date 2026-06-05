@@ -52,7 +52,9 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const { data: products = [] } = useQuery<ProductOption[]>({
     queryKey: ['manual-order-products'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('name, category').eq('active', true).order('name');
+      // Admin manual order: load ALL products regardless of status, so inactive
+      // internal-bar products can be selected for manual orders.
+      const { data } = await supabase.from('products').select('name, category').order('name');
       return (data as any[])?.map(p => ({ name: p.name as string, category: (p.category as string) || '' })) || [];
     },
   });
