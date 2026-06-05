@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DollarSign, TrendingUp, CheckCircle, ShoppingBag, ArrowUp, ArrowDown } from 'lucide-react';
+import { DollarSign, TrendingUp, CheckCircle, ShoppingBag, ArrowUp, ArrowDown, Download, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
