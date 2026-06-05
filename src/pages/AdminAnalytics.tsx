@@ -130,7 +130,7 @@ export default function AdminAnalytics() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h2 className="font-display text-2xl font-bold text-espresso">Estadísticas</h2>
+        <h2 className="font-display text-2xl font-bold text-espresso">Estadísticas Generales</h2>
         <div className="flex gap-2">
           {PERIOD_OPTIONS.map(p => (
             <button key={p.value} onClick={() => setPeriod(p.value)}
