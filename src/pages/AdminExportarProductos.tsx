@@ -331,19 +331,22 @@ export default function AdminExportarProductos() {
       // PRODUCT ROW
       const drawProductRow = (p: Product, isLastInCat: boolean) => {
         const IMG = 110;
-        const PAD_V = 14;
+        const PAD_V = 18;
         const TX = MARGIN_X + IMG + 18;
         const TW = pageW - MARGIN_X - TX;
         const pv = variants.filter(v => v.product_id === p.id);
 
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(13);
+        doc.setFontSize(14);
         const nameLines = doc.splitTextToSize(p.name, TW) as string[];
-        const nameH = nameLines.length * 15;
+        const nameH = nameLines.length * 16;
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
-        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]) : [];
+        const cleanedDesc = p.description
+          ? p.description.replace(/^\*\s*/gm, '\u00B7 ')
+          : '';
+        const descLines = cleanedDesc ? (doc.splitTextToSize(cleanedDesc, TW) as string[]) : [];
         const descH = descLines.length * 14;
 
         let priceBlockH = 0;
@@ -375,28 +378,37 @@ export default function AdminExportarProductos() {
         // Text
         let ty = rowTop + PAD_V + 12;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(13);
+        doc.setFontSize(14);
         doc.setTextColor(...ESPRESSO);
-        nameLines.forEach(line => { doc.text(line, TX, ty); ty += 15; });
+        nameLines.forEach(line => { doc.text(line, TX, ty); ty += 16; });
         ty += 2;
 
         if (descLines.length) {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(11);
-          doc.setTextColor(...TAUPE);
-          descLines.forEach(line => { doc.text(line, TX, ty); ty += 14; });
+          descLines.forEach(line => {
+            const isBullet = line.trimStart().startsWith('\u00B7');
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(isBullet ? 10 : 11);
+            doc.setTextColor(...(isBullet ? SAND : TAUPE));
+            doc.text(line, TX, ty);
+            ty += isBullet ? 13 : 14;
+          });
           ty += 4;
         }
 
         // Pricing
         if (pv.length === 0) {
-          doc.setFont('times', 'normal');
-          doc.setFontSize(14);
-          doc.setTextColor(...TOFFEE);
-          const priceDisplay = (p.category === 'tortas_personalizadas' || Number(p.price) === 0)
-            ? 'Consultar precio'
-            : formatPrice(Number(p.price));
-          doc.text(priceDisplay, TX, ty + 6);
+          const showConsultar = p.category === 'tortas_personalizadas' || Number(p.price) === 0;
+          if (showConsultar) {
+            doc.setFont('times', 'italic');
+            doc.setFontSize(13);
+            doc.setTextColor(...TAUPE);
+            doc.text('\u2014 Consultar precio', TX, ty + 6);
+          } else {
+            doc.setFont('times', 'normal');
+            doc.setFontSize(14);
+            doc.setTextColor(...TOFFEE);
+            doc.text(formatPrice(Number(p.price)), TX, ty + 6);
+          }
         } else {
           const VAR_INDENT = TX + 12;
           const VAR_RIGHT = pageW - MARGIN_X;
