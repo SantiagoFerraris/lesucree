@@ -127,6 +127,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
         productName: i.productName.trim(),
         variantLabel: i.variantLabel.trim() || null,
         quantity: i.quantity || 1,
+        unitPrice: Number(i.productPrice) || 0,
       }));
 
       if (!orderItems.length) throw new Error('Agregá al menos un producto');
@@ -251,7 +252,31 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Tamaño / Variante</Label>
-                    <Input value={item.variantLabel} onChange={e => updateItem(i, 'variantLabel', e.target.value)} placeholder="20 cm, 400 grs, x12" />
+                    {(() => {
+                      const selectedProduct = products.find(p => p.name === item.productName);
+                      const variants = selectedProduct?.variants || [];
+                      if (!item.productName) {
+                        return <Select disabled><SelectTrigger><SelectValue placeholder="Elegí un producto primero" /></SelectTrigger></Select>;
+                      }
+                      if (variants.length === 0) {
+                        return <Input value={item.variantLabel} onChange={e => updateItem(i, 'variantLabel', e.target.value)} placeholder="Sin variantes — ingresá manualmente" />;
+                      }
+                      return (
+                        <Select
+                          value={item.variantLabel}
+                          onValueChange={v => updateItem(i, 'variantLabel', v)}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Seleccionar variante..." /></SelectTrigger>
+                          <SelectContent>
+                            {variants.map((v) => (
+                              <SelectItem key={v.label} value={v.label}>
+                                {v.label}{v.price ? ` — $${Number(v.price).toLocaleString('es-AR')}` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()}
                   </div>
                   <div>
                     <Label>Cantidad</Label>
