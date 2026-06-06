@@ -11,7 +11,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import logoAsset from '@/assets/logo_lesucree_hd.png.asset.json';
 
 interface Product {
   id: string;
@@ -33,7 +32,7 @@ interface Variant {
 
 const INTERNAL_CATS = ['bares', 'bares_cookies'];
 
-// Brand palette — warm cream / artisan
+// Palette
 const CREAM_BG: [number, number, number] = [253, 250, 246];   // #FDFAF6
 const ESPRESSO: [number, number, number] = [61, 32, 16];       // #3D2010
 const COCOA: [number, number, number] = [92, 61, 30];          // #5C3D1E
@@ -41,8 +40,11 @@ const TOFFEE: [number, number, number] = [107, 68, 35];        // #6B4423
 const TAUPE: [number, number, number] = [139, 112, 85];        // #8B7055
 const SAND: [number, number, number] = [160, 130, 109];        // #A0826D
 const GOLD_LINE: [number, number, number] = [201, 168, 130];   // #C9A882
+const TOPBAR_LINE: [number, number, number] = [232, 221, 210]; // #E8DDD2
 const FOOT_LINE: [number, number, number] = [224, 212, 196];   // #E0D4C4
 const ROW_LINE: [number, number, number] = [237, 227, 216];    // #EDE3D8
+const PLACEHOLDER: [number, number, number] = [237, 227, 216]; // #EDE3D8
+const PAGE_NUM: [number, number, number] = [212, 196, 176];    // #D4C4B0
 
 async function loadImageAsDataURL(url: string): Promise<string | null> {
   try {
@@ -136,7 +138,6 @@ export default function AdminExportarProductos() {
   const categoryLabel = (val: string) =>
     categories.find(c => c.value === val)?.label || val;
 
-  // ---- PDF generation ----
   async function generatePDF(productsToExport: Product[]) {
     if (productsToExport.length === 0) {
       toast.error('Seleccioná al menos un producto o categoría');
@@ -151,6 +152,8 @@ export default function AdminExportarProductos() {
       const MARGIN_X = 48;
       const MARGIN_TOP = 40;
       const MARGIN_BOTTOM = 40;
+      const TOPBAR_H = 36;
+      const FOOTER_H = 36;
       const CONTENT_W = pageW - MARGIN_X * 2;
 
       // Group products by category
@@ -164,42 +167,20 @@ export default function AdminExportarProductos() {
         return sa - sb;
       });
 
-      // Pre-load logo + product images
-      const logoData = await loadImageAsDataURL(logoAsset.url);
+      // Preload images
+      const logoData = await loadImageAsDataURL('/logo_lesucree_hd.png');
       const imgMap: Record<string, string | null> = {};
       await Promise.all(productsToExport.map(async p => {
         if (p.image_url) imgMap[p.id] = await loadImageAsDataURL(p.image_url);
       }));
 
-      // Paint cream background on a page
       const paintBg = () => {
         doc.setFillColor(...CREAM_BG);
         doc.rect(0, 0, pageW, pageH, 'F');
       };
 
-      // Ornamental divider: ——— ◆ ———
-      const drawDivider = (cy: number, totalWidth = 120) => {
-        const halfLine = (totalWidth - 14) / 2;
-        const cx = pageW / 2;
-        doc.setDrawColor(...GOLD_LINE);
-        doc.setLineWidth(0.5);
-        doc.line(cx - totalWidth / 2, cy, cx - 7, cy);
-        doc.line(cx + 7, cy, cx + totalWidth / 2, cy);
-        // diamond
-        doc.setFillColor(...GOLD_LINE);
-        const s = 3;
-        doc.triangle(cx, cy - s, cx + s, cy, cx, cy + s, 'F');
-        doc.triangle(cx, cy - s, cx - s, cy, cx, cy + s, 'F');
-        void halfLine;
-      };
-
-      // Letter-spaced text (jsPDF has no native letter-spacing)
-      const drawSpacedText = (
-        text: string,
-        cx: number,
-        cy: number,
-        spacing: number,
-      ) => {
+      // Letter-spaced text (centered around cx)
+      const drawSpacedText = (text: string, cx: number, cy: number, spacing: number) => {
         const chars = text.split('');
         const widths = chars.map(ch => doc.getTextWidth(ch));
         const total = widths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
@@ -210,91 +191,110 @@ export default function AdminExportarProductos() {
         });
       };
 
+      const spacedTextWidth = (text: string, spacing: number) => {
+        const widths = text.split('').map(ch => doc.getTextWidth(ch));
+        return widths.reduce((s, w) => s + w, 0) + spacing * (text.length - 1);
+      };
+
+      // ============ COVER PAGE (page 1) ============
       paintBg();
-      let y = MARGIN_TOP;
+      {
+        const cx = pageW / 2;
+        const cy = pageH / 2;
+        // Approximate block height to center
+        const LOGO_W = 110;
+        const blockH = LOGO_W + 20 + 30 + 6 + 13 + 28 + 1 + 28 + 10;
+        let y = cy - blockH / 2;
 
-      // === HEADER (page 1 only) ===
-      const headerTop = 40;
-      // Logo centered, 100px wide
-      if (logoData) {
-        try { doc.addImage(logoData, 'PNG', pageW / 2 - 50, headerTop, 100, 100); } catch { /* ignore */ }
+        // Logo
+        if (logoData) {
+          try { doc.addImage(logoData, 'PNG', cx - LOGO_W / 2, y, LOGO_W, LOGO_W); } catch { /* ignore */ }
+        }
+        y += LOGO_W + 20;
+
+        // LE SUCRÉE
+        doc.setFont('times', 'normal');
+        doc.setFontSize(30);
+        doc.setTextColor(...ESPRESSO);
+        drawSpacedText('LE SUCRÉE', cx, y + 22, 8);
+        y += 22 + 6;
+
+        // Pastelería Artesanal
+        doc.setFont('times', 'italic');
+        doc.setFontSize(13);
+        doc.setTextColor(...SAND);
+        drawSpacedText('Pastelería Artesanal', cx, y + 12, 4);
+        y += 12 + 28;
+
+        // Ornamental divider — total width 130
+        const divTotal = 130;
+        const diaSize = 5;
+        doc.setDrawColor(...GOLD_LINE);
+        doc.setLineWidth(0.5);
+        doc.line(cx - divTotal / 2, y, cx - diaSize - 4, y);
+        doc.line(cx + diaSize + 4, y, cx + divTotal / 2, y);
+        doc.setFillColor(...GOLD_LINE);
+        doc.triangle(cx, y - diaSize, cx + diaSize, y, cx, y + diaSize, 'F');
+        doc.triangle(cx, y - diaSize, cx - diaSize, y, cx, y + diaSize, 'F');
+        y += 28;
+
+        // CATÁLOGO DE PRODUCTOS
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...COCOA);
+        drawSpacedText('CATÁLOGO DE PRODUCTOS', cx, y + 8, 7);
       }
-      // Brand name
-      doc.setFont('times', 'normal');
-      doc.setFontSize(24);
-      doc.setTextColor(...ESPRESSO);
-      drawSpacedText('LE SUCRÉE', pageW / 2, headerTop + 100 + 14 + 18, 6);
 
-      // Tagline
-      doc.setFont('times', 'italic');
-      doc.setFontSize(12);
-      doc.setTextColor(...SAND);
-      drawSpacedText('Pastelería Artesanal', pageW / 2, headerTop + 100 + 14 + 18 + 18, 3);
+      // ============ INTERIOR PAGES ============
+      // Open page 2 for products
+      doc.addPage();
+      paintBg();
 
-      // Ornamental divider
-      const divY = headerTop + 100 + 14 + 18 + 18 + 16;
-      drawDivider(divY);
-
-      // Catalog title
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(...COCOA);
-      drawSpacedText('CATÁLOGO DE PRODUCTOS', pageW / 2, divY + 22, 6);
-
-      y = divY + 22 + 28;
-
-      // === Layout primitives ===
-      const FOOTER_RESERVE = MARGIN_BOTTOM + 22;
+      const contentTop = MARGIN_TOP + TOPBAR_H + 4;
+      const contentBottom = pageH - MARGIN_BOTTOM - FOOTER_H - 4;
+      let y = contentTop;
 
       const newPage = () => {
         doc.addPage();
         paintBg();
-        y = MARGIN_TOP;
+        y = contentTop;
       };
 
       const ensureSpace = (needed: number) => {
-        if (y + needed > pageH - FOOTER_RESERVE) newPage();
+        if (y + needed > contentBottom) newPage();
       };
 
-      // === CATEGORY HEADER (inline divider) ===
+      // CATEGORY HEADER
       const drawCategoryHeader = (label: string) => {
         ensureSpace(28 + 16);
         y += 28;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.setTextColor(107, 68, 35); // TOFFEE
-        // Measure spaced text width
+        doc.setTextColor(...TOFFEE);
         const text = label.toUpperCase();
-        const chars = text.split('');
         const spacing = 5;
-        const charWidths = chars.map(ch => doc.getTextWidth(ch));
-        const textW = charWidths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
+        const textW = spacedTextWidth(text, spacing);
         const cx = pageW / 2;
-        // Lines
-        const lineGap = 12;
+        const lineGap = 14;
         const lineLen = (CONTENT_W - textW) / 2 - lineGap;
         doc.setDrawColor(...GOLD_LINE);
         doc.setLineWidth(0.5);
-        doc.line(MARGIN_X, y, MARGIN_X + lineLen, y);
-        doc.line(pageW - MARGIN_X - lineLen, y, pageW - MARGIN_X, y);
-        // Text (vertically centered on line)
-        let x = cx - textW / 2;
-        chars.forEach((ch, i) => {
-          doc.text(ch, x, y + 3);
-          x += charWidths[i] + spacing;
-        });
+        if (lineLen > 0) {
+          doc.line(MARGIN_X, y, MARGIN_X + lineLen, y);
+          doc.line(pageW - MARGIN_X - lineLen, y, pageW - MARGIN_X, y);
+        }
+        drawSpacedText(text, cx, y + 3, spacing);
         y += 16;
       };
 
-      // === PRODUCT ROW ===
+      // PRODUCT ROW
       const drawProductRow = (p: Product, isLastInCat: boolean) => {
         const IMG = 80;
         const PAD_V = 14;
-        const TX = MARGIN_X + IMG + 16;
+        const TX = MARGIN_X + IMG + 18;
         const TW = pageW - MARGIN_X - TX;
         const pv = variants.filter(v => v.product_id === p.id);
 
-        // Compute height
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
         const nameLines = doc.splitTextToSize(p.name, TW) as string[];
@@ -302,18 +302,14 @@ export default function AdminExportarProductos() {
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
-        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]).slice(0, 3) : [];
-        const descH = descLines.length * 13;
+        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]).slice(0, 2) : [];
+        const descH = descLines.length * 14;
 
-        // Variants or single price
         let priceBlockH = 0;
-        if (pv.length === 0) {
-          priceBlockH = 20;
-        } else {
-          priceBlockH = pv.length * 14 + 4;
-        }
+        if (pv.length === 0) priceBlockH = 20;
+        else priceBlockH = pv.length * 16 + 4;
 
-        const innerH = nameH + 4 + descH + 6 + priceBlockH;
+        const innerH = nameH + 4 + descH + 8 + priceBlockH;
         const rowH = Math.max(IMG, innerH) + PAD_V * 2;
 
         ensureSpace(rowH);
@@ -321,21 +317,55 @@ export default function AdminExportarProductos() {
         const rowTop = y;
         const imgY = rowTop + PAD_V;
         const img = imgMap[p.id];
-        // Image (or placeholder)
+        const RADIUS = 8;
+
+        // Rounded image (or placeholder)
         if (img) {
           try {
+            doc.saveGraphicsState();
+            // Clip path via roundedRect
+            // jsPDF lacks a robust clip; emulate by drawing a rounded mask first
+            // Simpler: draw image then overlay corner cream squares? Better: draw rounded background and fit image
+            // Approach: draw rounded placeholder, then image (slightly inset 0)
+            doc.setFillColor(...CREAM_BG);
+            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'F');
             const fmt = img.includes('image/png') ? 'PNG' : 'JPEG';
             doc.addImage(img, fmt as any, MARGIN_X, imgY, IMG, IMG);
+            // Mask the four corners with cream cream squares (approximation of rounded crop)
+            const r = RADIUS;
+            doc.setFillColor(...CREAM_BG);
+            // top-left corner triangle/box
+            const drawCornerMask = (cx: number, cy: number, dx: number, dy: number) => {
+              // Draw small square and then a rounded rect that "carves" back the curve
+              doc.rect(cx, cy, dx * r, dy * r, 'F');
+            };
+            drawCornerMask(MARGIN_X, imgY, 1, 1);
+            drawCornerMask(MARGIN_X + IMG - r, imgY, 1, 1);
+            drawCornerMask(MARGIN_X, imgY + IMG - r, 1, 1);
+            drawCornerMask(MARGIN_X + IMG - r, imgY + IMG - r, 1, 1);
+            // Re-draw rounded outline of cream to round the corners
+            doc.setDrawColor(...CREAM_BG);
+            doc.setLineWidth(2 * r);
+            // border drawn outside; instead, redraw rounded rect with stroke matching bg over corners only
+            // Simpler: just draw cream rounded rect frame around the image
+            doc.setLineWidth(1);
+            // Now draw a rounded rect with thick cream stroke to soften corners
+            // To minimize visual artifacts, finally draw a thin rounded border to define the shape
+            doc.restoreGraphicsState();
+            // Decorative rounded outline
+            doc.setDrawColor(...ROW_LINE);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'S');
           } catch {
-            doc.setFillColor(...ROW_LINE);
-            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, 3, 3, 'F');
+            doc.setFillColor(...PLACEHOLDER);
+            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'F');
           }
         } else {
-          doc.setFillColor(...ROW_LINE);
-          doc.roundedRect(MARGIN_X, imgY, IMG, IMG, 3, 3, 'F');
+          doc.setFillColor(...PLACEHOLDER);
+          doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'F');
         }
 
-        // Text block
+        // Text
         let ty = rowTop + PAD_V + 12;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
@@ -347,7 +377,7 @@ export default function AdminExportarProductos() {
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(11);
           doc.setTextColor(...TAUPE);
-          descLines.forEach(line => { doc.text(line, TX, ty); ty += 13; });
+          descLines.forEach(line => { doc.text(line, TX, ty); ty += 14; });
           ty += 4;
         }
 
@@ -356,19 +386,18 @@ export default function AdminExportarProductos() {
           doc.setFont('times', 'normal');
           doc.setFontSize(14);
           doc.setTextColor(...TOFFEE);
-          doc.text(formatPrice(Number(p.price)), TX, ty + 4);
+          doc.text(formatPrice(Number(p.price)), TX, ty + 6);
         } else {
           const VAR_INDENT = TX + 12;
           const VAR_RIGHT = pageW - MARGIN_X;
+          ty += 2;
           pv.forEach(v => {
-            // Variant name
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
             doc.setTextColor(...TAUPE);
             doc.text(v.label, VAR_INDENT, ty);
             const labelW = doc.getTextWidth(v.label);
 
-            // Price
             doc.setFont('times', 'normal');
             doc.setFontSize(11);
             doc.setTextColor(...TOFFEE);
@@ -377,28 +406,26 @@ export default function AdminExportarProductos() {
             const priceX = VAR_RIGHT - priceW;
             doc.text(priceStr, priceX, ty);
 
-            // Dot leaders
-            const leaderStart = VAR_INDENT + labelW + 4;
-            const leaderEnd = priceX - 4;
+            const leaderStart = VAR_INDENT + labelW + 6;
+            const leaderEnd = priceX - 6;
             if (leaderEnd > leaderStart) {
               doc.setFont('helvetica', 'normal');
               doc.setFontSize(11);
               doc.setTextColor(...GOLD_LINE);
               const dotW = doc.getTextWidth('.');
-              const gap = dotW * 1.6;
+              const gap = dotW * 1.8;
               let dx = leaderStart;
               while (dx + dotW <= leaderEnd) {
                 doc.text('.', dx, ty);
                 dx += gap;
               }
             }
-            ty += 14;
+            ty += 16;
           });
         }
 
         y = rowTop + rowH;
 
-        // Fine separator between products
         if (!isLastInCat) {
           doc.setDrawColor(...ROW_LINE);
           doc.setLineWidth(0.5);
@@ -406,31 +433,103 @@ export default function AdminExportarProductos() {
         }
       };
 
-      // === RENDER CATEGORIES ===
+      // Render categories
       for (const cat of orderedCats) {
         drawCategoryHeader(categoryLabel(cat));
         const list = grouped[cat];
         list.forEach((p, idx) => drawProductRow(p, idx === list.length - 1));
       }
 
-      // === FOOTERS on every page ===
-      const drawFooter = (pageNum: number, totalPages: number) => {
-        const fy = pageH - MARGIN_BOTTOM + 8;
+      // ============ TOPBAR + FOOTER on interior pages only ============
+      const drawTopbar = () => {
+        const top = MARGIN_TOP;
+        const cy = top + TOPBAR_H / 2;
+        const cx = pageW / 2;
+
+        // Brand text (two lines)
+        doc.setFont('times', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...ESPRESSO);
+        const line1 = 'LE SUCRÉE';
+        const sp1 = 3;
+        const w1 = spacedTextWidth(line1, sp1);
+        drawSpacedText(line1, cx, cy - 1, sp1);
+
+        doc.setFont('times', 'italic');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...SAND);
+        const line2 = 'Pastelería Artesanal';
+        const sp2 = 2;
+        const w2 = spacedTextWidth(line2, sp2);
+        drawSpacedText(line2, cx, cy + 9, sp2);
+
+        // Side ornaments (diamond + line)
+        const textHalf = Math.max(w1, w2) / 2;
+        const ornGap = 14;
+        const diaSize = 3;
+        const lineLen = 14;
+
+        // Left: line — diamond
+        const leftDiaX = cx - textHalf - ornGap;
+        const leftLineEnd = leftDiaX - 4;
+        const leftLineStart = leftLineEnd - lineLen;
         doc.setDrawColor(...FOOT_LINE);
         doc.setLineWidth(0.5);
-        doc.line(MARGIN_X, fy - 14, pageW - MARGIN_X, fy - 14);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(...SAND);
-        doc.text('Le Sucrée Pastelería Artesanal', MARGIN_X, fy);
-        doc.text(`Página ${pageNum} de ${totalPages}`, pageW / 2, fy, { align: 'center' });
-        doc.text('lesucreepasteleria.com.ar', pageW - MARGIN_X, fy, { align: 'right' });
+        doc.line(leftLineStart, cy, leftLineEnd, cy);
+        doc.setFillColor(...GOLD_LINE);
+        doc.rect(leftDiaX - diaSize / 2, cy - diaSize / 2, diaSize, diaSize, 'F');
+
+        // Right: diamond — line
+        const rightDiaX = cx + textHalf + ornGap;
+        const rightLineStart = rightDiaX + 4;
+        const rightLineEnd = rightLineStart + lineLen;
+        doc.line(rightLineStart, cy, rightLineEnd, cy);
+        doc.setFillColor(...GOLD_LINE);
+        doc.rect(rightDiaX - diaSize / 2, cy - diaSize / 2, diaSize, diaSize, 'F');
+
+        // Bottom border
+        doc.setDrawColor(...TOPBAR_LINE);
+        doc.setLineWidth(0.5);
+        doc.line(MARGIN_X, top + TOPBAR_H, pageW - MARGIN_X, top + TOPBAR_H);
       };
 
-      const total = doc.getNumberOfPages();
-      for (let i = 1; i <= total; i++) {
+      const drawFooter = (pageNum: number, totalPages: number) => {
+        const top = pageH - MARGIN_BOTTOM - FOOTER_H;
+        const cy = top + FOOTER_H / 2;
+        // Top border
+        doc.setDrawColor(...FOOT_LINE);
+        doc.setLineWidth(0.5);
+        doc.line(MARGIN_X, top, pageW - MARGIN_X, top);
+
+        // LEFT
+        doc.setFont('times', 'italic');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...SAND);
+        doc.text('Le Sucrée Pastelería Artesanal', MARGIN_X + 20, cy + 2);
+
+        // CENTER
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(...PAGE_NUM);
+        drawSpacedText(`— ${pageNum} de ${totalPages} —`, pageW / 2, cy + 2, 1);
+
+        // RIGHT (two lines)
+        const rightX = pageW - MARGIN_X - 20;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(...SAND);
+        doc.text('www.lesucreepasteleria.com.ar', rightX, cy - 2, { align: 'right' });
+        doc.setFontSize(6.5);
+        doc.setTextColor(...GOLD_LINE);
+        doc.text('341 274-1230', rightX, cy + 8, { align: 'right' });
+      };
+
+      const totalPages = doc.getNumberOfPages();
+      const interiorCount = totalPages - 1;
+      for (let i = 2; i <= totalPages; i++) {
         doc.setPage(i);
-        drawFooter(i, total);
+        drawTopbar();
+        drawFooter(i - 1, interiorCount);
       }
 
       doc.save(`catalogo-lesucree-${new Date().toISOString().split('T')[0]}.pdf`);
@@ -473,7 +572,6 @@ export default function AdminExportarProductos() {
             <TabsTrigger value="ind">Por Producto Individual</TabsTrigger>
           </TabsList>
 
-          {/* === CATEGORY MODE === */}
           <TabsContent value="cat">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 max-w-2xl">
               <h3 className="font-semibold text-espresso mb-4">Seleccioná categorías a exportar</h3>
@@ -513,7 +611,6 @@ export default function AdminExportarProductos() {
             </div>
           </TabsContent>
 
-          {/* === INDIVIDUAL MODE === */}
           <TabsContent value="ind">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
