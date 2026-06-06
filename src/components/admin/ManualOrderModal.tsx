@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, X, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +20,29 @@ interface OrderItem {
   productName: string;
   variantLabel: string;
   quantity: number;
+  productPrice?: number;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  variants: { label: string; price: number }[];
+}
+
+function calculateOrderTotal(items: OrderItem[]): number {
+  return items.reduce((sum, it) => sum + (Number(it.productPrice) || 0) * (Number(it.quantity) || 0), 0);
+}
+
+function resolveItemPrice(item: { productName: string; variantLabel: string }, products: ProductRow[]): number | undefined {
+  const p = products.find(pr => pr.name === item.productName);
+  if (!p) return undefined;
+  if (item.variantLabel) {
+    const v = p.variants?.find(v => v.label === item.variantLabel);
+    if (v) return Number(v.price);
+  }
+  return Number(p.price);
 }
 
 interface Props {
@@ -27,7 +50,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-interface ProductOption { name: string; category: string }
 interface CategoryOption { value: string; label: string }
 
 
@@ -48,14 +70,24 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [status, setStatus] = useState('confirmed');
   const [notes, setNotes] = useState('');
+  const [totalManuallyEdited, setTotalManuallyEdited] = useState(false);
 
-  const { data: products = [] } = useQuery<ProductOption[]>({
+  const { data: products = [] } = useQuery<ProductRow[]>({
     queryKey: ['manual-order-products'],
     queryFn: async () => {
       // Admin manual order: load ALL products regardless of status, so inactive
       // internal-bar products can be selected for manual orders.
-      const { data } = await supabase.from('products').select('name, category').order('name');
-      return (data as any[])?.map(p => ({ name: p.name as string, category: (p.category as string) || '' })) || [];
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, category, price, product_variants(label, price)')
+        .order('name');
+      return (data as any[])?.map(p => ({
+        id: p.id as string,
+        name: p.name as string,
+        category: (p.category as string) || '',
+        price: Number(p.price) || 0,
+        variants: ((p.product_variants as any[]) || []).map(v => ({ label: v.label as string, price: Number(v.price) || 0 })),
+      })) || [];
     },
   });
 
@@ -73,7 +105,15 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
     setCreatedAt(today); setDesiredDate(undefined); setPreferredTime('');
     setTotal(''); setPaymentStatus('pendiente'); setDepositAmount('');
     setPaymentMethod(''); setStatus('confirmed'); setNotes('');
+    setTotalManuallyEdited(false);
   };
+
+  // Auto-calculate total from items unless the user manually overrode it.
+  useEffect(() => {
+    if (totalManuallyEdited) return;
+    const sum = calculateOrderTotal(items);
+    setTotal(sum > 0 ? String(sum) : '');
+  }, [items, totalManuallyEdited]);
 
   const insertOrder = useMutation({
     mutationFn: async () => {
@@ -119,12 +159,25 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   });
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
-    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    setItems(prev => prev.map((item, i) => {
+      if (i !== index) return item;
+      const next = { ...item, [field]: value };
+      if (field === 'productName' || field === 'variantLabel') {
+        next.productPrice = resolveItemPrice({ productName: next.productName, variantLabel: next.variantLabel }, products);
+      }
+      return next;
+    }));
   };
 
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
     setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const recalcTotal = () => {
+    setTotalManuallyEdited(false);
+    const sum = calculateOrderTotal(items);
+    setTotal(sum > 0 ? String(sum) : '');
   };
 
   return (
@@ -168,7 +221,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                     <Select
                       value={item.category}
                       onValueChange={v => {
-                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '' } : it));
+                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '', productPrice: undefined } : it));
                       }}
                     >
                       <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
@@ -257,10 +310,28 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
             <legend className="text-xs font-semibold uppercase tracking-wider text-[#9B8578] mb-1">Pago</legend>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Precio total *</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Precio total *</Label>
+                  <button
+                    type="button"
+                    onClick={recalcTotal}
+                    className="text-[10px] uppercase tracking-wider text-[#7C6354] hover:text-[#3B2617] font-semibold"
+                  >
+                    Calcular
+                  </button>
+                </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#9B8578]">$</span>
-                  <Input type="number" min={0} step="any" value={total} onChange={e => setTotal(e.target.value)} className="pl-7" placeholder="0" required />
+                  <Input
+                    type="number"
+                    min={0}
+                    step="any"
+                    value={total}
+                    onChange={e => { setTotal(e.target.value); setTotalManuallyEdited(true); }}
+                    className="pl-7"
+                    placeholder="0"
+                    required
+                  />
                 </div>
               </div>
               <div>
