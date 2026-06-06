@@ -221,7 +221,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                     <Select
                       value={item.category}
                       onValueChange={v => {
-                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '' } : it));
+                        setItems(prev => prev.map((it, idx) => idx === i ? { ...it, category: v, productName: '', productPrice: undefined } : it));
                       }}
                     >
                       <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
