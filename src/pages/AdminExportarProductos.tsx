@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import logoSrc from '@/assets/logo_lesucree.png';
+import logoAsset from '@/assets/logo_lesucree_hd.png.asset.json';
 
 interface Product {
   id: string;
