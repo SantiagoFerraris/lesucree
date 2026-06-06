@@ -212,7 +212,7 @@ export default function AdminExportarProductos() {
       const logoData = await loadImageAsDataURL('/logo_lesucree_hd.png');
       const imgMap: Record<string, string | null> = {};
       await Promise.all(productsToExport.map(async p => {
-        if (p.image_url) imgMap[p.id] = await loadRoundedImageDataURL(p.image_url);
+        if (p.image_url) imgMap[p.id] = await loadRoundedImageDataURL(p.image_url, 330, 8 / 330);
       }));
 
       const paintBg = () => {
@@ -330,7 +330,7 @@ export default function AdminExportarProductos() {
 
       // PRODUCT ROW
       const drawProductRow = (p: Product, isLastInCat: boolean) => {
-        const IMG = 80;
+        const IMG = 110;
         const PAD_V = 14;
         const TX = MARGIN_X + IMG + 18;
         const TW = pageW - MARGIN_X - TX;
