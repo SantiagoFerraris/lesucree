@@ -105,7 +105,15 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
     setCreatedAt(today); setDesiredDate(undefined); setPreferredTime('');
     setTotal(''); setPaymentStatus('pendiente'); setDepositAmount('');
     setPaymentMethod(''); setStatus('confirmed'); setNotes('');
+    setTotalManuallyEdited(false);
   };
+
+  // Auto-calculate total from items unless the user manually overrode it.
+  useEffect(() => {
+    if (totalManuallyEdited) return;
+    const sum = calculateOrderTotal(items);
+    setTotal(sum > 0 ? String(sum) : '');
+  }, [items, totalManuallyEdited]);
 
   const insertOrder = useMutation({
     mutationFn: async () => {
@@ -151,12 +159,25 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   });
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
-    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    setItems(prev => prev.map((item, i) => {
+      if (i !== index) return item;
+      const next = { ...item, [field]: value };
+      if (field === 'productName' || field === 'variantLabel') {
+        next.productPrice = resolveItemPrice({ productName: next.productName, variantLabel: next.variantLabel }, products);
+      }
+      return next;
+    }));
   };
 
   const removeItem = (index: number) => {
     if (items.length <= 1) return;
     setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const recalcTotal = () => {
+    setTotalManuallyEdited(false);
+    const sum = calculateOrderTotal(items);
+    setTotal(sum > 0 ? String(sum) : '');
   };
 
   return (
