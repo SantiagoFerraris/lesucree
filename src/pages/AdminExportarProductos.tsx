@@ -33,12 +33,16 @@ interface Variant {
 
 const INTERNAL_CATS = ['bares', 'bares_cookies'];
 
-// Brand colors (web palette)
-const BROWN_DARK: [number, number, number] = [59, 38, 23];   // #3B2617
-const BROWN_MID: [number, number, number] = [139, 111, 71];   // #8B6F47
-const BROWN_LIGHT: [number, number, number] = [160, 130, 109];// #A0826D
-const CREAM: [number, number, number] = [255, 251, 245];      // #FFFBF5
-const GRAY_TEXT: [number, number, number] = [102, 89, 79];
+// Brand palette — warm cream / artisan
+const CREAM_BG: [number, number, number] = [253, 250, 246];   // #FDFAF6
+const ESPRESSO: [number, number, number] = [61, 32, 16];       // #3D2010
+const COCOA: [number, number, number] = [92, 61, 30];          // #5C3D1E
+const TOFFEE: [number, number, number] = [107, 68, 35];        // #6B4423
+const TAUPE: [number, number, number] = [139, 112, 85];        // #8B7055
+const SAND: [number, number, number] = [160, 130, 109];        // #A0826D
+const GOLD_LINE: [number, number, number] = [201, 168, 130];   // #C9A882
+const FOOT_LINE: [number, number, number] = [224, 212, 196];   // #E0D4C4
+const ROW_LINE: [number, number, number] = [237, 227, 216];    // #EDE3D8
 
 async function loadImageAsDataURL(url: string): Promise<string | null> {
   try {
@@ -77,13 +81,13 @@ export default function AdminExportarProductos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('product_variants')
-        .select('id, product_id, label, price');
+        .select('id, product_id, label, price')
+        .order('sort_order');
       if (error) throw error;
       return data as Variant[];
     },
   });
 
-  // Helper: is a product "available" (active for non-internal; any for internal)
   const isProductExportable = (p: Product) => {
     if (INTERNAL_CATS.includes(p.category)) return true;
     return p.active === true || p.status === 'active';
@@ -91,17 +95,13 @@ export default function AdminExportarProductos() {
 
   const exportableProducts = useMemo(() => products.filter(isProductExportable), [products]);
 
-  // counts by category
   const countByCat = useMemo(() => {
     const m: Record<string, number> = {};
     exportableProducts.forEach(p => { m[p.category] = (m[p.category] || 0) + 1; });
     return m;
   }, [exportableProducts]);
 
-  // ---- State: category mode ----
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
-
-  // ---- State: individual products mode ----
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState<string>('__all__');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -148,166 +148,285 @@ export default function AdminExportarProductos() {
       const doc = new jsPDF({ unit: 'pt', format: 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
-      const margin = 40;
+      const MARGIN_X = 48;
+      const MARGIN_TOP = 40;
+      const MARGIN_BOTTOM = 40;
+      const CONTENT_W = pageW - MARGIN_X * 2;
 
       // Group products by category
       const grouped: Record<string, Product[]> = {};
       productsToExport.forEach(p => {
         (grouped[p.category] ||= []).push(p);
       });
-
-      // Sort categories by their sort_order
       const orderedCats = Object.keys(grouped).sort((a, b) => {
         const sa = categories.find(c => c.value === a)?.sort_order ?? 999;
         const sb = categories.find(c => c.value === b)?.sort_order ?? 999;
         return sa - sb;
       });
 
-      // Pre-load logo
-      const logoData = await loadImageAsDataURL(logoSrc);
-
-      // Pre-load product images (in parallel, limit failures)
+      // Pre-load logo + product images
+      const logoData = await loadImageAsDataURL(logoAsset.url);
       const imgMap: Record<string, string | null> = {};
       await Promise.all(productsToExport.map(async p => {
         if (p.image_url) imgMap[p.id] = await loadImageAsDataURL(p.image_url);
       }));
 
-      // === HEADER (page 1 only — cover) ===
-      let y = margin;
-      doc.setFillColor(...CREAM);
-      doc.rect(0, 0, pageW, 160, 'F');
+      // Paint cream background on a page
+      const paintBg = () => {
+        doc.setFillColor(...CREAM_BG);
+        doc.rect(0, 0, pageW, pageH, 'F');
+      };
 
+      // Ornamental divider: ——— ◆ ———
+      const drawDivider = (cy: number, totalWidth = 120) => {
+        const halfLine = (totalWidth - 14) / 2;
+        const cx = pageW / 2;
+        doc.setDrawColor(...GOLD_LINE);
+        doc.setLineWidth(0.5);
+        doc.line(cx - totalWidth / 2, cy, cx - 7, cy);
+        doc.line(cx + 7, cy, cx + totalWidth / 2, cy);
+        // diamond
+        doc.setFillColor(...GOLD_LINE);
+        const s = 3;
+        doc.triangle(cx, cy - s, cx + s, cy, cx, cy + s, 'F');
+        doc.triangle(cx, cy - s, cx - s, cy, cx, cy + s, 'F');
+        void halfLine;
+      };
+
+      // Letter-spaced text (jsPDF has no native letter-spacing)
+      const drawSpacedText = (
+        text: string,
+        cx: number,
+        cy: number,
+        spacing: number,
+      ) => {
+        const chars = text.split('');
+        const widths = chars.map(ch => doc.getTextWidth(ch));
+        const total = widths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
+        let x = cx - total / 2;
+        chars.forEach((ch, i) => {
+          doc.text(ch, x, cy);
+          x += widths[i] + spacing;
+        });
+      };
+
+      paintBg();
+      let y = MARGIN_TOP;
+
+      // === HEADER (page 1 only) ===
+      const headerTop = 40;
+      // Logo centered, 100px wide
       if (logoData) {
-        try { doc.addImage(logoData, 'PNG', pageW / 2 - 35, 25, 70, 70); } catch { /* ignore */ }
+        try { doc.addImage(logoData, 'PNG', pageW / 2 - 50, headerTop, 100, 100); } catch { /* ignore */ }
       }
+      // Brand name
+      doc.setFont('times', 'normal');
+      doc.setFontSize(24);
+      doc.setTextColor(...ESPRESSO);
+      drawSpacedText('LE SUCRÉE', pageW / 2, headerTop + 100 + 14 + 18, 6);
 
-      doc.setTextColor(...BROWN_DARK);
+      // Tagline
+      doc.setFont('times', 'italic');
+      doc.setFontSize(12);
+      doc.setTextColor(...SAND);
+      drawSpacedText('Pastelería Artesanal', pageW / 2, headerTop + 100 + 14 + 18 + 18, 3);
+
+      // Ornamental divider
+      const divY = headerTop + 100 + 14 + 18 + 18 + 16;
+      drawDivider(divY);
+
+      // Catalog title
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
-      doc.text('Le Sucrée', pageW / 2, 115, { align: 'center' });
-
-      doc.setFont('helvetica', 'italic');
       doc.setFontSize(10);
-      doc.setTextColor(...BROWN_MID);
-      doc.text('Pastelería Artesanal', pageW / 2, 132, { align: 'center' });
+      doc.setTextColor(...COCOA);
+      drawSpacedText('CATÁLOGO DE PRODUCTOS', pageW / 2, divY + 22, 6);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(...BROWN_DARK);
-      doc.text('CATÁLOGO DE PRODUCTOS', pageW / 2, 185, { align: 'center' });
+      y = divY + 22 + 28;
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...GRAY_TEXT);
-      const dateStr = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
-      doc.text(`Generado el ${dateStr}`, pageW / 2, 202, { align: 'center' });
-      doc.text('WhatsApp: +54 9 341 000 0000  ·  hola@lesucree.com.ar', pageW / 2, 216, { align: 'center' });
+      // === Layout primitives ===
+      const FOOTER_RESERVE = MARGIN_BOTTOM + 22;
 
-      y = 250;
-
-      // === CATEGORY SECTIONS ===
-      const ROW_H = 90;        // product card height
-      const IMG_SIZE = 70;
+      const newPage = () => {
+        doc.addPage();
+        paintBg();
+        y = MARGIN_TOP;
+      };
 
       const ensureSpace = (needed: number) => {
-        if (y + needed > pageH - 50) {
-          doc.addPage();
-          y = margin;
-        }
+        if (y + needed > pageH - FOOTER_RESERVE) newPage();
       };
 
-      const drawFooter = (pageNum: number, totalPages: number) => {
-        const fy = pageH - 25;
-        doc.setDrawColor(...BROWN_LIGHT);
+      // === CATEGORY HEADER (inline divider) ===
+      const drawCategoryHeader = (label: string) => {
+        ensureSpace(28 + 16);
+        y += 28;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(107, 68, 35); // TOFFEE
+        // Measure spaced text width
+        const text = label.toUpperCase();
+        const chars = text.split('');
+        const spacing = 5;
+        const charWidths = chars.map(ch => doc.getTextWidth(ch));
+        const textW = charWidths.reduce((s, w) => s + w, 0) + spacing * (chars.length - 1);
+        const cx = pageW / 2;
+        // Lines
+        const lineGap = 12;
+        const lineLen = (CONTENT_W - textW) / 2 - lineGap;
+        doc.setDrawColor(...GOLD_LINE);
         doc.setLineWidth(0.5);
-        doc.line(margin, fy - 10, pageW - margin, fy - 10);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(...GRAY_TEXT);
-        doc.text('Le Sucrée Pastelería Artesanal  ·  lesucree.lovable.app', margin, fy);
-        doc.text(`Página ${pageNum} de ${totalPages}`, pageW - margin, fy, { align: 'right' });
+        doc.line(MARGIN_X, y, MARGIN_X + lineLen, y);
+        doc.line(pageW - MARGIN_X - lineLen, y, pageW - MARGIN_X, y);
+        // Text (vertically centered on line)
+        let x = cx - textW / 2;
+        chars.forEach((ch, i) => {
+          doc.text(ch, x, y + 3);
+          x += charWidths[i] + spacing;
+        });
+        y += 16;
       };
 
-      for (const cat of orderedCats) {
-        ensureSpace(60);
+      // === PRODUCT ROW ===
+      const drawProductRow = (p: Product, isLastInCat: boolean) => {
+        const IMG = 80;
+        const PAD_V = 14;
+        const TX = MARGIN_X + IMG + 16;
+        const TW = pageW - MARGIN_X - TX;
+        const pv = variants.filter(v => v.product_id === p.id);
 
-        // Category heading
-        doc.setFillColor(...BROWN_DARK);
-        doc.rect(margin, y, pageW - margin * 2, 28, 'F');
-        doc.setTextColor(255, 255, 255);
+        // Compute height
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
-        doc.text(categoryLabel(cat).toUpperCase(), margin + 12, y + 19);
-        y += 40;
+        const nameLines = doc.splitTextToSize(p.name, TW) as string[];
+        const nameH = nameLines.length * 15;
 
-        for (const p of grouped[cat]) {
-          ensureSpace(ROW_H + 10);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]).slice(0, 3) : [];
+        const descH = descLines.length * 13;
 
-          // Card background
-          doc.setFillColor(...CREAM);
-          doc.rect(margin, y, pageW - margin * 2, ROW_H, 'F');
-          doc.setDrawColor(...BROWN_LIGHT);
-          doc.setLineWidth(0.3);
-          doc.rect(margin, y, pageW - margin * 2, ROW_H);
-
-          // Image
-          const imgX = margin + 10;
-          const imgY = y + (ROW_H - IMG_SIZE) / 2;
-          const img = imgMap[p.id];
-          if (img) {
-            try {
-              const fmt = img.includes('image/png') ? 'PNG' : 'JPEG';
-              doc.addImage(img, fmt as any, imgX, imgY, IMG_SIZE, IMG_SIZE);
-            } catch {
-              doc.setFillColor(230, 220, 210);
-              doc.rect(imgX, imgY, IMG_SIZE, IMG_SIZE, 'F');
-            }
-          } else {
-            doc.setFillColor(230, 220, 210);
-            doc.rect(imgX, imgY, IMG_SIZE, IMG_SIZE, 'F');
-          }
-
-          // Text block
-          const tx = imgX + IMG_SIZE + 15;
-          const tw = pageW - margin - tx - 10;
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(12);
-          doc.setTextColor(...BROWN_DARK);
-          doc.text(p.name, tx, y + 20, { maxWidth: tw });
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(...BROWN_MID);
-          doc.text(formatPrice(Number(p.price)), tx, y + 38);
-
-          // Description
-          if (p.description) {
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8.5);
-            doc.setTextColor(...GRAY_TEXT);
-            const lines = doc.splitTextToSize(p.description, tw);
-            doc.text(lines.slice(0, 2), tx, y + 54);
-          }
-
-          // Variants
-          const pv = variants.filter(v => v.product_id === p.id);
-          if (pv.length > 0) {
-            const vStr = 'Disponible en: ' + pv.map(v => v.label).join(' · ');
-            doc.setFont('helvetica', 'italic');
-            doc.setFontSize(8);
-            doc.setTextColor(...BROWN_MID);
-            const vLines = doc.splitTextToSize(vStr, tw);
-            doc.text(vLines.slice(0, 1), tx, y + ROW_H - 10);
-          }
-
-          y += ROW_H + 8;
+        // Variants or single price
+        let priceBlockH = 0;
+        if (pv.length === 0) {
+          priceBlockH = 20;
+        } else {
+          priceBlockH = pv.length * 14 + 4;
         }
 
-        y += 10;
+        const innerH = nameH + 4 + descH + 6 + priceBlockH;
+        const rowH = Math.max(IMG, innerH) + PAD_V * 2;
+
+        ensureSpace(rowH);
+
+        const rowTop = y;
+        const imgY = rowTop + PAD_V;
+        const img = imgMap[p.id];
+        // Image (or placeholder)
+        if (img) {
+          try {
+            const fmt = img.includes('image/png') ? 'PNG' : 'JPEG';
+            doc.addImage(img, fmt as any, MARGIN_X, imgY, IMG, IMG);
+          } catch {
+            doc.setFillColor(...ROW_LINE);
+            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, 3, 3, 'F');
+          }
+        } else {
+          doc.setFillColor(...ROW_LINE);
+          doc.roundedRect(MARGIN_X, imgY, IMG, IMG, 3, 3, 'F');
+        }
+
+        // Text block
+        let ty = rowTop + PAD_V + 12;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(...ESPRESSO);
+        nameLines.forEach(line => { doc.text(line, TX, ty); ty += 15; });
+        ty += 2;
+
+        if (descLines.length) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(11);
+          doc.setTextColor(...TAUPE);
+          descLines.forEach(line => { doc.text(line, TX, ty); ty += 13; });
+          ty += 4;
+        }
+
+        // Pricing
+        if (pv.length === 0) {
+          doc.setFont('times', 'normal');
+          doc.setFontSize(14);
+          doc.setTextColor(...TOFFEE);
+          doc.text(formatPrice(Number(p.price)), TX, ty + 4);
+        } else {
+          const VAR_INDENT = TX + 12;
+          const VAR_RIGHT = pageW - MARGIN_X;
+          pv.forEach(v => {
+            // Variant name
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.setTextColor(...TAUPE);
+            doc.text(v.label, VAR_INDENT, ty);
+            const labelW = doc.getTextWidth(v.label);
+
+            // Price
+            doc.setFont('times', 'normal');
+            doc.setFontSize(11);
+            doc.setTextColor(...TOFFEE);
+            const priceStr = formatPrice(Number(v.price));
+            const priceW = doc.getTextWidth(priceStr);
+            const priceX = VAR_RIGHT - priceW;
+            doc.text(priceStr, priceX, ty);
+
+            // Dot leaders
+            const leaderStart = VAR_INDENT + labelW + 4;
+            const leaderEnd = priceX - 4;
+            if (leaderEnd > leaderStart) {
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(11);
+              doc.setTextColor(...GOLD_LINE);
+              const dotW = doc.getTextWidth('.');
+              const gap = dotW * 1.6;
+              let dx = leaderStart;
+              while (dx + dotW <= leaderEnd) {
+                doc.text('.', dx, ty);
+                dx += gap;
+              }
+            }
+            ty += 14;
+          });
+        }
+
+        y = rowTop + rowH;
+
+        // Fine separator between products
+        if (!isLastInCat) {
+          doc.setDrawColor(...ROW_LINE);
+          doc.setLineWidth(0.5);
+          doc.line(MARGIN_X, y, pageW - MARGIN_X, y);
+        }
+      };
+
+      // === RENDER CATEGORIES ===
+      for (const cat of orderedCats) {
+        drawCategoryHeader(categoryLabel(cat));
+        const list = grouped[cat];
+        list.forEach((p, idx) => drawProductRow(p, idx === list.length - 1));
       }
 
-      // === Add footers to all pages ===
+      // === FOOTERS on every page ===
+      const drawFooter = (pageNum: number, totalPages: number) => {
+        const fy = pageH - MARGIN_BOTTOM + 8;
+        doc.setDrawColor(...FOOT_LINE);
+        doc.setLineWidth(0.5);
+        doc.line(MARGIN_X, fy - 14, pageW - MARGIN_X, fy - 14);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...SAND);
+        doc.text('Le Sucrée Pastelería Artesanal', MARGIN_X, fy);
+        doc.text(`Página ${pageNum} de ${totalPages}`, pageW / 2, fy, { align: 'center' });
+        doc.text('lesucreepasteleria.com.ar', pageW - MARGIN_X, fy, { align: 'right' });
+      };
+
       const total = doc.getNumberOfPages();
       for (let i = 1; i <= total; i++) {
         doc.setPage(i);
