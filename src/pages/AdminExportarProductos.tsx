@@ -212,7 +212,7 @@ export default function AdminExportarProductos() {
       const logoData = await loadImageAsDataURL('/logo_lesucree_hd.png');
       const imgMap: Record<string, string | null> = {};
       await Promise.all(productsToExport.map(async p => {
-        if (p.image_url) imgMap[p.id] = await loadImageAsDataURL(p.image_url);
+        if (p.image_url) imgMap[p.id] = await loadRoundedImageDataURL(p.image_url);
       }));
 
       const paintBg = () => {
