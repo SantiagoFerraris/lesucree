@@ -87,6 +87,8 @@ export default function AdminPedidos() {
     },
   });
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [paymentFilter, setPaymentFilter] = useState('todos');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState('todos');
   const [dateFilter, setDateFilter] = useState('todos');
   const [sortBy, setSortBy] = useState('retiro-asc');
   const [sortOpen, setSortOpen] = useState(false);
@@ -217,12 +219,14 @@ export default function AdminPedidos() {
         || o.id.toLowerCase().includes(searchLower)
         || (o.items as any[])?.some((item: any) => item.productName?.toLowerCase().includes(searchLower));
       const matchStatus = statusFilter === 'todos' || o.status === statusFilter;
+      const matchPayment = paymentFilter === 'todos' || (o.payment_status || 'pendiente') === paymentFilter;
+      const matchFulfillment = fulfillmentFilter === 'todos' || (o.fulfillment_status || 'pendiente') === fulfillmentFilter;
       let matchDate = true;
       if (dateFilter === 'hoy') matchDate = o.desired_date === todayStr;
       else if (dateFilter === 'manana') matchDate = o.desired_date === tomorrowStr;
       else if (dateFilter === 'semana') matchDate = o.desired_date >= todayStr && o.desired_date <= weekEnd;
       else if (dateFilter === 'vencidos') matchDate = o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled';
-      return matchSearch && matchStatus && matchDate;
+      return matchSearch && matchStatus && matchDate && matchPayment && matchFulfillment;
     }) || [];
 
     // Sort
@@ -249,7 +253,7 @@ export default function AdminPedidos() {
     });
 
     return result;
-  }, [orders, search, statusFilter, dateFilter, sortBy, todayStr, tomorrowStr, weekEnd]);
+  }, [orders, search, statusFilter, dateFilter, sortBy, todayStr, tomorrowStr, weekEnd, paymentFilter, fulfillmentFilter]);
 
   const statusCounts = useMemo(() => {
     if (!orders) return {};
@@ -409,6 +413,30 @@ export default function AdminPedidos() {
           <option value="confirmed">Confirmado ({statusCounts.confirmed || 0})</option>
           <option value="completed">Completado ({statusCounts.completed || 0})</option>
           <option value="cancelled">Cancelado ({statusCounts.cancelled || 0})</option>
+        </select>
+
+        <select
+          value={paymentFilter}
+          onChange={e => { setPaymentFilter(e.target.value); setPage(0); setSelected(new Set()); }}
+          className="w-full sm:w-[160px] rounded-lg border border-[#E8DDD4] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 min-h-[40px]"
+        >
+          <option value="todos">Todos los pagos</option>
+          <option value="pendiente">Pago Pendiente</option>
+          <option value="seña_recibida">Seña Recibida</option>
+          <option value="pagado_completo">Pagado</option>
+        </select>
+        <select
+          value={fulfillmentFilter}
+          onChange={e => { setFulfillmentFilter(e.target.value); setPage(0); setSelected(new Set()); }}
+          className="w-full sm:w-[160px] rounded-lg border border-[#E8DDD4] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 min-h-[40px]"
+        >
+          <option value="todos">Toda preparación</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="en_preparacion">En preparación</option>
+          <option value="listo">Listo para retirar</option>
+          <option value="retirado">Retirado</option>
+          <option value="cancelado">Cancelado</option>
         </select>
 
         {/* Sort dropdown */}
