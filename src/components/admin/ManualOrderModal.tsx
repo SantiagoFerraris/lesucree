@@ -70,14 +70,24 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [status, setStatus] = useState('confirmed');
   const [notes, setNotes] = useState('');
+  const [totalManuallyEdited, setTotalManuallyEdited] = useState(false);
 
-  const { data: products = [] } = useQuery<ProductOption[]>({
+  const { data: products = [] } = useQuery<ProductRow[]>({
     queryKey: ['manual-order-products'],
     queryFn: async () => {
       // Admin manual order: load ALL products regardless of status, so inactive
       // internal-bar products can be selected for manual orders.
-      const { data } = await supabase.from('products').select('name, category').order('name');
-      return (data as any[])?.map(p => ({ name: p.name as string, category: (p.category as string) || '' })) || [];
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, category, price, product_variants(label, price)')
+        .order('name');
+      return (data as any[])?.map(p => ({
+        id: p.id as string,
+        name: p.name as string,
+        category: (p.category as string) || '',
+        price: Number(p.price) || 0,
+        variants: ((p.product_variants as any[]) || []).map(v => ({ label: v.label as string, price: Number(v.price) || 0 })),
+      })) || [];
     },
   });
 
