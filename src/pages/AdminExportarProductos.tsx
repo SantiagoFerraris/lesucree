@@ -360,43 +360,9 @@ export default function AdminExportarProductos() {
         const img = imgMap[p.id];
         const RADIUS = 8;
 
-        // Rounded image (or placeholder)
         if (img) {
           try {
-            doc.saveGraphicsState();
-            // Clip path via roundedRect
-            // jsPDF lacks a robust clip; emulate by drawing a rounded mask first
-            // Simpler: draw image then overlay corner cream squares? Better: draw rounded background and fit image
-            // Approach: draw rounded placeholder, then image (slightly inset 0)
-            doc.setFillColor(...CREAM_BG);
-            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'F');
-            const fmt = img.includes('image/png') ? 'PNG' : 'JPEG';
-            doc.addImage(img, fmt as any, MARGIN_X, imgY, IMG, IMG);
-            // Mask the four corners with cream cream squares (approximation of rounded crop)
-            const r = RADIUS;
-            doc.setFillColor(...CREAM_BG);
-            // top-left corner triangle/box
-            const drawCornerMask = (cx: number, cy: number, dx: number, dy: number) => {
-              // Draw small square and then a rounded rect that "carves" back the curve
-              doc.rect(cx, cy, dx * r, dy * r, 'F');
-            };
-            drawCornerMask(MARGIN_X, imgY, 1, 1);
-            drawCornerMask(MARGIN_X + IMG - r, imgY, 1, 1);
-            drawCornerMask(MARGIN_X, imgY + IMG - r, 1, 1);
-            drawCornerMask(MARGIN_X + IMG - r, imgY + IMG - r, 1, 1);
-            // Re-draw rounded outline of cream to round the corners
-            doc.setDrawColor(...CREAM_BG);
-            doc.setLineWidth(2 * r);
-            // border drawn outside; instead, redraw rounded rect with stroke matching bg over corners only
-            // Simpler: just draw cream rounded rect frame around the image
-            doc.setLineWidth(1);
-            // Now draw a rounded rect with thick cream stroke to soften corners
-            // To minimize visual artifacts, finally draw a thin rounded border to define the shape
-            doc.restoreGraphicsState();
-            // Decorative rounded outline
-            doc.setDrawColor(...ROW_LINE);
-            doc.setLineWidth(0.5);
-            doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'S');
+            doc.addImage(img, 'PNG', MARGIN_X, imgY, IMG, IMG);
           } catch {
             doc.setFillColor(...PLACEHOLDER);
             doc.roundedRect(MARGIN_X, imgY, IMG, IMG, RADIUS, RADIUS, 'F');
