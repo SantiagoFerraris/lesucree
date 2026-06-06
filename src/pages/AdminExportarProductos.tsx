@@ -343,7 +343,7 @@ export default function AdminExportarProductos() {
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(11);
-        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]).slice(0, 2) : [];
+        const descLines = p.description ? (doc.splitTextToSize(p.description, TW) as string[]) : [];
         const descH = descLines.length * 14;
 
         let priceBlockH = 0;
@@ -393,7 +393,10 @@ export default function AdminExportarProductos() {
           doc.setFont('times', 'normal');
           doc.setFontSize(14);
           doc.setTextColor(...TOFFEE);
-          doc.text(formatPrice(Number(p.price)), TX, ty + 6);
+          const priceDisplay = (p.category === 'tortas_personalizadas' || Number(p.price) === 0)
+            ? 'Consultar precio'
+            : formatPrice(Number(p.price));
+          doc.text(priceDisplay, TX, ty + 6);
         } else {
           const VAR_INDENT = TX + 12;
           const VAR_RIGHT = pageW - MARGIN_X;
