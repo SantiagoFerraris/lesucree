@@ -310,10 +310,28 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
             <legend className="text-xs font-semibold uppercase tracking-wider text-[#9B8578] mb-1">Pago</legend>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Precio total *</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Precio total *</Label>
+                  <button
+                    type="button"
+                    onClick={recalcTotal}
+                    className="text-[10px] uppercase tracking-wider text-[#7C6354] hover:text-[#3B2617] font-semibold"
+                  >
+                    Calcular
+                  </button>
+                </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#9B8578]">$</span>
-                  <Input type="number" min={0} step="any" value={total} onChange={e => setTotal(e.target.value)} className="pl-7" placeholder="0" required />
+                  <Input
+                    type="number"
+                    min={0}
+                    step="any"
+                    value={total}
+                    onChange={e => { setTotal(e.target.value); setTotalManuallyEdited(true); }}
+                    className="pl-7"
+                    placeholder="0"
+                    required
+                  />
                 </div>
               </div>
               <div>
