@@ -50,7 +50,6 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-interface ProductOption { name: string; category: string }
 interface CategoryOption { value: string; label: string }
 
 
