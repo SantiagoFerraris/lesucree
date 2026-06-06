@@ -20,6 +20,29 @@ interface OrderItem {
   productName: string;
   variantLabel: string;
   quantity: number;
+  productPrice?: number;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  variants: { label: string; price: number }[];
+}
+
+function calculateOrderTotal(items: OrderItem[]): number {
+  return items.reduce((sum, it) => sum + (Number(it.productPrice) || 0) * (Number(it.quantity) || 0), 0);
+}
+
+function resolveItemPrice(item: { productName: string; variantLabel: string }, products: ProductRow[]): number | undefined {
+  const p = products.find(pr => pr.name === item.productName);
+  if (!p) return undefined;
+  if (item.variantLabel) {
+    const v = p.variants?.find(v => v.label === item.variantLabel);
+    if (v) return Number(v.price);
+  }
+  return Number(p.price);
 }
 
 interface Props {
