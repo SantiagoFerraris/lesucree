@@ -24,22 +24,20 @@ export default function Nosotros() {
         className="relative bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4 overflow-hidden"
         style={historiaImageUrl ? {
           backgroundImage: `url(${historiaImageUrl})`,
+          backgroundColor: '#fdf6f0',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         } : undefined}
       >
         {historiaImageUrl && (
-          <>
-            <div className="absolute inset-0 backdrop-blur-sm" aria-hidden="true" />
-            <div
-              className="absolute inset-0"
-              aria-hidden="true"
-              style={{
-                background:
-                  'linear-gradient(105deg, rgba(243,224,213,0.92) 0%, rgba(243,224,213,0.80) 45%, rgba(243,224,213,0.55) 75%, rgba(243,224,213,0.45) 100%)',
-              }}
-            />
-          </>
+          <div
+            className="absolute inset-0"
+            aria-hidden="true"
+            style={{
+              background:
+                'linear-gradient(105deg, rgba(253,246,240,0.92) 0%, rgba(253,246,240,0.80) 45%, rgba(253,246,240,0.35) 75%, transparent 100%)',
+            }}
+          />
         )}
         <div className="container text-center relative z-10">
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso">Historia</h1>
