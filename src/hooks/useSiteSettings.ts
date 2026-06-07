@@ -35,3 +35,18 @@ export function useHeroImageUrl() {
     gcTime: 30 * 60 * 1000,
   });
 }
+
+export function useHistoriaImageUrl() {
+  return useQuery({
+    queryKey: ['historia-image-url'],
+    queryFn: async () => {
+      const { data } = await supabase.storage.from('site-images').list('historia');
+      const file = data?.find(f => f.name.startsWith('historia-bg'));
+      if (!file) return null;
+      const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(`historia/${file.name}`);
+      return `${urlData.publicUrl}?t=${file.updated_at}`;
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
