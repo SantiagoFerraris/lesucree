@@ -131,6 +131,35 @@ export default function AdminConfiguracion() {
     setHeroUploading(false);
   };
 
+  const handleHistoriaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error('Máximo 10MB'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Solo JPG, PNG o WebP'); return; }
+
+    setHistoriaUploading(true);
+    const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+    const optimizedFile = await resizeImageBeforeUpload(file, 1920);
+    const path = `historia/historia-bg.jpg`;
+
+    const { data: existingFiles } = await supabase.storage.from('site-images').list('historia');
+    if (existingFiles?.length) {
+      await supabase.storage.from('site-images').remove(existingFiles.map(f => `historia/${f.name}`));
+    }
+
+    const { error } = await supabase.storage.from('site-images').upload(path, optimizedFile, { upsert: true });
+    if (error) {
+      toast.error(`Error al subir imagen: ${error.message}`);
+      setHistoriaUploading(false);
+      return;
+    }
+
+    toast.success('Imagen de Historia actualizada');
+    refetchHistoria();
+    qc.invalidateQueries({ queryKey: ['historia-image-url'] });
+    setHistoriaUploading(false);
+  };
+
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
   if (isLoading) return <p className="text-warm-gray">Cargando configuración...</p>;
