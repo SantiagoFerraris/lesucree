@@ -2,6 +2,7 @@ import { Heart, Leaf, ChefHat } from 'lucide-react';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useHistoriaImageUrl } from '@/hooks/useSiteSettings';
 import tiramisuImg from '@/assets/torta_1_tiramisu.jpg';
 
 const values = [
@@ -13,17 +14,39 @@ const values = [
 export default function Nosotros() {
   const storyReveal = useScrollReveal();
   const valuesReveal = useScrollReveal();
+  const { data: historiaImageUrl } = useHistoriaImageUrl();
 
   return (
     <section className="pt-[72px]">
       <SEOHead title="Nuestra Historia | Le Sucrée Pastelería" description="Conocé la historia detrás de Le Sucrée, una pastelería artesanal en Rosario." path="/historia" />
       {/* Hero */}
-      <div className="bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4">
-        <div className="container text-center">
+      <div
+        className="relative bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4 overflow-hidden"
+        style={historiaImageUrl ? {
+          backgroundImage: `url(${historiaImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        } : undefined}
+      >
+        {historiaImageUrl && (
+          <>
+            <div className="absolute inset-0 backdrop-blur-sm" aria-hidden="true" />
+            <div
+              className="absolute inset-0"
+              aria-hidden="true"
+              style={{
+                background:
+                  'linear-gradient(105deg, rgba(243,224,213,0.92) 0%, rgba(243,224,213,0.80) 45%, rgba(243,224,213,0.55) 75%, rgba(243,224,213,0.45) 100%)',
+              }}
+            />
+          </>
+        )}
+        <div className="container text-center relative z-10">
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso">Historia</h1>
           <SectionDivider />
         </div>
       </div>
+
 
       {/* Story — 2 column with photo */}
       <div ref={storyReveal.ref} className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">

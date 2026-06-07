@@ -30,6 +30,7 @@ export default function AdminConfiguracion() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, string>>({});
   const [heroUploading, setHeroUploading] = useState(false);
+  const [historiaUploading, setHistoriaUploading] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
@@ -51,6 +52,19 @@ export default function AdminConfiguracion() {
       if (heroFile) {
         const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(`hero/${heroFile.name}`);
         return `${urlData.publicUrl}?t=${heroFile.updated_at}`;
+      }
+      return null;
+    },
+  });
+  // Historia image URL
+  const { data: historiaImageUrl, refetch: refetchHistoria } = useQuery({
+    queryKey: ['admin-historia-image'],
+    queryFn: async () => {
+      const { data } = await supabase.storage.from('site-images').list('historia');
+      const file = data?.find(f => f.name.startsWith('historia-bg'));
+      if (file) {
+        const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(`historia/${file.name}`);
+        return `${urlData.publicUrl}?t=${file.updated_at}`;
       }
       return null;
     },
@@ -117,6 +131,35 @@ export default function AdminConfiguracion() {
     setHeroUploading(false);
   };
 
+  const handleHistoriaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error('Máximo 10MB'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Solo JPG, PNG o WebP'); return; }
+
+    setHistoriaUploading(true);
+    const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+    const optimizedFile = await resizeImageBeforeUpload(file, 1920);
+    const path = `historia/historia-bg.jpg`;
+
+    const { data: existingFiles } = await supabase.storage.from('site-images').list('historia');
+    if (existingFiles?.length) {
+      await supabase.storage.from('site-images').remove(existingFiles.map(f => `historia/${f.name}`));
+    }
+
+    const { error } = await supabase.storage.from('site-images').upload(path, optimizedFile, { upsert: true });
+    if (error) {
+      toast.error(`Error al subir imagen: ${error.message}`);
+      setHistoriaUploading(false);
+      return;
+    }
+
+    toast.success('Imagen de Historia actualizada');
+    refetchHistoria();
+    qc.invalidateQueries({ queryKey: ['historia-image-url'] });
+    setHistoriaUploading(false);
+  };
+
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
   if (isLoading) return <p className="text-warm-gray">Cargando configuración...</p>;
@@ -180,6 +223,29 @@ export default function AdminConfiguracion() {
             <label className={`flex items-center justify-center gap-2 rounded-full border-[1.5px] border-espresso text-espresso px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-espresso hover:text-white transition-all duration-300 active:scale-95 cursor-pointer ${heroUploading ? 'opacity-50 pointer-events-none' : ''}`}>
               <Upload size={16} /> {heroUploading ? 'Subiendo...' : 'Subir nueva imagen'}
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleHeroUpload} className="hidden" />
+            </label>
+            <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
+          </div>
+
+          {/* Historia image */}
+          <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider pt-4">Imagen de Historia</h3>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+            {historiaImageUrl ? (
+              <div className="rounded-lg overflow-hidden aspect-[21/9]">
+                <img src={historiaImageUrl} alt="Historia actual" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="rounded-lg bg-cream aspect-[21/9] flex items-center justify-center">
+                <div className="text-center text-warm-gray/60">
+                  <ImageIcon size={32} className="mx-auto mb-2" />
+                  <p className="text-sm">Sin imagen personalizada</p>
+                  <p className="text-xs">Se usa el fondo por defecto</p>
+                </div>
+              </div>
+            )}
+            <label className={`flex items-center justify-center gap-2 rounded-full border-[1.5px] border-espresso text-espresso px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-espresso hover:text-white transition-all duration-300 active:scale-95 cursor-pointer ${historiaUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <Upload size={16} /> {historiaUploading ? 'Subiendo...' : 'Subir nueva imagen'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleHistoriaUpload} className="hidden" />
             </label>
             <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
           </div>
