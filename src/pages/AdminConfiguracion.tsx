@@ -56,6 +56,19 @@ export default function AdminConfiguracion() {
       return null;
     },
   });
+  // Historia image URL
+  const { data: historiaImageUrl, refetch: refetchHistoria } = useQuery({
+    queryKey: ['admin-historia-image'],
+    queryFn: async () => {
+      const { data } = await supabase.storage.from('site-images').list('historia');
+      const file = data?.find(f => f.name.startsWith('historia-bg'));
+      if (file) {
+        const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(`historia/${file.name}`);
+        return `${urlData.publicUrl}?t=${file.updated_at}`;
+      }
+      return null;
+    },
+  });
 
   useEffect(() => {
     if (settings) setForm({ ...settings });
