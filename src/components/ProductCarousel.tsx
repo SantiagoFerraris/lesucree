@@ -21,6 +21,7 @@ export default function ProductCarousel({
     align: "start",
     loop: true,
     dragFree: false,
+    containScroll: "trimSnaps",
   })
 
   const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
