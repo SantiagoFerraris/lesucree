@@ -17,6 +17,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import ProductCarousel from "@/components/ProductCarousel";
+import InstagramCarousel from "@/components/InstagramCarousel";
 import type { Tables } from "@/integrations/supabase/types";
 
 
@@ -293,26 +294,8 @@ function InstagramSection() {
           Seguime en Instagram
         </h2>
         <SectionDivider />
-        <div className="grid grid-cols-3 gap-1 mt-6 max-w-4xl mx-auto">
-          {INSTAGRAM_GRID.map((post, i) => (
-            <a
-              key={i}
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`aspect-square overflow-hidden relative group block ${reveal.isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-              style={{ animationDelay: `${i * 0.08}s` }}
-              aria-label={post.alt}
-            >
-              <img src={post.img} alt={post.alt} className="w-full h-full object-cover" loading="lazy" />
-              <div className="absolute inset-0 bg-espresso/0 group-hover:bg-espresso/40 transition-colors duration-300 flex items-center justify-center">
-                <Instagram
-                  className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  size={28}
-                />
-              </div>
-            </a>
-          ))}
+        <div className="mt-6 max-w-4xl mx-auto">
+          <InstagramCarousel posts={INSTAGRAM_GRID} />
         </div>
         <div className="text-center mt-4">
           <a
