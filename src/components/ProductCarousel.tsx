@@ -54,11 +54,11 @@ export default function ProductCarousel({
       onMouseLeave={() => { pausedRef.current = false }}
     >
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-4">
+        <div className="flex" style={{ marginLeft: "-16px" }}>
           {products.map((p) => (
             <div
               key={p.id}
-              className="flex-[0_0_80%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] xl:flex-[0_0_25%] min-w-0 cursor-pointer"
+              className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 cursor-pointer" style={{ paddingLeft: "16px" }}
               onClick={() => onProductClick?.(p)}
             >
               <div className="group">

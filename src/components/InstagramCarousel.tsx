@@ -56,14 +56,14 @@ export default function InstagramCarousel({ posts }: InstagramCarouselProps) {
       onMouseLeave={() => { pausedRef.current = false }}
     >
       <div ref={emblaRef} className="overflow-hidden">
-        <div className="flex gap-4">
+        <div className="flex" style={{ marginLeft: "-16px" }}>
           {posts.map((post, i) => (
             <a
               key={i}
               href={post.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 aspect-square overflow-hidden relative group block flex-shrink-0"
+              className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 aspect-square overflow-hidden relative group block flex-shrink-0" style={{ paddingLeft: "16px" }}
               aria-label={post.alt}
             >
               <img
