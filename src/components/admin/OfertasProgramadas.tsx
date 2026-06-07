@@ -568,7 +568,10 @@ export default function OfertasProgramadas() {
                             onChange={() => toggleProduct(p.id)}
                             className="rounded"
                           />
-                          <span className="flex-1 text-sm text-espresso">{p.name}</span>
+                          <span className="flex-1 text-sm text-espresso flex items-center gap-2 flex-wrap">
+                            {p.name}
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{p.category}</span>
+                          </span>
                           <span className="text-xs text-warm-gray">{formatPrice(Number(p.price))}</span>
                         </label>
                       );
