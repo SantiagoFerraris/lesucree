@@ -30,6 +30,7 @@ export default function AdminConfiguracion() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, string>>({});
   const [heroUploading, setHeroUploading] = useState(false);
+  const [historiaUploading, setHistoriaUploading] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
