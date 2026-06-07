@@ -55,7 +55,7 @@ export default function InstagramCarousel({ posts }: InstagramCarouselProps) {
       onMouseLeave={() => { pausedRef.current = false }}
     >
       <div ref={emblaRef} className="overflow-hidden">
-        <div className="flex gap-1">
+        <div className="flex gap-4">
           {posts.map((post, i) => (
             <a
               key={i}
