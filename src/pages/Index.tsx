@@ -16,6 +16,7 @@ import ProductImage from "@/components/ProductImage";
 import { useCart } from "@/contexts/CartContext";
 import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import ProductCarousel from "@/components/ProductCarousel";
 import type { Tables } from "@/integrations/supabase/types";
 
 
@@ -177,9 +178,9 @@ function FeaturedSection() {
           Productos más elegidos por los clientes
         </p>
         <SectionDivider />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
-          {isLoading &&
-            Array.from({ length: 3 }).map((_, i) => (
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="card-product animate-pulse">
                 <div className="aspect-[4/3] bg-blush" />
                 <div className="p-6 space-y-3">
@@ -189,12 +190,19 @@ function FeaturedSection() {
                 </div>
               </div>
             ))}
-          {products?.map((p, i) => (
-            <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
-              <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} categories={categories} activePromotions={promosMap} compact />
-            </div>
-          ))}
-        </div>
+          </div>
+        )}
+        {!isLoading && (
+          <div className="mt-8 sm:mt-12">
+            <ProductCarousel
+              products={products || []}
+              variants={allVariants}
+              categories={categories}
+              activePromotions={promosMap}
+              onProductClick={setSelectedProduct}
+            />
+          </div>
+        )}
         <div className="text-center mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             to="/catalogo"
