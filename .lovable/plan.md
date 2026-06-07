@@ -1,26 +1,22 @@
-# Plan: Create `src/components/ProductCarousel.tsx`
+## Goal
+Replace the static product grid in the FeaturedSection with a `ProductCarousel` while preserving the loading skeletons.
 
-New file only — no other file is touched. The pasted snippet lost its TypeScript generics in transit (e.g. `Map`, `useRef | null>`, empty JSX), so I'll reconstruct it faithfully with proper types matching the existing `ProductCard` API.
+## Changes
 
-## File: `src/components/ProductCarousel.tsx`
+### File: `src/pages/Index.tsx`
 
-- Client component using `embla-carousel-react` (already installed).
-- Props:
-  - `products: Tables<'products'>[]`
-  - `variants?: { id; label; price; sort_order; product_id }[]`
-  - `categories?: Category[]`
-  - `activePromotions?: Map<string, ActivePromotion[]>`
-  - `onProductClick?: (product) => void`
-- Embla options: `align: "start"`, `loop: true`, `dragFree: false`.
-- Autoplay: `setInterval` every 3500ms calling `emblaApi.scrollNext()`, paused while `pausedRef.current` is true.
-- Pause triggers: Embla `pointerDown` and container `onMouseEnter`; resume on `settle` and `onMouseLeave`. Interval cleared on unmount.
-- Layout: outer `div` with `overflow-hidden` ref'd by `emblaRef`, inner flex track, each slide a `flex-[0_0_auto]` clickable wrapper (basis ~ responsive: `basis-[80%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4`) calling `onProductClick?.(p)` and rendering `<ProductCard product={p} variants={getVariants(p.id)} categories={categories} activePromotions={activePromotions} />`.
-- `getVariants(productId)` filters the variants array by `product_id` and passes only `{id,label,price}` (shape `ProductCard` expects).
+1. **Add import** (after existing imports, around line 18):
+   ```tsx
+   import ProductCarousel from "@/components/ProductCarousel"
+   ```
 
-## Technical notes
+2. **Replace the product grid** (lines 180-197) inside `FeaturedSection`:
+   - **When `isLoading`** — render the same 3 skeleton cards, wrapped in the original grid container (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12`).
+   - **When not `isLoading`** — render `<ProductCarousel>` with these props:
+     - `products={products || []}`
+     - `variants={allVariants}`
+     - `categories={categories}`
+     - `activePromotions={promosMap}`
+     - `onProductClick={setSelectedProduct}`
 
-- Type the interval ref as `React.MutableRefObject<ReturnType<typeof setInterval> | null>`.
-- Import `type { Tables } from "@/integrations/supabase/types"`, `type { Category } from "@/hooks/useCategories"`, `type { ActivePromotion } from "@/hooks/useActivePromotions"`.
-- No changes to `ProductCard`, hooks, pages, or styles.
-
-Confirm and I'll create the file.
+No other component, section, or file will be touched.
