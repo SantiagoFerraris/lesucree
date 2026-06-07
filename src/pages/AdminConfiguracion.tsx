@@ -226,6 +226,29 @@ export default function AdminConfiguracion() {
             </label>
             <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
           </div>
+
+          {/* Historia image */}
+          <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider pt-4">Imagen de Historia</h3>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+            {historiaImageUrl ? (
+              <div className="rounded-lg overflow-hidden aspect-[21/9]">
+                <img src={historiaImageUrl} alt="Historia actual" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="rounded-lg bg-cream aspect-[21/9] flex items-center justify-center">
+                <div className="text-center text-warm-gray/60">
+                  <ImageIcon size={32} className="mx-auto mb-2" />
+                  <p className="text-sm">Sin imagen personalizada</p>
+                  <p className="text-xs">Se usa el fondo por defecto</p>
+                </div>
+              </div>
+            )}
+            <label className={`flex items-center justify-center gap-2 rounded-full border-[1.5px] border-espresso text-espresso px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-espresso hover:text-white transition-all duration-300 active:scale-95 cursor-pointer ${historiaUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <Upload size={16} /> {historiaUploading ? 'Subiendo...' : 'Subir nueva imagen'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleHistoriaUpload} className="hidden" />
+            </label>
+            <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
+          </div>
         </div>
       </div>
     </div>
