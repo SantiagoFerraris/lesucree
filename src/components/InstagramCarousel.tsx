@@ -19,6 +19,7 @@ export default function InstagramCarousel({ posts }: InstagramCarouselProps) {
     align: "start",
     loop: true,
     dragFree: false,
+    containScroll: "trimSnaps",
   })
 
   const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
