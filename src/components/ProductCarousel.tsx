@@ -1,13 +1,15 @@
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import type { Tables } from "@/integrations/supabase/types"
+import type { Category } from "@/hooks/useCategories"
+import type { ActivePromotion } from "@/hooks/useActivePromotions"
 import ProductImage from "@/components/ProductImage"
 
 interface ProductCarouselProps {
   products: Tables<"products">[]
   variants?: { id: string; label: string; price: number; sort_order: number; product_id: string }[]
-  categories?: { id: string; name: string }[]
-  activePromotions?: Map<string, { id: string; discount_percentage: number }[]>
+  categories?: Category[]
+  activePromotions?: Map<string, ActivePromotion[]>
   onProductClick?: (product: Tables<"products">) => void
 }
 
