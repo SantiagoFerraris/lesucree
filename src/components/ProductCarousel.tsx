@@ -5,6 +5,9 @@ import ProductImage from "@/components/ProductImage"
 
 interface ProductCarouselProps {
   products: Tables<"products">[]
+  variants?: { id: string; label: string; price: number; sort_order: number; product_id: string }[]
+  categories?: { id: string; name: string }[]
+  activePromotions?: Map<string, { id: string; discount_percentage: number }[]>
   onProductClick?: (product: Tables<"products">) => void
 }
 
@@ -57,7 +60,7 @@ export default function ProductCarousel({
             >
               <div className="group">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-cream">
-                  <ProductImage src={p.image} alt={p.name} />
+                  <ProductImage src={p.image_url} alt={p.name} />
                 </div>
                 <div className="mt-3 space-y-1">
                   <p className="text-xs font-medium uppercase tracking-wide text-espresso/60">
