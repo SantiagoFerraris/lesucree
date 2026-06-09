@@ -182,8 +182,8 @@ export default function AdminConfiguracion() {
     try {
       const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
       const optimizedFile = await resizeImageBeforeUpload(igFile, 1200);
-      const ext = (igFile.name.split('.').pop() || 'jpg').toLowerCase();
-      const path = `instagram/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const safeName = igFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `instagram/${Date.now()}_${safeName}`;
       const { error: upErr } = await supabase.storage
         .from('site-images')
         .upload(path, optimizedFile, { upsert: false });
