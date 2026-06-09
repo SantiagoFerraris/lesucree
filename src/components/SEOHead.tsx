@@ -7,8 +7,8 @@ interface SEOHeadProps {
   path?: string;
 }
 
-const BASE_URL = 'https://lesucree.lovable.app';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const BASE_URL = 'https://lesucreepasteleria.com.ar';
+const DEFAULT_OG_IMAGE = `${BASE_URL}/logo_lesucree_hd.png`;
 
 export default function SEOHead({
   title = 'Le Sucrée Pastelería | Tortas Artesanales en Rosario',
