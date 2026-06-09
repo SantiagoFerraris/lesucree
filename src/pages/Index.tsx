@@ -268,17 +268,30 @@ function AboutPreview() {
 }
 
 /* ─── INSTAGRAM ─── */
-const INSTAGRAM_GRID = [
-  { img: pistachoImg, alt: "Tarta de pistacho y chocolate blanco", url: "https://www.instagram.com/p/DUYvpAVD-q4/" },
-  { img: pavlovaImg, alt: "Pavlova con frutos rojos", url: "https://www.instagram.com/p/DL-jG6ouV9X/" },
-  { img: petitFoursImg, alt: "Box de petit fours surtidos", url: "https://www.instagram.com/p/DL28Z_su87D/" },
-  { img: dulceDeLecheImg, alt: "Torre de panqueques con dulce de leche", url: "https://www.instagram.com/p/DA_QwEkx3DB/" },
-  { img: cookiesImg, alt: "Cookies artesanales con pistachos", url: "https://www.instagram.com/p/DLGJCt_OYhk/" },
-  { img: chocolateAvellanasImg, alt: "Tarta de chocolate con avellanas", url: "https://www.instagram.com/p/C-BPlNlP3CG/" },
-];
-
 function InstagramSection() {
   const reveal = useScrollReveal();
+  const { settings } = useSiteSettings();
+  const instagramUrl = settings?.instagram_url || INSTAGRAM_URL;
+  const instagramHandle = settings?.instagram_handle || INSTAGRAM_HANDLE;
+
+  const { data: posts } = useQuery({
+    queryKey: ['instagram-posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('instagram_posts')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order')
+        .limit(6);
+      if (error) throw error;
+      return (data ?? []).map((p) => ({
+        img: p.image_url,
+        alt: p.alt_text || '',
+        url: p.post_url,
+      }));
+    },
+  });
+
   return (
     <section ref={reveal.ref} className="py-12 sm:py-16 md:py-24 px-3 sm:px-4">
       <div className="container">
@@ -289,17 +302,17 @@ function InstagramSection() {
         </h2>
         <SectionDivider />
         <div className="mt-6 max-w-4xl mx-auto">
-          <InstagramCarousel posts={INSTAGRAM_GRID} />
+          <InstagramCarousel posts={posts ?? []} />
         </div>
         <div className="text-center mt-4">
           <a
-            href={INSTAGRAM_URL}
+            href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-dusty-pink hover:text-mauve font-semibold transition-colors"
             aria-label="Instagram de Le Sucrée"
           >
-            {INSTAGRAM_HANDLE}
+            {instagramHandle}
           </a>
         </div>
       </div>
