@@ -98,10 +98,11 @@ function HeroSection() {
 /* ─── TRUST BADGES ─── */
 function TrustBadges() {
   const reveal = useScrollReveal();
+  const { data: settings } = useSiteSettings();
   const badges = [
-    { icon: Clock, text: "Pedí con 48hs de anticipación" },
-    { icon: Truck, text: "Retiro en Rosario" },
-    { icon: Heart, text: "100% artesanal, hecho a mano" },
+    { icon: Clock, text: settings?.trust_badge_1 || "Pedí con 48hs de anticipación" },
+    { icon: Truck, text: settings?.trust_badge_2 || "Retiro en Rosario" },
+    { icon: Heart, text: settings?.trust_badge_3 || "100% artesanal, hecho a mano" },
   ];
   return (
     <section ref={reveal.ref} className="py-5 md:py-6 px-4 bg-white/60 backdrop-blur-sm border-y border-blush/40">

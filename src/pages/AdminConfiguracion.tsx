@@ -31,6 +31,10 @@ const SETTING_FIELDS = [
   { key: 'hero_text', label: 'Texto del Hero', placeholder: 'Endulzamos tus momentos...', multiline: true },
   { key: 'instagram_url', label: 'URL de Instagram', placeholder: 'https://www.instagram.com/...' },
   { key: 'instagram_handle', label: 'Handle de Instagram', placeholder: '@pasteleria.lesucree' },
+  // Trust badges
+  { key: 'trust_badge_1', label: 'Badge 1 del inicio', placeholder: 'Pedí con 48hs de anticipación' },
+  { key: 'trust_badge_2', label: 'Badge 2 del inicio', placeholder: 'Retiro en Rosario' },
+  { key: 'trust_badge_3', label: 'Badge 3 del inicio', placeholder: '100% artesanal, hecho a mano' },
   // Payment configuration
   { key: 'pago_alias', label: 'Alias de pago (sistema seña)', placeholder: 'lesucree.mp' },
   { key: 'cbu_pago', label: 'CBU para transferencias', placeholder: '0000003100000000000000' },
