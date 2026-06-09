@@ -3,6 +3,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Upload, Image as ImageIcon, Trash2, Plus, Pencil, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import pistachoImg from '@/assets/torta_2_pistacho_chocolate_blanco.jpg';
+import pavlovaImg from '@/assets/torta_3_pavlova.jpg';
+import petitFoursImg from '@/assets/torta_4_petit_fours.jpg';
+import dulceDeLecheImg from '@/assets/torta_5_dulce_de_leche.jpg';
+import cookiesImg from '@/assets/torta_6_cookies.jpg';
+import chocolateAvellanasImg from '@/assets/torta_7_chocolate_avellanas.jpg';
+
+const INSTAGRAM_ASSET_MIGRATION: { asset: string; filename: string; post_url: string; alt: string }[] = [
+  { asset: pistachoImg, filename: 'pistacho.jpg', post_url: 'https://www.instagram.com/p/DUYvpAVD-q4/', alt: 'Tarta de pistacho y chocolate blanco' },
+  { asset: pavlovaImg, filename: 'pavlova.jpg', post_url: 'https://www.instagram.com/p/DL-jG6ouV9X/', alt: 'Pavlova con frutos rojos' },
+  { asset: petitFoursImg, filename: 'petit-fours.jpg', post_url: 'https://www.instagram.com/p/DL28Z_su87D/', alt: 'Box de petit fours surtidos' },
+  { asset: dulceDeLecheImg, filename: 'dulce-de-leche.jpg', post_url: 'https://www.instagram.com/p/DA_QwEkx3DB/', alt: 'Torre de panqueques con dulce de leche' },
+  { asset: cookiesImg, filename: 'cookies.jpg', post_url: 'https://www.instagram.com/p/DLGJCt_OYhk/', alt: 'Cookies artesanales con pistachos' },
+  { asset: chocolateAvellanasImg, filename: 'chocolate-avellanas.jpg', post_url: 'https://www.instagram.com/p/C-BPlNlP3CG/', alt: 'Tarta de chocolate con avellanas' },
+];
 
 const SETTING_FIELDS = [
   { key: 'business_name', label: 'Nombre del negocio', placeholder: 'Le Sucrée' },
