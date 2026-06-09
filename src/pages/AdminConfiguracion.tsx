@@ -36,6 +36,115 @@ export default function AdminConfiguracion() {
   const [historiaUploading, setHistoriaUploading] = useState(false);
   const [historiaDeletando, setHistoriaDeletando] = useState(false);
 
+  // FAQ admin state
+  type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
+  const [faqEditing, setFaqEditing] = useState<Partial<FaqRow> | null>(null);
+  const [faqSaving, setFaqSaving] = useState(false);
+
+  const { data: faqs, refetch: refetchFaqs } = useQuery({
+    queryKey: ['admin-faqs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as FaqRow[];
+    },
+  });
+
+  const invalidateFaqs = () => {
+    refetchFaqs();
+    qc.invalidateQueries({ queryKey: ['faqs'] });
+  };
+
+  const handleFaqSave = async () => {
+    if (!faqEditing) return;
+    const question = (faqEditing.question || '').trim();
+    const answer = (faqEditing.answer || '').trim();
+    if (!question || !answer) {
+      toast.error('La pregunta y la respuesta son obligatorias');
+      return;
+    }
+    setFaqSaving(true);
+    try {
+      if (faqEditing.id) {
+        const { error } = await supabase
+          .from('faqs')
+          .update({
+            question,
+            answer,
+            is_active: faqEditing.is_active ?? true,
+          })
+          .eq('id', faqEditing.id);
+        if (error) throw error;
+        toast.success('Pregunta actualizada');
+      } else {
+        const maxOrder = (faqs ?? []).reduce((m, f) => Math.max(m, f.sort_order), -1);
+        const { error } = await supabase
+          .from('faqs')
+          .insert({
+            question,
+            answer,
+            sort_order: maxOrder + 1,
+            is_active: faqEditing.is_active ?? true,
+          });
+        if (error) throw error;
+        toast.success('Pregunta agregada');
+      }
+      setFaqEditing(null);
+      invalidateFaqs();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al guardar la pregunta');
+    } finally {
+      setFaqSaving(false);
+    }
+  };
+
+  const handleFaqDelete = async (id: string) => {
+    if (!confirm('¿Eliminar esta pregunta?')) return;
+    const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success('Pregunta eliminada');
+    invalidateFaqs();
+  };
+
+  const handleFaqToggleActive = async (row: FaqRow) => {
+    const { error } = await supabase
+      .from('faqs')
+      .update({ is_active: !row.is_active })
+      .eq('id', row.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    invalidateFaqs();
+  };
+
+  const handleFaqMove = async (row: FaqRow, dir: -1 | 1) => {
+    const list = (faqs ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const idx = list.findIndex(f => f.id === row.id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+    const other = list[swapIdx];
+    const { error: e1 } = await supabase
+      .from('faqs')
+      .update({ sort_order: other.sort_order })
+      .eq('id', row.id);
+    const { error: e2 } = await supabase
+      .from('faqs')
+      .update({ sort_order: row.sort_order })
+      .eq('id', other.id);
+    if (e1 || e2) {
+      toast.error((e1 || e2)!.message);
+      return;
+    }
+    invalidateFaqs();
+  };
+
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
     queryFn: async () => {
