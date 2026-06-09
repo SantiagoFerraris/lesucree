@@ -48,12 +48,76 @@ const SETTING_FIELDS = [
   { key: 'payment_methods', label: 'Medios de pago (separados por coma)', placeholder: 'Mercado Pago, Transferencia, Efectivo' },
 ] as const;
 
+type AdminUser = { user_id: string; email: string; created_at: string };
+
 export default function AdminConfiguracion() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, string>>({});
   const [heroUploading, setHeroUploading] = useState(false);
   const [historiaUploading, setHistoriaUploading] = useState(false);
   const [historiaDeletando, setHistoriaDeletando] = useState(false);
+
+  // Admin users state
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+  }, []);
+
+  const { data: adminUsers, refetch: refetchAdmins } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_admin_users');
+      if (error) throw error;
+      return (data ?? []) as AdminUser[];
+    },
+  });
+
+  const handleInviteAdmin = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email) {
+      toast.error('Ingresá un email');
+      return;
+    }
+    setInviting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-admin', {
+        body: { email },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      toast.success('Invitación enviada');
+      setInviteEmail('');
+      setInviteOpen(false);
+      refetchAdmins();
+    } catch (e) {
+      toast.error('No se pudo invitar: ' + (e as Error).message);
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleRevokeAdmin = async (u: AdminUser) => {
+    if (u.user_id === currentUserId) {
+      toast.error('No podés revocar tu propio acceso');
+      return;
+    }
+    if (!confirm(`¿Revocar acceso de ${u.email}?`)) return;
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', u.user_id)
+      .eq('role', 'admin');
+    if (error) {
+      toast.error('Error al revocar: ' + error.message);
+      return;
+    }
+    toast.success('Acceso revocado');
+    refetchAdmins();
+  };
 
   // FAQ admin state
   type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
