@@ -547,7 +547,15 @@ export type Database = {
           visible_from?: string | null
           visible_until?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_category_fk"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["value"]
+          },
+        ]
       }
       promotion_products: {
         Row: {
