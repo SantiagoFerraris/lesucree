@@ -145,6 +145,110 @@ export default function AdminConfiguracion() {
     invalidateFaqs();
   };
 
+  // Instagram admin state
+  type IgRow = { id: string; image_url: string; post_url: string; alt_text: string | null; sort_order: number; is_active: boolean };
+  const [igEditing, setIgEditing] = useState<{ post_url: string; alt_text: string; is_active: boolean } | null>(null);
+  const [igFile, setIgFile] = useState<File | null>(null);
+  const [igSaving, setIgSaving] = useState(false);
+
+  const { data: igPosts, refetch: refetchIg } = useQuery({
+    queryKey: ['admin-instagram-posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('instagram_posts')
+        .select('*')
+        .order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as IgRow[];
+    },
+  });
+
+  const invalidateIg = () => {
+    refetchIg();
+    qc.invalidateQueries({ queryKey: ['instagram-posts'] });
+  };
+
+  const handleIgSave = async () => {
+    if (!igEditing) return;
+    if (!igFile) {
+      toast.error('Seleccioná una imagen');
+      return;
+    }
+    if (!igEditing.post_url.trim()) {
+      toast.error('Falta el link al post');
+      return;
+    }
+    setIgSaving(true);
+    try {
+      const { resizeImageBeforeUpload } = await import('@/lib/imageUtils');
+      const optimizedFile = await resizeImageBeforeUpload(igFile, 1200);
+      const ext = (igFile.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `instagram/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('site-images')
+        .upload(path, optimizedFile, { upsert: false });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(path);
+      const maxOrder = (igPosts ?? []).reduce((m, p) => Math.max(m, p.sort_order), -1);
+      const { error } = await supabase.from('instagram_posts').insert({
+        image_url: urlData.publicUrl,
+        post_url: igEditing.post_url.trim(),
+        alt_text: igEditing.alt_text.trim() || null,
+        sort_order: maxOrder + 1,
+        is_active: igEditing.is_active,
+      });
+      if (error) throw error;
+      toast.success('Foto agregada');
+      setIgEditing(null);
+      setIgFile(null);
+      invalidateIg();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al guardar la foto');
+    } finally {
+      setIgSaving(false);
+    }
+  };
+
+  const handleIgDelete = async (row: IgRow) => {
+    if (!confirm('¿Eliminar esta foto?')) return;
+    const { error } = await supabase.from('instagram_posts').delete().eq('id', row.id);
+    if (error) { toast.error(error.message); return; }
+    // Best-effort delete of stored file
+    try {
+      const marker = '/site-images/';
+      const idx = row.image_url.indexOf(marker);
+      if (idx >= 0) {
+        const path = row.image_url.slice(idx + marker.length).split('?')[0];
+        await supabase.storage.from('site-images').remove([path]);
+      }
+    } catch { /* noop */ }
+    toast.success('Foto eliminada');
+    invalidateIg();
+  };
+
+  const handleIgToggleActive = async (row: IgRow) => {
+    const { error } = await supabase
+      .from('instagram_posts')
+      .update({ is_active: !row.is_active })
+      .eq('id', row.id);
+    if (error) { toast.error(error.message); return; }
+    invalidateIg();
+  };
+
+  const handleIgMove = async (row: IgRow, dir: -1 | 1) => {
+    const list = (igPosts ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const idx = list.findIndex(p => p.id === row.id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+    const other = list[swapIdx];
+    const { error: e1 } = await supabase.from('instagram_posts').update({ sort_order: other.sort_order }).eq('id', row.id);
+    const { error: e2 } = await supabase.from('instagram_posts').update({ sort_order: row.sort_order }).eq('id', other.id);
+    if (e1 || e2) { toast.error((e1 || e2)!.message); return; }
+    invalidateIg();
+  };
+
+
+
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
     queryFn: async () => {
