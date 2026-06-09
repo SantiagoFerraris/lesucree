@@ -891,6 +891,75 @@ export default function AdminConfiguracion() {
           </div>
         )}
       </div>
+
+      {/* Usuarios administradores */}
+      <div className="bg-white border border-warm-gray/20 rounded-lg p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-serif text-espresso">Usuarios administradores</h2>
+          <button
+            onClick={() => setInviteOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm bg-espresso text-cream px-3 py-1.5 rounded hover:bg-espresso/90"
+          >
+            <Plus size={14} /> Invitar administrador
+          </button>
+        </div>
+
+        {inviteOpen && (
+          <div className="mb-4 p-4 bg-cream/50 rounded border border-warm-gray/20 flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="email@ejemplo.com"
+              className="flex-1 px-3 py-2 border border-warm-gray/30 rounded text-sm"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleInviteAdmin}
+                disabled={inviting}
+                className="bg-espresso text-cream px-4 py-2 rounded text-sm disabled:opacity-50"
+              >
+                {inviting ? 'Enviando…' : 'Enviar invitación'}
+              </button>
+              <button
+                onClick={() => { setInviteOpen(false); setInviteEmail(''); }}
+                className="px-3 py-2 text-sm text-warm-gray hover:text-espresso"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="divide-y divide-warm-gray/15">
+          {(adminUsers ?? []).length === 0 && (
+            <p className="text-sm text-warm-gray py-4">No hay administradores cargados.</p>
+          )}
+          {(adminUsers ?? []).map((u) => {
+            const isMe = u.user_id === currentUserId;
+            return (
+              <div key={u.user_id} className="flex items-center justify-between py-3">
+                <div className="min-w-0">
+                  <p className="text-sm text-espresso truncate">
+                    {u.email} {isMe && <span className="text-xs text-warm-gray">(vos)</span>}
+                  </p>
+                  <p className="text-xs text-warm-gray">
+                    Desde {new Date(u.created_at).toLocaleDateString('es-AR')}
+                  </p>
+                </div>
+                {!isMe && (
+                  <button
+                    onClick={() => handleRevokeAdmin(u)}
+                    className="text-xs text-red-500 hover:text-red-700 px-2 py-1"
+                  >
+                    Revocar acceso
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
