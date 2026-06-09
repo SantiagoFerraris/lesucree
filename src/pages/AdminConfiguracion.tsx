@@ -48,12 +48,76 @@ const SETTING_FIELDS = [
   { key: 'payment_methods', label: 'Medios de pago (separados por coma)', placeholder: 'Mercado Pago, Transferencia, Efectivo' },
 ] as const;
 
+type AdminUser = { user_id: string; email: string; created_at: string };
+
 export default function AdminConfiguracion() {
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, string>>({});
   const [heroUploading, setHeroUploading] = useState(false);
   const [historiaUploading, setHistoriaUploading] = useState(false);
   const [historiaDeletando, setHistoriaDeletando] = useState(false);
+
+  // Admin users state
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+  }, []);
+
+  const { data: adminUsers, refetch: refetchAdmins } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_admin_users');
+      if (error) throw error;
+      return (data ?? []) as AdminUser[];
+    },
+  });
+
+  const handleInviteAdmin = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email) {
+      toast.error('Ingresá un email');
+      return;
+    }
+    setInviting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('invite-admin', {
+        body: { email },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      toast.success('Invitación enviada');
+      setInviteEmail('');
+      setInviteOpen(false);
+      refetchAdmins();
+    } catch (e) {
+      toast.error('No se pudo invitar: ' + (e as Error).message);
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleRevokeAdmin = async (u: AdminUser) => {
+    if (u.user_id === currentUserId) {
+      toast.error('No podés revocar tu propio acceso');
+      return;
+    }
+    if (!confirm(`¿Revocar acceso de ${u.email}?`)) return;
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', u.user_id)
+      .eq('role', 'admin');
+    if (error) {
+      toast.error('Error al revocar: ' + error.message);
+      return;
+    }
+    toast.success('Acceso revocado');
+    refetchAdmins();
+  };
 
   // FAQ admin state
   type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
@@ -826,6 +890,75 @@ export default function AdminConfiguracion() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Usuarios administradores */}
+      <div className="bg-white border border-warm-gray/20 rounded-lg p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-serif text-espresso">Usuarios administradores</h2>
+          <button
+            onClick={() => setInviteOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm bg-espresso text-cream px-3 py-1.5 rounded hover:bg-espresso/90"
+          >
+            <Plus size={14} /> Invitar administrador
+          </button>
+        </div>
+
+        {inviteOpen && (
+          <div className="mb-4 p-4 bg-cream/50 rounded border border-warm-gray/20 flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="email@ejemplo.com"
+              className="flex-1 px-3 py-2 border border-warm-gray/30 rounded text-sm"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleInviteAdmin}
+                disabled={inviting}
+                className="bg-espresso text-cream px-4 py-2 rounded text-sm disabled:opacity-50"
+              >
+                {inviting ? 'Enviando…' : 'Enviar invitación'}
+              </button>
+              <button
+                onClick={() => { setInviteOpen(false); setInviteEmail(''); }}
+                className="px-3 py-2 text-sm text-warm-gray hover:text-espresso"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="divide-y divide-warm-gray/15">
+          {(adminUsers ?? []).length === 0 && (
+            <p className="text-sm text-warm-gray py-4">No hay administradores cargados.</p>
+          )}
+          {(adminUsers ?? []).map((u) => {
+            const isMe = u.user_id === currentUserId;
+            return (
+              <div key={u.user_id} className="flex items-center justify-between py-3">
+                <div className="min-w-0">
+                  <p className="text-sm text-espresso truncate">
+                    {u.email} {isMe && <span className="text-xs text-warm-gray">(vos)</span>}
+                  </p>
+                  <p className="text-xs text-warm-gray">
+                    Desde {new Date(u.created_at).toLocaleDateString('es-AR')}
+                  </p>
+                </div>
+                {!isMe && (
+                  <button
+                    onClick={() => handleRevokeAdmin(u)}
+                    className="text-xs text-red-500 hover:text-red-700 px-2 py-1"
+                  >
+                    Revocar acceso
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
