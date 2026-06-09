@@ -22,12 +22,6 @@ import type { Tables } from "@/integrations/supabase/types";
 
 
 import tiramisuImg from "@/assets/torta_1_tiramisu.jpg";
-import pistachoImg from "@/assets/torta_2_pistacho_chocolate_blanco.jpg";
-import pavlovaImg from "@/assets/torta_3_pavlova.jpg";
-import petitFoursImg from "@/assets/torta_4_petit_fours.jpg";
-import dulceDeLecheImg from "@/assets/torta_5_dulce_de_leche.jpg";
-import cookiesImg from "@/assets/torta_6_cookies.jpg";
-import chocolateAvellanasImg from "@/assets/torta_7_chocolate_avellanas.jpg";
 
 interface Variant {
   id: string;
