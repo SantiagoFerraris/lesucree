@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Upload, Image as ImageIcon } from 'lucide-react';
+import { Save, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,6 +31,7 @@ export default function AdminConfiguracion() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [heroUploading, setHeroUploading] = useState(false);
   const [historiaUploading, setHistoriaUploading] = useState(false);
+  const [historiaDeletando, setHistoriaDeletando] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
@@ -160,6 +161,18 @@ export default function AdminConfiguracion() {
     setHistoriaUploading(false);
   };
 
+  const handleHistoriaDelete = async () => {
+    setHistoriaDeletando(true);
+    const { data: existingFiles } = await supabase.storage.from('site-images').list('historia');
+    if (existingFiles?.length) {
+      await supabase.storage.from('site-images').remove(existingFiles.map(f => `historia/${f.name}`));
+    }
+    toast.success('Imagen de Historia eliminada');
+    refetchHistoria();
+    qc.invalidateQueries({ queryKey: ['historia-image-url'] });
+    setHistoriaDeletando(false);
+  };
+
   const inputClass = 'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30';
 
   if (isLoading) return <p className="text-warm-gray">Cargando configuración...</p>;
@@ -242,6 +255,16 @@ export default function AdminConfiguracion() {
                   <p className="text-xs">Se usa el fondo por defecto</p>
                 </div>
               </div>
+            )}
+            {historiaImageUrl && (
+              <button
+                onClick={handleHistoriaDelete}
+                disabled={historiaDeletando}
+                className="flex items-center justify-center gap-2 w-full rounded-full border-[1.5px] border-red-300 text-red-400 px-5 py-2 text-sm font-semibold hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Trash2 size={15} />
+                {historiaDeletando ? 'Eliminando...' : 'Quitar imagen (volver a fondo beige)'}
+              </button>
             )}
             <label className={`flex items-center justify-center gap-2 rounded-full border-[1.5px] border-espresso text-espresso px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.08em] hover:bg-espresso hover:text-white transition-all duration-300 active:scale-95 cursor-pointer ${historiaUploading ? 'opacity-50 pointer-events-none' : ''}`}>
               <Upload size={16} /> {historiaUploading ? 'Subiendo...' : 'Subir nueva imagen'}

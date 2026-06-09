@@ -33,14 +33,11 @@ export default function Nosotros() {
           <div
             className="absolute inset-0"
             aria-hidden="true"
-            style={{
-              background:
-                'linear-gradient(105deg, rgba(253,246,240,0.92) 0%, rgba(253,246,240,0.80) 45%, rgba(253,246,240,0.35) 75%, transparent 100%)',
-            }}
+            style={{ background: 'rgba(0, 0, 0, 0.38)' }}
           />
         )}
         <div className="container text-center relative z-10">
-          <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso">Historia</h1>
+          <h1 className={`font-script text-[32px] sm:text-[40px] md:text-[52px] ${historiaImageUrl ? 'text-white' : 'text-espresso'}`}>Historia</h1>
           <SectionDivider />
         </div>
       </div>
