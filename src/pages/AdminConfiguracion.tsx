@@ -24,6 +24,9 @@ const SETTING_FIELDS = [
   { key: 'min_deposit_percentage', label: 'Mínimo de seña (%)', placeholder: '30', numeric: true },
   { key: 'max_deposit_percentage', label: 'Máximo de seña (%)', placeholder: '70', numeric: true },
   { key: 'dias_vencimiento', label: 'Días antes de vencer', placeholder: '3', numeric: true },
+  { key: 'footer_phone_display', label: 'Teléfono visible en footer', placeholder: '+54 9 341 274-1229' },
+  { key: 'footer_address', label: 'Dirección visible en footer', placeholder: 'Rosario, Santa Fe' },
+  { key: 'payment_methods', label: 'Medios de pago (separados por coma)', placeholder: 'Mercado Pago, Transferencia, Efectivo' },
 ] as const;
 
 export default function AdminConfiguracion() {

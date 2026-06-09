@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom';
 import { Instagram, MapPin, Phone, Clock } from 'lucide-react';
-import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_NUMBER } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/whatsapp';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function Footer() {
+  const { data: settings } = useSiteSettings();
+  const whatsappNumber = settings?.whatsapp_number || '5493412741229';
+  const instagramUrl = settings?.instagram_url || 'https://www.instagram.com/pasteleria.lesucree';
+  const instagramHandle = settings?.instagram_handle || '@pasteleria.lesucree';
+  const footerPhoneDisplay = settings?.footer_phone_display || '+54 9 341 274-1229';
+  const footerAddress = settings?.footer_address || settings?.address || 'Rosario, Santa Fe';
+  const businessHours = settings?.business_hours || 'Pedidos con 48hs de anticipación';
+  const paymentMethodsRaw = settings?.payment_methods || 'Mercado Pago, Transferencia, Efectivo';
+  const paymentMethods = paymentMethodsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
   return (
     <footer className="bg-espresso text-blush">
       <div className="container py-10 sm:py-16">
@@ -30,21 +40,21 @@ export default function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Contacto</span>
             <div className="flex items-center gap-2 text-sm opacity-80">
-              <MapPin size={14} className="flex-shrink-0" /> Rosario, Santa Fe
+              <MapPin size={14} className="flex-shrink-0" /> {footerAddress}
             </div>
-            <a href={`tel:+${WHATSAPP_NUMBER}`} className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity">
-              <Phone size={14} className="flex-shrink-0" /> +54 9 341 274-1229
+            <a href={`tel:+${whatsappNumber}`} className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Phone size={14} className="flex-shrink-0" /> {footerPhoneDisplay}
             </a>
             <div className="flex items-center gap-2 text-sm opacity-80">
-              <Clock size={14} className="flex-shrink-0" /> Pedidos con 48hs de anticipación
+              <Clock size={14} className="flex-shrink-0" /> {businessHours}
             </div>
           </div>
           <div className="flex flex-col gap-3">
             <span className="text-xs uppercase tracking-[0.08em] font-semibold text-gold-accent">Seguime</span>
-            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="Instagram de Le Sucrée">
-              <Instagram size={16} /> {INSTAGRAM_HANDLE}
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="Instagram de Le Sucrée">
+              <Instagram size={16} /> {instagramHandle}
             </a>
-            <a href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="WhatsApp de Le Sucrée">
+            <a href={getWhatsAppLink(whatsappNumber) ?? '#'} target="_blank" rel="noopener noreferrer" className="text-sm opacity-80 hover:opacity-100 transition-opacity" aria-label="WhatsApp de Le Sucrée">
               📱 WhatsApp
             </a>
           </div>
@@ -53,11 +63,12 @@ export default function Footer() {
         {/* Payment methods */}
         <div className="flex flex-wrap items-center justify-center gap-4 mt-10 text-sm opacity-70">
           <span className="text-xs uppercase tracking-wider text-gold-accent font-semibold">Medios de pago:</span>
-          <span className="flex items-center gap-1.5">💳 Mercado Pago</span>
-          <span className="hidden sm:inline text-blush/30">|</span>
-          <span className="flex items-center gap-1.5">🏦 Transferencia</span>
-          <span className="hidden sm:inline text-blush/30">|</span>
-          <span className="flex items-center gap-1.5">💵 Efectivo</span>
+          {paymentMethods.map((method, idx) => (
+            <span key={method} className="flex items-center gap-1.5">
+              {idx > 0 && <span className="hidden sm:inline text-blush/30 mr-3">|</span>}
+              {method}
+            </span>
+          ))}
         </div>
 
         <div className="section-divider mt-10 mb-6" style={{ background: 'hsl(var(--gold-accent) / 0.3)' }} />

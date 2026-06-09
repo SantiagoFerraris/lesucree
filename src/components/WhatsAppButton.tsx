@@ -1,10 +1,12 @@
-import { WHATSAPP_NUMBER } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/whatsapp';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function WhatsAppButton() {
+  const { data: settings } = useSiteSettings();
+  const whatsappNumber = settings?.whatsapp_number || '5493412741229';
   return (
     <a
-      href={getWhatsAppLink(WHATSAPP_NUMBER) ?? '#'}
+      href={getWhatsAppLink(whatsappNumber) ?? '#'}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-20 md:bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:outline-none animate-whatsapp-pulse"
