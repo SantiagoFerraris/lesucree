@@ -615,6 +615,154 @@ export default function AdminConfiguracion() {
           ))}
         </div>
       </div>
+
+      {/* Instagram admin */}
+      <div className="mt-12 max-w-5xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider">Instagram</h3>
+          <button
+            onClick={() => { setIgEditing({ post_url: '', alt_text: '', is_active: true }); setIgFile(null); }}
+            className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-4 py-2 text-xs font-semibold hover:bg-mauve transition-all active:scale-95"
+          >
+            <Plus size={14} /> Agregar foto
+          </button>
+        </div>
+
+        {igEditing && (
+          <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-espresso">Nueva foto</h4>
+              <button
+                onClick={() => { setIgEditing(null); setIgFile(null); }}
+                className="text-warm-gray hover:text-espresso"
+                aria-label="Cerrar"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Imagen</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={e => setIgFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-espresso"
+              />
+              {igFile && <p className="text-xs text-warm-gray mt-1">{igFile.name}</p>}
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Link del post</label>
+              <input
+                value={igEditing.post_url}
+                onChange={e => setIgEditing(p => p ? { ...p, post_url: e.target.value } : p)}
+                className={inputClass}
+                placeholder="https://www.instagram.com/p/..."
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Texto alternativo</label>
+              <input
+                value={igEditing.alt_text}
+                onChange={e => setIgEditing(p => p ? { ...p, alt_text: e.target.value } : p)}
+                className={inputClass}
+                placeholder="Descripción de la foto"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-espresso">
+              <input
+                type="checkbox"
+                checked={igEditing.is_active}
+                onChange={e => setIgEditing(p => p ? { ...p, is_active: e.target.checked } : p)}
+              />
+              Visible en el sitio
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={handleIgSave}
+                disabled={igSaving}
+                className="rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95 disabled:opacity-50"
+              >
+                {igSaving ? 'Guardando...' : 'Guardar'}
+              </button>
+              <button
+                onClick={() => { setIgEditing(null); setIgFile(null); }}
+                className="rounded-full border border-gray-200 text-espresso px-5 py-2 text-sm font-semibold hover:bg-gray-50 transition-all"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(igPosts ?? []).length === 0 ? (
+          <p className="text-sm text-warm-gray bg-white rounded-xl border border-gray-100 p-5">
+            No hay fotos todavía.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {(igPosts ?? []).map((p, i, arr) => (
+              <div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="aspect-square bg-cream">
+                  <img
+                    src={p.image_url}
+                    alt={p.alt_text || ''}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-3 space-y-2">
+                  <p className="text-xs text-espresso truncate" title={p.alt_text || ''}>
+                    {p.alt_text || <span className="text-warm-gray italic">Sin descripción</span>}
+                  </p>
+                  <a
+                    href={p.post_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs text-dusty-pink hover:text-mauve truncate"
+                  >
+                    {p.post_url}
+                  </a>
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleIgMove(p, -1)}
+                        disabled={i === 0}
+                        className="text-warm-gray hover:text-espresso disabled:opacity-30 p-1"
+                        aria-label="Subir"
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleIgMove(p, 1)}
+                        disabled={i === arr.length - 1}
+                        className="text-warm-gray hover:text-espresso disabled:opacity-30 p-1"
+                        aria-label="Bajar"
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                    </div>
+                    <label className="flex items-center gap-1 text-xs text-warm-gray">
+                      <input
+                        type="checkbox"
+                        checked={p.is_active}
+                        onChange={() => handleIgToggleActive(p)}
+                      />
+                      Activa
+                    </label>
+                    <button
+                      onClick={() => handleIgDelete(p)}
+                      className="text-red-400 hover:text-red-600 p-1"
+                      aria-label="Eliminar"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
