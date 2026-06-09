@@ -262,6 +262,42 @@ export default function AdminConfiguracion() {
     invalidateIg();
   };
 
+  const [igMigrating, setIgMigrating] = useState(false);
+  const migrarFotosInstagram = async () => {
+    setIgMigrating(true);
+    let ok = 0;
+    let fail = 0;
+    try {
+      for (const item of INSTAGRAM_ASSET_MIGRATION) {
+        try {
+          const blob = await fetch(item.asset).then(r => r.blob());
+          const path = `instagram/${item.filename}`;
+          const { error: upErr } = await supabase.storage
+            .from('site-images')
+            .upload(path, blob, { upsert: true, contentType: blob.type || 'image/jpeg' });
+          if (upErr) throw upErr;
+          const { data: urlData } = supabase.storage.from('site-images').getPublicUrl(path);
+          const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+          const { error: updErr } = await supabase
+            .from('instagram_posts')
+            .update({ image_url: publicUrl })
+            .eq('post_url', item.post_url);
+          if (updErr) throw updErr;
+          ok++;
+        } catch (e) {
+          console.error('Migration failed for', item.filename, e);
+          fail++;
+        }
+      }
+      if (fail === 0) toast.success(`Migración completa (${ok} fotos)`);
+      else toast.error(`Migración parcial: ${ok} ok, ${fail} con error`);
+      invalidateIg();
+    } finally {
+      setIgMigrating(false);
+    }
+  };
+
+
 
 
   const { data: settings, isLoading } = useQuery({
