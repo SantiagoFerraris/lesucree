@@ -270,7 +270,7 @@ function AboutPreview() {
 /* ─── INSTAGRAM ─── */
 function InstagramSection() {
   const reveal = useScrollReveal();
-  const { settings } = useSiteSettings();
+  const { data: settings } = useSiteSettings();
   const instagramUrl = settings?.instagram_url || INSTAGRAM_URL;
   const instagramHandle = settings?.instagram_handle || INSTAGRAM_HANDLE;
 
