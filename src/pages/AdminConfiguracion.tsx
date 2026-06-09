@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Save, Upload, Image as ImageIcon, Trash2, Plus, Pencil, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,6 +35,115 @@ export default function AdminConfiguracion() {
   const [heroUploading, setHeroUploading] = useState(false);
   const [historiaUploading, setHistoriaUploading] = useState(false);
   const [historiaDeletando, setHistoriaDeletando] = useState(false);
+
+  // FAQ admin state
+  type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
+  const [faqEditing, setFaqEditing] = useState<Partial<FaqRow> | null>(null);
+  const [faqSaving, setFaqSaving] = useState(false);
+
+  const { data: faqs, refetch: refetchFaqs } = useQuery({
+    queryKey: ['admin-faqs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as FaqRow[];
+    },
+  });
+
+  const invalidateFaqs = () => {
+    refetchFaqs();
+    qc.invalidateQueries({ queryKey: ['faqs'] });
+  };
+
+  const handleFaqSave = async () => {
+    if (!faqEditing) return;
+    const question = (faqEditing.question || '').trim();
+    const answer = (faqEditing.answer || '').trim();
+    if (!question || !answer) {
+      toast.error('La pregunta y la respuesta son obligatorias');
+      return;
+    }
+    setFaqSaving(true);
+    try {
+      if (faqEditing.id) {
+        const { error } = await supabase
+          .from('faqs')
+          .update({
+            question,
+            answer,
+            is_active: faqEditing.is_active ?? true,
+          })
+          .eq('id', faqEditing.id);
+        if (error) throw error;
+        toast.success('Pregunta actualizada');
+      } else {
+        const maxOrder = (faqs ?? []).reduce((m, f) => Math.max(m, f.sort_order), -1);
+        const { error } = await supabase
+          .from('faqs')
+          .insert({
+            question,
+            answer,
+            sort_order: maxOrder + 1,
+            is_active: faqEditing.is_active ?? true,
+          });
+        if (error) throw error;
+        toast.success('Pregunta agregada');
+      }
+      setFaqEditing(null);
+      invalidateFaqs();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al guardar la pregunta');
+    } finally {
+      setFaqSaving(false);
+    }
+  };
+
+  const handleFaqDelete = async (id: string) => {
+    if (!confirm('¿Eliminar esta pregunta?')) return;
+    const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success('Pregunta eliminada');
+    invalidateFaqs();
+  };
+
+  const handleFaqToggleActive = async (row: FaqRow) => {
+    const { error } = await supabase
+      .from('faqs')
+      .update({ is_active: !row.is_active })
+      .eq('id', row.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    invalidateFaqs();
+  };
+
+  const handleFaqMove = async (row: FaqRow, dir: -1 | 1) => {
+    const list = (faqs ?? []).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const idx = list.findIndex(f => f.id === row.id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+    const other = list[swapIdx];
+    const { error: e1 } = await supabase
+      .from('faqs')
+      .update({ sort_order: other.sort_order })
+      .eq('id', row.id);
+    const { error: e2 } = await supabase
+      .from('faqs')
+      .update({ sort_order: row.sort_order })
+      .eq('id', other.id);
+    if (e1 || e2) {
+      toast.error((e1 || e2)!.message);
+      return;
+    }
+    invalidateFaqs();
+  };
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
@@ -275,6 +384,131 @@ export default function AdminConfiguracion() {
             </label>
             <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
           </div>
+        </div>
+      </div>
+
+      {/* FAQ admin */}
+      <div className="mt-12 max-w-5xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider">Preguntas Frecuentes</h3>
+          <button
+            onClick={() =>
+              setFaqEditing({ question: '', answer: '', is_active: true })
+            }
+            className="flex items-center gap-2 rounded-full bg-dusty-pink text-white px-4 py-2 text-xs font-semibold hover:bg-mauve transition-all active:scale-95"
+          >
+            <Plus size={14} /> Agregar pregunta
+          </button>
+        </div>
+
+        {faqEditing && (
+          <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-espresso">
+                {faqEditing.id ? 'Editar pregunta' : 'Nueva pregunta'}
+              </h4>
+              <button
+                onClick={() => setFaqEditing(null)}
+                className="text-warm-gray hover:text-espresso"
+                aria-label="Cerrar"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Pregunta</label>
+              <textarea
+                value={faqEditing.question || ''}
+                onChange={e => setFaqEditing(p => ({ ...p, question: e.target.value }))}
+                className={`${inputClass} min-h-[60px] resize-none`}
+                placeholder="¿Cuál es la pregunta?"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Respuesta</label>
+              <textarea
+                value={faqEditing.answer || ''}
+                onChange={e => setFaqEditing(p => ({ ...p, answer: e.target.value }))}
+                className={`${inputClass} min-h-[120px] resize-none`}
+                placeholder="Respuesta..."
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-espresso">
+              <input
+                type="checkbox"
+                checked={faqEditing.is_active ?? true}
+                onChange={e => setFaqEditing(p => ({ ...p, is_active: e.target.checked }))}
+              />
+              Visible en el sitio
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={handleFaqSave}
+                disabled={faqSaving}
+                className="rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95 disabled:opacity-50"
+              >
+                {faqSaving ? 'Guardando...' : 'Guardar'}
+              </button>
+              <button
+                onClick={() => setFaqEditing(null)}
+                className="rounded-full border border-gray-200 text-espresso px-5 py-2 text-sm font-semibold hover:bg-gray-50 transition-all"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+          {(faqs ?? []).length === 0 && (
+            <p className="text-sm text-warm-gray p-5">No hay preguntas todavía.</p>
+          )}
+          {(faqs ?? []).map((f, i, arr) => (
+            <div key={f.id} className="flex items-center gap-3 p-4">
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => handleFaqMove(f, -1)}
+                  disabled={i === 0}
+                  className="text-warm-gray hover:text-espresso disabled:opacity-30"
+                  aria-label="Subir"
+                >
+                  <ArrowUp size={14} />
+                </button>
+                <button
+                  onClick={() => handleFaqMove(f, 1)}
+                  disabled={i === arr.length - 1}
+                  className="text-warm-gray hover:text-espresso disabled:opacity-30"
+                  aria-label="Bajar"
+                >
+                  <ArrowDown size={14} />
+                </button>
+              </div>
+              <span className="text-xs text-warm-gray w-6 text-center">{f.sort_order}</span>
+              <p className="flex-1 text-sm text-espresso truncate">{f.question}</p>
+              <label className="flex items-center gap-1 text-xs text-warm-gray">
+                <input
+                  type="checkbox"
+                  checked={f.is_active}
+                  onChange={() => handleFaqToggleActive(f)}
+                />
+                Activa
+              </label>
+              <button
+                onClick={() => setFaqEditing(f)}
+                className="text-warm-gray hover:text-espresso"
+                aria-label="Editar"
+              >
+                <Pencil size={15} />
+              </button>
+              <button
+                onClick={() => handleFaqDelete(f.id)}
+                className="text-red-400 hover:text-red-600"
+                aria-label="Eliminar"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
