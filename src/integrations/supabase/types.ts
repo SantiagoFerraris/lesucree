@@ -374,6 +374,33 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_pages: {
+        Row: {
+          content: string
+          id: string
+          last_updated: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          last_updated?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          last_updated?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_payments: {
         Row: {
           estado: string

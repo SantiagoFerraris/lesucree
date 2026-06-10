@@ -131,6 +131,59 @@ export default function AdminConfiguracion() {
     refetchAdmins();
   };
 
+  // Legal pages admin state
+  type LegalPage = { id: string; slug: string; title: string; content: string; last_updated: string | null };
+  const [legalEdits, setLegalEdits] = useState<Record<string, Partial<LegalPage>>>({});
+  const [legalSavingSlug, setLegalSavingSlug] = useState<string | null>(null);
+
+  const { data: legalPages, refetch: refetchLegal } = useQuery({
+    queryKey: ['admin-legal-pages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('legal_pages')
+        .select('*')
+        .in('slug', ['terminos-y-condiciones', 'politica-de-privacidad']);
+      if (error) throw error;
+      return (data ?? []) as LegalPage[];
+    },
+  });
+
+  const getLegalField = <K extends keyof LegalPage>(page: LegalPage, key: K): LegalPage[K] => {
+    const edit = legalEdits[page.slug];
+    return (edit && key in edit ? (edit[key] as LegalPage[K]) : page[key]);
+  };
+
+  const setLegalField = (slug: string, key: keyof LegalPage, value: string) => {
+    setLegalEdits(prev => ({ ...prev, [slug]: { ...prev[slug], [key]: value } }));
+  };
+
+  const handleLegalSave = async (page: LegalPage) => {
+    setLegalSavingSlug(page.slug);
+    try {
+      const { error } = await supabase
+        .from('legal_pages')
+        .update({
+          title: getLegalField(page, 'title') as string,
+          content: getLegalField(page, 'content') as string,
+          last_updated: getLegalField(page, 'last_updated') as string | null,
+        })
+        .eq('id', page.id);
+      if (error) throw error;
+      toast.success('Página actualizada');
+      setLegalEdits(prev => {
+        const next = { ...prev };
+        delete next[page.slug];
+        return next;
+      });
+      refetchLegal();
+      qc.invalidateQueries({ queryKey: ['legal-page', page.slug] });
+    } catch (e) {
+      toast.error('Error al guardar: ' + (e as Error).message);
+    } finally {
+      setLegalSavingSlug(null);
+    }
+  };
+
   // FAQ admin state
   type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
   const [faqEditing, setFaqEditing] = useState<Partial<FaqRow> | null>(null);
@@ -929,6 +982,69 @@ export default function AdminConfiguracion() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Páginas Legales */}
+      <div className="bg-white border border-warm-gray/20 rounded-lg p-6 mt-6">
+        <h2 className="text-xl font-serif text-espresso mb-1">Páginas Legales</h2>
+        <p className="text-xs text-warm-gray mb-4">
+          Editá el contenido de las páginas de Términos y Política de Privacidad. Soporta HTML básico: <code>&lt;p&gt;</code>, <code>&lt;h2&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {(legalPages ?? []).map(page => {
+            const title = (getLegalField(page, 'title') as string) ?? '';
+            const content = (getLegalField(page, 'content') as string) ?? '';
+            const lastUpdated = (getLegalField(page, 'last_updated') as string | null) ?? '';
+            const dirty = !!legalEdits[page.slug];
+            const saving = legalSavingSlug === page.slug;
+            return (
+              <div key={page.id} className="border border-gray-100 rounded-xl p-5 space-y-3 bg-cream/30">
+                <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider">
+                  {page.slug === 'terminos-y-condiciones' ? 'Términos y Condiciones' : 'Política de Privacidad'}
+                </h3>
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Título</label>
+                  <input
+                    value={title}
+                    onChange={e => setLegalField(page.slug, 'title', e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Última actualización</label>
+                  <input
+                    type="date"
+                    value={lastUpdated ? lastUpdated.slice(0, 10) : ''}
+                    onChange={e => setLegalField(page.slug, 'last_updated', e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Contenido (HTML)</label>
+                    <span className="text-xs text-warm-gray">{content.length} caracteres</span>
+                  </div>
+                  <textarea
+                    value={content}
+                    onChange={e => setLegalField(page.slug, 'content', e.target.value)}
+                    className={`${inputClass} min-h-[300px] font-mono text-xs leading-relaxed resize-y`}
+                    placeholder="<h2>Título</h2><p>Texto...</p>"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleLegalSave(page)}
+                    disabled={saving || !dirty}
+                    className="rounded-full bg-dusty-pink text-white px-5 py-2 text-sm font-semibold hover:bg-mauve transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {saving ? 'Guardando...' : 'Guardar'}
+                  </button>
+                  {dirty && !saving && <span className="text-xs text-warm-gray">Cambios sin guardar</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Usuarios administradores */}
