@@ -48,6 +48,18 @@ const SETTING_FIELDS = [
   { key: 'payment_methods', label: 'Medios de pago (separados por coma)', placeholder: 'Mercado Pago, Transferencia, Efectivo' },
 ] as const;
 
+const HISTORIA_FIELDS = [
+  { key: 'historia_parrafo_1', label: 'Párrafo 1', placeholder: 'Le Sucrée Pastelería nació de mi pasión...', multiline: true },
+  { key: 'historia_parrafo_2', label: 'Párrafo 2', placeholder: 'Soy Julieta, Licenciada en Recursos Humanos...', multiline: true },
+  { key: 'historia_parrafo_3', label: 'Párrafo 3', placeholder: 'Hoy, Le Sucrée Pastelería acompaña eventos...', multiline: true },
+  { key: 'valor_1_titulo', label: 'Valor 1 título', placeholder: 'Artesanal' },
+  { key: 'valor_1_desc', label: 'Valor 1 descripción', placeholder: 'Cada creación es elaborada a mano...', multiline: true },
+  { key: 'valor_2_titulo', label: 'Valor 2 título', placeholder: 'Con Amor' },
+  { key: 'valor_2_desc', label: 'Valor 2 descripción', placeholder: 'En cada receta dejo un pedacito de mí...', multiline: true },
+  { key: 'valor_3_titulo', label: 'Valor 3 título', placeholder: 'Ingredientes Naturales' },
+  { key: 'valor_3_desc', label: 'Valor 3 descripción', placeholder: 'Elijo uno a uno ingredientes frescos...', multiline: true },
+] as const;
+
 type AdminUser = { user_id: string; email: string; created_at: string };
 
 export default function AdminConfiguracion() {
@@ -607,6 +619,33 @@ export default function AdminConfiguracion() {
             </label>
             <p className="text-xs text-warm-gray">Recomendado: foto horizontal, mínimo 1920x800px. JPG o PNG.</p>
           </div>
+          </div>
+        </div>
+
+      {/* Página Historia */}
+      <div className="mt-12 max-w-5xl">
+        <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider mb-4">Página Historia</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {HISTORIA_FIELDS.map(field => (
+            <div key={field.key}>
+              <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">{field.label}</label>
+              {('multiline' in field && field.multiline) ? (
+                <textarea
+                  value={form[field.key] || ''}
+                  onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
+                  className={`${inputClass} min-h-[80px] resize-none`}
+                  placeholder={field.placeholder}
+                />
+              ) : (
+                <input
+                  value={form[field.key] || ''}
+                  onChange={e => setForm(p => ({ ...p, [field.key]: e.target.value }))}
+                  className={inputClass}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
