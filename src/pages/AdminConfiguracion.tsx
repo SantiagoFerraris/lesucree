@@ -131,6 +131,59 @@ export default function AdminConfiguracion() {
     refetchAdmins();
   };
 
+  // Legal pages admin state
+  type LegalPage = { id: string; slug: string; title: string; content: string; last_updated: string | null };
+  const [legalEdits, setLegalEdits] = useState<Record<string, Partial<LegalPage>>>({});
+  const [legalSavingSlug, setLegalSavingSlug] = useState<string | null>(null);
+
+  const { data: legalPages, refetch: refetchLegal } = useQuery({
+    queryKey: ['admin-legal-pages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('legal_pages')
+        .select('*')
+        .in('slug', ['terminos-y-condiciones', 'politica-de-privacidad']);
+      if (error) throw error;
+      return (data ?? []) as LegalPage[];
+    },
+  });
+
+  const getLegalField = <K extends keyof LegalPage>(page: LegalPage, key: K): LegalPage[K] => {
+    const edit = legalEdits[page.slug];
+    return (edit && key in edit ? (edit[key] as LegalPage[K]) : page[key]);
+  };
+
+  const setLegalField = (slug: string, key: keyof LegalPage, value: string) => {
+    setLegalEdits(prev => ({ ...prev, [slug]: { ...prev[slug], [key]: value } }));
+  };
+
+  const handleLegalSave = async (page: LegalPage) => {
+    setLegalSavingSlug(page.slug);
+    try {
+      const { error } = await supabase
+        .from('legal_pages')
+        .update({
+          title: getLegalField(page, 'title') as string,
+          content: getLegalField(page, 'content') as string,
+          last_updated: getLegalField(page, 'last_updated') as string | null,
+        })
+        .eq('id', page.id);
+      if (error) throw error;
+      toast.success('Página actualizada');
+      setLegalEdits(prev => {
+        const next = { ...prev };
+        delete next[page.slug];
+        return next;
+      });
+      refetchLegal();
+      qc.invalidateQueries({ queryKey: ['legal-page', page.slug] });
+    } catch (e) {
+      toast.error('Error al guardar: ' + (e as Error).message);
+    } finally {
+      setLegalSavingSlug(null);
+    }
+  };
+
   // FAQ admin state
   type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_active: boolean };
   const [faqEditing, setFaqEditing] = useState<Partial<FaqRow> | null>(null);
