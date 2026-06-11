@@ -9,7 +9,7 @@ interface SEOHeadProps {
 }
 
 const BASE_URL = 'https://lesucreepasteleria.com.ar';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/logo_lesucree_hd.png`;
+const DEFAULT_OG_IMAGE = 'https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/og_image.jpg';
 
 export default function SEOHead({
   title = 'Le Sucrée Pastelería | Tortas Artesanales en Rosario',
@@ -28,6 +28,10 @@ export default function SEOHead({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={effectiveOgImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:site_name" content="Le Sucrée Pastelería" />
       <meta property="og:url" content={url} />
       <meta property="og:type" content="website" />
       <meta name="twitter:card" content="summary_large_image" />
