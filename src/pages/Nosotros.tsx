@@ -31,7 +31,7 @@ export default function Nosotros() {
 
   return (
     <section className="pt-[72px]">
-      <SEOHead title="Nuestra Historia | Le Sucrée Pastelería" description="Conocé la historia detrás de Le Sucrée, una pastelería artesanal en Rosario." path="/historia" />
+      <SEOHead title={settings?.seo_title_historia?.trim() || "Nuestra Historia | Le Sucrée Pastelería"} description={settings?.seo_description_historia?.trim() || "Conocé la historia detrás de Le Sucrée, una pastelería artesanal en Rosario."} path="/historia" />
       {/* Hero */}
       <div
         className="relative bg-blush py-12 sm:py-16 md:py-24 px-3 sm:px-4 overflow-hidden"
