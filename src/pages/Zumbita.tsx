@@ -14,6 +14,7 @@ const MAX_MESSAGE_LENGTH = 500;
 type StudentChoice = '' | 'si' | 'no';
 
 export default function Zumbita() {
+  const { data: settings } = useSiteSettings();
   const [form, setForm] = useState({ name: '', email: '', whatsapp: '', message: '' });
   const [isStudent, setIsStudent] = useState<StudentChoice>('');
   const [loading, setLoading] = useState(false);
