@@ -705,6 +705,9 @@ export default function AdminConfiguracion() {
                   placeholder={field.placeholder}
                 />
               )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* SEO por página */}
@@ -756,9 +759,6 @@ export default function AdminConfiguracion() {
           })}
         </div>
       </details>
-          ))}
-        </div>
-      </div>
 
       {/* FAQ admin */}
       <div className="mt-12 max-w-5xl">
