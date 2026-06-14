@@ -60,6 +60,14 @@ const HISTORIA_FIELDS = [
   { key: 'valor_3_desc', label: 'Valor 3 descripción', placeholder: 'Elijo uno a uno ingredientes frescos...', multiline: true },
 ] as const;
 
+const SEO_PAGES = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'catalogo', label: 'Catálogo' },
+  { id: 'historia', label: 'Historia' },
+  { id: 'contacto', label: 'Contacto' },
+  { id: 'zumbita', label: 'Zumbita' },
+] as const;
+
 type AdminUser = { user_id: string; email: string; created_at: string };
 
 export default function AdminConfiguracion() {
