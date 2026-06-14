@@ -21,7 +21,7 @@ export default function AdminMensajes() {
   const { data: messages, isLoading } = useQuery({
     queryKey: ['admin-messages'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
       return data;
     },

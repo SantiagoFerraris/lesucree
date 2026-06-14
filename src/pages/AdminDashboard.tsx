@@ -65,7 +65,7 @@ export default function AdminDashboard() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-dashboard-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
       return data as any[];
     },
