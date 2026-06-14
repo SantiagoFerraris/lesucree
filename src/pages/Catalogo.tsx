@@ -129,7 +129,7 @@ export default function Catalogo() {
 
   return (
     <section className="pt-[72px]">
-      <SEOHead title="Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée" description="Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano." path="/catalogo" />
+      <SEOHead title={seoTitle || "Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée"} description={seoDesc || "Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano."} path="/catalogo" />
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Catálogo</h1>
