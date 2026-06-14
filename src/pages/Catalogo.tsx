@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useActivePromotions } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
