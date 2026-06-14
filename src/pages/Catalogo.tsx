@@ -16,6 +16,9 @@ interface Variant { id: string; label: string; price: number; sort_order: number
 const ITEMS_PER_PAGE = 9;
 
 export default function Catalogo() {
+  const { data: settings } = useSiteSettings();
+  const seoTitle = settings?.seo_title_catalogo?.trim();
+  const seoDesc = settings?.seo_description_catalogo?.trim();
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
   const [page, setPage] = useState(1);
