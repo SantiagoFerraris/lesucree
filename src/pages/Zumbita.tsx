@@ -98,8 +98,8 @@ export default function Zumbita() {
   return (
     <section className="pt-[72px]">
       <SEOHead
-        title="Beneficio Zumbita | Le Sucrée Pastelería"
-        description="Beneficio exclusivo para alumnas de Zumbita. Solicitá tu descuento completando el formulario."
+        title={settings?.seo_title_zumbita?.trim() || "Beneficio Zumbita | Le Sucrée Pastelería"}
+        description={settings?.seo_description_zumbita?.trim() || "Beneficio exclusivo para alumnas de Zumbita. Solicitá tu descuento completando el formulario."}
         path="/zumbita"
       />
 
