@@ -6,6 +6,7 @@ import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_MESSAGE_LENGTH = 500;
@@ -13,6 +14,7 @@ const MAX_MESSAGE_LENGTH = 500;
 type StudentChoice = '' | 'si' | 'no';
 
 export default function Zumbita() {
+  const { data: settings } = useSiteSettings();
   const [form, setForm] = useState({ name: '', email: '', whatsapp: '', message: '' });
   const [isStudent, setIsStudent] = useState<StudentChoice>('');
   const [loading, setLoading] = useState(false);
@@ -96,8 +98,8 @@ export default function Zumbita() {
   return (
     <section className="pt-[72px]">
       <SEOHead
-        title="Beneficio Zumbita | Le Sucrée Pastelería"
-        description="Beneficio exclusivo para alumnas de Zumbita. Solicitá tu descuento completando el formulario."
+        title={settings?.seo_title_zumbita?.trim() || "Beneficio Zumbita | Le Sucrée Pastelería"}
+        description={settings?.seo_description_zumbita?.trim() || "Beneficio exclusivo para alumnas de Zumbita. Solicitá tu descuento completando el formulario."}
         path="/zumbita"
       />
 

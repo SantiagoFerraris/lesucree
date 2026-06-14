@@ -60,6 +60,14 @@ const HISTORIA_FIELDS = [
   { key: 'valor_3_desc', label: 'Valor 3 descripción', placeholder: 'Elijo uno a uno ingredientes frescos...', multiline: true },
 ] as const;
 
+const SEO_PAGES = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'catalogo', label: 'Catálogo' },
+  { id: 'historia', label: 'Historia' },
+  { id: 'contacto', label: 'Contacto' },
+  { id: 'zumbita', label: 'Zumbita' },
+] as const;
+
 type AdminUser = { user_id: string; email: string; created_at: string };
 
 export default function AdminConfiguracion() {
@@ -701,6 +709,56 @@ export default function AdminConfiguracion() {
           ))}
         </div>
       </div>
+
+      {/* SEO por página */}
+      <details className="mt-12 max-w-5xl group" open>
+        <summary className="cursor-pointer list-none flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider">SEO por página</h3>
+          <span className="text-xs text-warm-gray group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <p className="text-xs text-warm-gray mb-4">Si dejás un campo vacío, se usa el título/descripción por defecto de la página.</p>
+        <div className="space-y-6">
+          {SEO_PAGES.map(page => {
+            const titleKey = `seo_title_${page.id}`;
+            const descKey = `seo_description_${page.id}`;
+            const titleVal = form[titleKey] || '';
+            const descVal = form[descKey] || '';
+            return (
+              <div key={page.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                <h4 className="text-sm font-semibold text-espresso mb-3">{page.label}</h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Título SEO</label>
+                    <input
+                      value={titleVal}
+                      onChange={e => setForm(p => ({ ...p, [titleKey]: e.target.value.slice(0, 60) }))}
+                      maxLength={60}
+                      className={inputClass}
+                      placeholder="Dejar vacío para usar el valor por defecto"
+                    />
+                    <div className={`text-[11px] mt-1 ${titleVal.length > 60 ? 'text-red-500' : 'text-warm-gray'}`}>
+                      {titleVal.length} / 60
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Descripción SEO</label>
+                    <textarea
+                      value={descVal}
+                      onChange={e => setForm(p => ({ ...p, [descKey]: e.target.value.slice(0, 160) }))}
+                      maxLength={160}
+                      className={`${inputClass} min-h-[70px] resize-none`}
+                      placeholder="Dejar vacío para usar el valor por defecto"
+                    />
+                    <div className={`text-[11px] mt-1 ${descVal.length > 160 ? 'text-red-500' : 'text-warm-gray'}`}>
+                      {descVal.length} / 160
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </details>
 
       {/* FAQ admin */}
       <div className="mt-12 max-w-5xl">

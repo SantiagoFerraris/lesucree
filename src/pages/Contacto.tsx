@@ -103,8 +103,8 @@ export default function Contacto() {
   return (
         <section className="pt-[72px]">
               <SEOHead
-                        title="Contacto | Le Sucrée Pastelería en Rosario"
-                        description="Contactanos para hacer tu pedido de pastelería artesanal en Rosario."
+                        title={settings?.seo_title_contacto?.trim() || "Contacto | Le Sucrée Pastelería en Rosario"}
+                        description={settings?.seo_description_contacto?.trim() || "Contactanos para hacer tu pedido de pastelería artesanal en Rosario."}
                         path="/contacto"
                       />
         

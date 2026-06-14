@@ -349,11 +349,14 @@ function WhatsAppCTA() {
 
 /* ─── MAIN ─── */
 export default function Index() {
+  const { data: settings } = useSiteSettings();
+  const seoTitle = settings?.seo_title_inicio?.trim();
+  const seoDesc = settings?.seo_description_inicio?.trim();
   return (
     <>
       <SEOHead
-        title="Le Sucrée Pastelería | Tortas Artesanales en Rosario"
-        description="Tortas, alfajores, tartas y cookies artesanales en Rosario. Pedidos con retiro en el local."
+        title={seoTitle || "Le Sucrée Pastelería | Tortas Artesanales en Rosario"}
+        description={seoDesc || "Tortas, alfajores, tartas y cookies artesanales en Rosario. Pedidos con retiro en el local."}
         path="/"
       />
       <HeroSection />

@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import SEOHead from '@/components/SEOHead';
 import { useCategories } from '@/hooks/useCategories';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useActivePromotions } from '@/hooks/useActivePromotions';
 import type { Tables } from '@/integrations/supabase/types';
@@ -15,6 +16,9 @@ interface Variant { id: string; label: string; price: number; sort_order: number
 const ITEMS_PER_PAGE = 9;
 
 export default function Catalogo() {
+  const { data: settings } = useSiteSettings();
+  const seoTitle = settings?.seo_title_catalogo?.trim();
+  const seoDesc = settings?.seo_description_catalogo?.trim();
   const [category, setCategory] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Tables<'products'> | null>(null);
   const [page, setPage] = useState(1);
@@ -125,7 +129,7 @@ export default function Catalogo() {
 
   return (
     <section className="pt-[72px]">
-      <SEOHead title="Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée" description="Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano." path="/catalogo" />
+      <SEOHead title={seoTitle || "Catálogo de Tortas, Alfajores y Cookies Artesanales | Le Sucrée"} description={seoDesc || "Descubrí nuestro catálogo de pastelería artesanal en Rosario: tortas, alfajores, tartas, budines y cookies hechos a mano."} path="/catalogo" />
       <div className="py-10 sm:py-16 md:py-20 px-3 sm:px-4">
         <div className="container">
           <h1 className="font-script text-[32px] sm:text-[40px] md:text-[52px] text-espresso text-center">Catálogo</h1>
