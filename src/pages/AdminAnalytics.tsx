@@ -39,9 +39,14 @@ export default function AdminAnalytics() {
   const categoryLabels = buildCategoryLabels(dbCategories);
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['admin-analytics-orders'],
+    queryKey: ['admin-analytics-orders', period],
     queryFn: async () => {
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
+      if (period > 0) {
+        const periodStart = new Date(Date.now() - period * 86400000).toISOString();
+        query = query.gte('created_at', periodStart);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as any[];
     },
