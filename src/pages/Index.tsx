@@ -132,6 +132,8 @@ function FeaturedSection() {
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       const { data, error } = await supabase
@@ -150,6 +152,8 @@ function FeaturedSection() {
 
   const { data: allVariants } = useQuery({
     queryKey: ["all-variants"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.from("product_variants").select("*").order("sort_order");
       if (error) throw error;
