@@ -168,13 +168,8 @@ export default function AdminPedidos() {
 
   const bulkUpdateStatus = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
-      for (const id of ids) {
-        const { error } = await supabase
-          .from('orders')
-          .update({ status } as any)
-          .eq('id', id);
-        if (error) throw error;
-      }
+      const { error } = await supabase.from('orders').update({ status } as any).in('id', ids);
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success('Estado actualizado en todos los pedidos seleccionados');
@@ -189,13 +184,8 @@ export default function AdminPedidos() {
 
   const bulkUpdatePayment = useMutation({
     mutationFn: async ({ ids, payment_status }: { ids: string[]; payment_status: string }) => {
-      for (const id of ids) {
-        const { error } = await supabase
-          .from('orders')
-          .update({ payment_status } as any)
-          .eq('id', id);
-        if (error) throw error;
-      }
+      const { error } = await supabase.from('orders').update({ payment_status } as any).in('id', ids);
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success('Estado de pago actualizado en todos los pedidos seleccionados');
