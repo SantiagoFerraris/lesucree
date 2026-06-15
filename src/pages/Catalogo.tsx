@@ -34,6 +34,8 @@ export default function Catalogo() {
 
   const { data: products, isLoading, isError, refetch } = useQuery({
     queryKey: ['products', category],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       let q = supabase
@@ -55,6 +57,8 @@ export default function Catalogo() {
 
   const { data: allVariants } = useQuery({
     queryKey: ['all-variants'],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.from('product_variants').select('*').order('sort_order');
       if (error) throw error;
