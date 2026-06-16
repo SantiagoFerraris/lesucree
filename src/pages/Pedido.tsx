@@ -116,9 +116,14 @@ export default function Pedido() {
         }
   }, [defaultTime]);
 
-  useEffect(() => { formLoadedAt.current = Date.now(); }, []);
+    useEffect(() => { formLoadedAt.current = Date.now(); }, []);
 
-  const shouldBlock = items.length > 0 && !success;
+    useEffect(() => {
+        if (!touched.name && !touched.phone && !touched.date && !touched.time && !touched.email) return;
+        validate();
+    }, [form.name, form.phone, form.date]);
+
+    const shouldBlock = items.length > 0 && !success;
     useEffect(() => {
           if (!shouldBlock) return;
           const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
@@ -149,8 +154,9 @@ export default function Pedido() {
         validate();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
         setTouched({ name: true, phone: true, email: true, date: true, time: true });
 
         if (isHoneypotFilled(honeypot)) {
@@ -268,7 +274,7 @@ export default function Pedido() {
                         
                                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
                                     {/* Form */}
-                                              <form onSubmit={handleSubmit} className="space-y-4">
+                                              <form onSubmit={handleSubmit} method="post" className="space-y-4">
                                                             <HoneypotField value={honeypot} onChange={e => setHoneypot(e.target.value)} />
                                               
                                                             <div>
@@ -320,7 +326,7 @@ export default function Pedido() {
                                                             </div>
                                               
                                                             <button type="submit" disabled={loading || cooldown > 0} className="w-full rounded-full bg-dusty-pink text-white px-8 py-3.5 text-[15px] font-semibold uppercase tracking-[0.1em] hover:bg-mauve hover:scale-[1.02] transition-all duration-300 active:scale-95 disabled:opacity-60 mt-4">
-                                                              {loading ? 'Enviando...' : cooldown > 0 ? `Esperá ${cooldown}s` : 'Enviar Pedido'}
+                                                              {loading ? 'Confirmando...' : cooldown > 0 ? `Esperá ${cooldown}s` : 'Enviar Pedido'}
                                                             </button>
                                               </form>
                                   
