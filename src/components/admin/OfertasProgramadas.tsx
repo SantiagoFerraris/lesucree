@@ -165,6 +165,7 @@ export default function OfertasProgramadas() {
       end_date: toLocalInput(p.end_date),
       is_active: p.is_active,
       show_discount_badge: (p as any).show_discount_badge !== false,
+      custom_badge_text: (p as any).custom_badge_text || '',
       banner_text: p.banner_text || '',
       product_ids: productsByPromo[p.id] || [],
     });
