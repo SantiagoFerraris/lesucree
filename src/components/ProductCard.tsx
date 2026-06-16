@@ -51,6 +51,8 @@ function ProductCardImpl({ product, index = 0, variants, compact = false, catego
     const activePromo = promo || (productPromos && productPromos[0]);
     if (!activePromo) return null;
     if (activePromo.show_discount_badge === false) return null;
+    const custom = activePromo.custom_badge_text?.trim();
+    if (custom) return custom;
     if (activePromo.discount_type === 'percentage' && activePromo.discount_value > 0) {
       return `-${Math.round(activePromo.discount_value)}%`;
     }
