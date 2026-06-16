@@ -154,8 +154,9 @@ export default function Pedido() {
         validate();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
         setTouched({ name: true, phone: true, email: true, date: true, time: true });
 
         if (isHoneypotFilled(honeypot)) {
