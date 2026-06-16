@@ -130,10 +130,11 @@ function FeaturedSection() {
   const { data: categories } = useCategories();
   const promosMap = useActivePromotions();
 
-  const { data: products, isLoading } = useQuery({
+    const { data: products, isLoading } = useQuery({
     queryKey: ["featured-products"],
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: 8 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
+    enabled: true,
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       const { data, error } = await supabase
