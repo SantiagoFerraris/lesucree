@@ -31,6 +31,7 @@ interface PromoForm {
   end_date: string;
   is_active: boolean;
   show_discount_badge: boolean;
+  custom_badge_text: string;
   banner_text: string;
   product_ids: string[];
 }
@@ -44,6 +45,7 @@ const emptyForm: PromoForm = {
   end_date: '',
   is_active: true,
   show_discount_badge: true,
+  custom_badge_text: '',
   banner_text: '',
   product_ids: [],
 };
