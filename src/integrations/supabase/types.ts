@@ -684,6 +684,7 @@ export type Database = {
         Row: {
           banner_text: string | null
           created_at: string | null
+          custom_badge_text: string | null
           day_of_week: number | null
           description: string | null
           discount_type: string
@@ -703,6 +704,7 @@ export type Database = {
         Insert: {
           banner_text?: string | null
           created_at?: string | null
+          custom_badge_text?: string | null
           day_of_week?: number | null
           description?: string | null
           discount_type?: string
@@ -722,6 +724,7 @@ export type Database = {
         Update: {
           banner_text?: string | null
           created_at?: string | null
+          custom_badge_text?: string | null
           day_of_week?: number | null
           description?: string | null
           discount_type?: string
