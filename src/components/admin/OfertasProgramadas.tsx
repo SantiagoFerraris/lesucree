@@ -538,6 +538,24 @@ export default function OfertasProgramadas() {
                 <p className="text-xs text-warm-gray mt-1 ml-6">
                   Controla si esta promoción muestra el badge visual sobre la imagen del producto.
                 </p>
+                {form.show_discount_badge && (
+                  <div className="mt-3 ml-6">
+                    <label className="block text-xs font-semibold text-warm-gray uppercase tracking-wider mb-1">
+                      Texto personalizado del badge (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.custom_badge_text}
+                      onChange={e => setForm(p => ({ ...p, custom_badge_text: e.target.value }))}
+                      maxLength={20}
+                      placeholder='Ej: "2x1", "ÚLTIMO DÍA"'
+                      className={inputClass}
+                    />
+                    <p className="text-xs text-warm-gray mt-1">
+                      Si lo dejás vacío se mostrará el porcentaje o "OFERTA" por defecto.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Product selector */}
