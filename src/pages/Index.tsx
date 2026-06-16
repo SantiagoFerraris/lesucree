@@ -151,10 +151,11 @@ function FeaturedSection() {
     },
   });
 
-  const { data: allVariants } = useQuery({
+    const { data: allVariants } = useQuery({
     queryKey: ["all-variants"],
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: 8 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
+    enabled: true,
     queryFn: async () => {
       const { data, error } = await supabase.from("product_variants").select("*").order("sort_order");
       if (error) throw error;
