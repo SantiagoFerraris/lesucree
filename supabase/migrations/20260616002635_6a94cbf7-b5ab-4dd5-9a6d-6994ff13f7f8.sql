@@ -1,0 +1,1 @@
+ALTER TABLE public.promotions ADD COLUMN IF NOT EXISTS custom_badge_text text;

@@ -18,6 +18,7 @@ interface PromotionRow {
   is_active: boolean;
   banner_text: string | null;
   show_discount_badge: boolean;
+  custom_badge_text: string | null;
   created_at: string;
 }
 
@@ -30,6 +31,7 @@ interface PromoForm {
   end_date: string;
   is_active: boolean;
   show_discount_badge: boolean;
+  custom_badge_text: string;
   banner_text: string;
   product_ids: string[];
 }
@@ -43,6 +45,7 @@ const emptyForm: PromoForm = {
   end_date: '',
   is_active: true,
   show_discount_badge: true,
+  custom_badge_text: '',
   banner_text: '',
   product_ids: [],
 };
@@ -162,6 +165,7 @@ export default function OfertasProgramadas() {
       end_date: toLocalInput(p.end_date),
       is_active: p.is_active,
       show_discount_badge: (p as any).show_discount_badge !== false,
+      custom_badge_text: (p as any).custom_badge_text || '',
       banner_text: p.banner_text || '',
       product_ids: productsByPromo[p.id] || [],
     });
@@ -204,6 +208,7 @@ export default function OfertasProgramadas() {
         end_date: new Date(form.end_date).toISOString(),
         is_active: form.is_active,
         show_discount_badge: form.show_discount_badge,
+        custom_badge_text: form.show_discount_badge ? (form.custom_badge_text.trim() || null) : null,
         banner_text: form.banner_text.trim() || null,
         status: 'active', // legacy column
       };
@@ -533,6 +538,24 @@ export default function OfertasProgramadas() {
                 <p className="text-xs text-warm-gray mt-1 ml-6">
                   Controla si esta promoción muestra el badge visual sobre la imagen del producto.
                 </p>
+                {form.show_discount_badge && (
+                  <div className="mt-3 ml-6">
+                    <label className="block text-xs font-semibold text-warm-gray uppercase tracking-wider mb-1">
+                      Texto personalizado del badge (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.custom_badge_text}
+                      onChange={e => setForm(p => ({ ...p, custom_badge_text: e.target.value }))}
+                      maxLength={20}
+                      placeholder='Ej: "2x1", "ÚLTIMO DÍA"'
+                      className={inputClass}
+                    />
+                    <p className="text-xs text-warm-gray mt-1">
+                      Si lo dejás vacío se mostrará el porcentaje o "OFERTA" por defecto.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Product selector */}
