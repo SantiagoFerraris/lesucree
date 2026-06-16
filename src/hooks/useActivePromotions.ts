@@ -9,6 +9,7 @@ export interface ActivePromotion {
   discount_type: 'percentage' | 'fixed' | string;
   discount_value: number;
   show_discount_badge: boolean;
+  custom_badge_text: string | null;
 }
 
 interface RawPromo extends ActivePromotion {
