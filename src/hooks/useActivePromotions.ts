@@ -51,6 +51,7 @@ export function useActivePromotions() {
         discount_type: p.discount_type,
         discount_value: Number(p.discount_value) || 0,
         show_discount_badge: (p as any).show_discount_badge !== false,
+        custom_badge_text: (p as any).custom_badge_text ?? null,
       };
       (p.promotion_products || []).forEach(link => {
         const arr = m.get(link.product_id) || [];
