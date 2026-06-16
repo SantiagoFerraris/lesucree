@@ -116,9 +116,14 @@ export default function Pedido() {
         }
   }, [defaultTime]);
 
-  useEffect(() => { formLoadedAt.current = Date.now(); }, []);
+    useEffect(() => { formLoadedAt.current = Date.now(); }, []);
 
-  const shouldBlock = items.length > 0 && !success;
+    useEffect(() => {
+        if (!touched.name && !touched.phone && !touched.date && !touched.time && !touched.email) return;
+        validate();
+    }, [form.name, form.phone, form.date]);
+
+    const shouldBlock = items.length > 0 && !success;
     useEffect(() => {
           if (!shouldBlock) return;
           const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
