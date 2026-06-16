@@ -18,6 +18,7 @@ interface PromotionRow {
   is_active: boolean;
   banner_text: string | null;
   show_discount_badge: boolean;
+  custom_badge_text: string | null;
   created_at: string;
 }
 
