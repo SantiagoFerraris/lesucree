@@ -253,61 +253,20 @@ export default function AdminPedidos() {
   });
 
   const overdueCount = useMemo(() => {
-    return orders?.filter(o => o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled').length ?? 0;
-  }, [orders, todayStr]);
+    return countsData?.filter(o => o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled').length ?? 0;
+  }, [countsData, todayStr]);
 
-  const filtered = useMemo(() => {
-    let result = orders?.filter(o => {
-      const searchLower = search.toLowerCase();
-      const matchSearch = !search || o.customer_name.toLowerCase().includes(searchLower)
-        || o.id.toLowerCase().includes(searchLower)
-        || (o.items as any[])?.some((item: any) => item.productName?.toLowerCase().includes(searchLower));
-      const matchStatus = statusFilter === 'todos' || o.status === statusFilter;
-      const matchPayment = paymentFilter === 'todos' || (o.payment_status || 'pendiente') === paymentFilter;
-      const matchFulfillment = fulfillmentFilter === 'todos' || (o.fulfillment_status || 'pendiente') === fulfillmentFilter;
-      let matchDate = true;
-      if (dateFilter === 'hoy') matchDate = o.desired_date === todayStr;
-      else if (dateFilter === 'manana') matchDate = o.desired_date === tomorrowStr;
-      else if (dateFilter === 'semana') matchDate = o.desired_date >= todayStr && o.desired_date <= weekEnd;
-      else if (dateFilter === 'vencidos') matchDate = o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled';
-      return matchSearch && matchStatus && matchDate && matchPayment && matchFulfillment;
-    }) || [];
-
-    // Sort
-    result = [...result].sort((a, b) => {
-      let primary = 0;
-      if (sortBy === 'retiro-asc') primary = a.desired_date.localeCompare(b.desired_date);
-      else if (sortBy === 'retiro-desc') primary = b.desired_date.localeCompare(a.desired_date);
-      else if (sortBy === 'pedido-desc') primary = (b.created_at || '').localeCompare(a.created_at || '');
-      else if (sortBy === 'pedido-asc') primary = (a.created_at || '').localeCompare(b.created_at || '');
-      else if (sortBy === 'monto-desc') primary = Number(b.total) - Number(a.total);
-      else if (sortBy === 'monto-asc') primary = Number(a.total) - Number(b.total);
-      else if (sortBy === 'cliente-asc') primary = a.customer_name.localeCompare(b.customer_name, 'es');
-
-      if (primary !== 0) return primary;
-
-      // Secondary sort
-      if (sortBy.startsWith('retiro') || sortBy.startsWith('pedido')) {
-        return (PAYMENT_SORT_ORDER[a.payment_status] ?? 1) - (PAYMENT_SORT_ORDER[b.payment_status] ?? 1);
-      }
-      if (sortBy.startsWith('monto') || sortBy.startsWith('cliente')) {
-        return a.desired_date.localeCompare(b.desired_date);
-      }
-      return 0;
-    });
-
-    return result;
-  }, [orders, search, statusFilter, dateFilter, sortBy, todayStr, tomorrowStr, weekEnd, paymentFilter, fulfillmentFilter]);
+  const filtered = ordersData?.data ?? [];
 
   const statusCounts = useMemo(() => {
-    if (!orders) return {};
+    if (!countsData) return {};
     const counts: Record<string, number> = {};
-    orders.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+    countsData.forEach((o: any) => { counts[o.status] = (counts[o.status] || 0) + 1; });
     return counts;
-  }, [orders]);
+  }, [countsData]);
 
-  const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
-  const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil((ordersData?.count ?? 0) / PAGE_SIZE) || 1;
+  const paginated = filtered;
 
   const formatDate = (d: string) => {
     if (!d) return '—';
