@@ -31,7 +31,7 @@ export function useHeroImageUrl() {
     queryFn: async () => {
       return `${supabaseUrl}/storage/v1/object/public/site-images/hero/hero-bg.jpg`;
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 7 * 24 * 60 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
 }
