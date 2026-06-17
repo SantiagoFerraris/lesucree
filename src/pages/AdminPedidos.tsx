@@ -828,7 +828,7 @@ export default function AdminPedidos() {
       )}
 
       <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
-      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={orders || []} />
+      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={countsData || []} />
       {paymentOrder && (
         <PagosPedidoAdmin order={paymentOrder} open={!!paymentOrder} onOpenChange={(v) => !v && setPaymentOrder(null)} />
       )}
