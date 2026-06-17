@@ -1,3 +1,4 @@
+import { memo } from "react"
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import type { Tables } from "@/integrations/supabase/types"
@@ -13,7 +14,7 @@ interface ProductCarouselProps {
   onProductClick?: (product: Tables<"products">) => void
 }
 
-export default function ProductCarousel({
+function ProductCarousel({
   products,
   onProductClick,
 }: ProductCarouselProps) {
@@ -84,3 +85,5 @@ export default function ProductCarousel({
     </div>
   )
 }
+
+export default memo(ProductCarousel)
