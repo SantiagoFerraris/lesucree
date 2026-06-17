@@ -296,14 +296,42 @@ export default function AdminPedidos() {
   };
 
   const sortLabel = SORT_OPTIONS.find(s => s.value === sortBy)?.label ?? '';
-  const subtitle = `${filtered?.length ?? 0} ${(filtered?.length ?? 0) === 1 ? 'pedido' : 'pedidos'} · Ordenados por ${sortLabel.toLowerCase()}`;
+  const subtitle = `${ordersData?.count ?? 0} ${(ordersData?.count ?? 0) === 1 ? 'pedido' : 'pedidos'} · Ordenados por ${sortLabel.toLowerCase()}`;
 
-  const exportCSV = () => {
-    if (!filtered?.length) return;
-    // Apply optional date range on created_at (inclusive both ends).
+  const fetchAllFilteredOrders = async () => {
+    let query = supabase.from('orders').select('*');
+    if (search.trim()) {
+      const term = search.trim();
+      query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
+    }
+    if (statusFilter !== 'todos') query = query.eq('status', statusFilter);
+    if (paymentFilter !== 'todos') query = query.eq('payment_status', paymentFilter);
+    if (fulfillmentFilter !== 'todos') query = query.eq('fulfillment_status', fulfillmentFilter);
+    if (dateFilter === 'hoy') query = query.eq('desired_date', todayStr);
+    else if (dateFilter === 'manana') query = query.eq('desired_date', tomorrowStr);
+    else if (dateFilter === 'semana') query = query.gte('desired_date', todayStr).lte('desired_date', weekEnd);
+    else if (dateFilter === 'vencidos') query = query.lt('desired_date', todayStr).neq('status', 'completed').neq('status', 'picked_up').neq('status', 'cancelled');
+    if (sortBy === 'retiro-asc') query = query.order('desired_date', { ascending: true });
+    else if (sortBy === 'retiro-desc') query = query.order('desired_date', { ascending: false });
+    else if (sortBy === 'pedido-desc') query = query.order('created_at', { ascending: false });
+    else if (sortBy === 'pedido-asc') query = query.order('created_at', { ascending: true });
+    else if (sortBy === 'monto-desc') query = query.order('total', { ascending: false });
+    else if (sortBy === 'monto-asc') query = query.order('total', { ascending: true });
+    else if (sortBy === 'cliente-asc') query = query.order('customer_name', { ascending: true });
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as any[];
+  };
+
+  const exportCSV = async () => {
+    const allFiltered = await fetchAllFilteredOrders();
+    if (!allFiltered?.length) {
+      toast.error('No hay pedidos para exportar');
+      return;
+    }
     const fromTs = exportFrom ? new Date(`${exportFrom}T00:00:00`).getTime() : null;
     const toTs = exportTo ? new Date(`${exportTo}T23:59:59.999`).getTime() : null;
-    const rowsSource = filtered.filter(o => {
+    const rowsSource = allFiltered.filter(o => {
       if (!fromTs && !toTs) return true;
       const t = new Date(o.created_at).getTime();
       if (fromTs && t < fromTs) return false;
