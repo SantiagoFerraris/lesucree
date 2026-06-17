@@ -1,3 +1,4 @@
+import { memo } from "react"
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import type { Tables } from "@/integrations/supabase/types"
