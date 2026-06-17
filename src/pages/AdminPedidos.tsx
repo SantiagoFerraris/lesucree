@@ -57,7 +57,7 @@ const DATE_FILTERS = [
   { value: 'semana', label: 'Esta semana' },
   { value: 'vencidos', label: 'Vencidos' },
 ];
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 25;
 
 const PAYMENT_SORT_ORDER: Record<string, number> = { pendiente: 0, 'seña_recibida': 1, 'pagado_completo': 2 };
 
@@ -115,12 +115,66 @@ export default function AdminPedidos() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ['admin-orders'],
+  const { data: countsData } = useQuery({
+    queryKey: ['admin-orders-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('orders').select('id, status, desired_date, customer_name, items');
       if (error) throw error;
       return data as any[];
+    },
+  });
+
+  const { data: ordersData, isLoading } = useQuery({
+    queryKey: ['admin-orders', page, search, statusFilter, paymentFilter, fulfillmentFilter, dateFilter, sortBy],
+    queryFn: async () => {
+      let query = supabase.from('orders').select('*', { count: 'exact' });
+
+      if (search.trim()) {
+        const term = search.trim();
+        query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
+      }
+      if (statusFilter !== 'todos') {
+        query = query.eq('status', statusFilter);
+      }
+      if (paymentFilter !== 'todos') {
+        query = query.eq('payment_status', paymentFilter);
+      }
+      if (fulfillmentFilter !== 'todos') {
+        query = query.eq('fulfillment_status', fulfillmentFilter);
+      }
+      if (dateFilter === 'hoy') {
+        query = query.eq('desired_date', todayStr);
+      } else if (dateFilter === 'manana') {
+        query = query.eq('desired_date', tomorrowStr);
+      } else if (dateFilter === 'semana') {
+        query = query.gte('desired_date', todayStr).lte('desired_date', weekEnd);
+      } else if (dateFilter === 'vencidos') {
+        query = query.lt('desired_date', todayStr).neq('status', 'completed').neq('status', 'picked_up').neq('status', 'cancelled');
+      }
+
+      if (sortBy === 'retiro-asc') {
+        query = query.order('desired_date', { ascending: true });
+      } else if (sortBy === 'retiro-desc') {
+        query = query.order('desired_date', { ascending: false });
+      } else if (sortBy === 'pedido-desc') {
+        query = query.order('created_at', { ascending: false });
+      } else if (sortBy === 'pedido-asc') {
+        query = query.order('created_at', { ascending: true });
+      } else if (sortBy === 'monto-desc') {
+        query = query.order('total', { ascending: false });
+      } else if (sortBy === 'monto-asc') {
+        query = query.order('total', { ascending: true });
+      } else if (sortBy === 'cliente-asc') {
+        query = query.order('customer_name', { ascending: true });
+      }
+
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data as any[], count: count ?? 0 };
     },
   });
 
@@ -199,61 +253,20 @@ export default function AdminPedidos() {
   });
 
   const overdueCount = useMemo(() => {
-    return orders?.filter(o => o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled').length ?? 0;
-  }, [orders, todayStr]);
+    return countsData?.filter(o => o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled').length ?? 0;
+  }, [countsData, todayStr]);
 
-  const filtered = useMemo(() => {
-    let result = orders?.filter(o => {
-      const searchLower = search.toLowerCase();
-      const matchSearch = !search || o.customer_name.toLowerCase().includes(searchLower)
-        || o.id.toLowerCase().includes(searchLower)
-        || (o.items as any[])?.some((item: any) => item.productName?.toLowerCase().includes(searchLower));
-      const matchStatus = statusFilter === 'todos' || o.status === statusFilter;
-      const matchPayment = paymentFilter === 'todos' || (o.payment_status || 'pendiente') === paymentFilter;
-      const matchFulfillment = fulfillmentFilter === 'todos' || (o.fulfillment_status || 'pendiente') === fulfillmentFilter;
-      let matchDate = true;
-      if (dateFilter === 'hoy') matchDate = o.desired_date === todayStr;
-      else if (dateFilter === 'manana') matchDate = o.desired_date === tomorrowStr;
-      else if (dateFilter === 'semana') matchDate = o.desired_date >= todayStr && o.desired_date <= weekEnd;
-      else if (dateFilter === 'vencidos') matchDate = o.desired_date < todayStr && o.status !== 'completed' && o.status !== 'picked_up' && o.status !== 'cancelled';
-      return matchSearch && matchStatus && matchDate && matchPayment && matchFulfillment;
-    }) || [];
-
-    // Sort
-    result = [...result].sort((a, b) => {
-      let primary = 0;
-      if (sortBy === 'retiro-asc') primary = a.desired_date.localeCompare(b.desired_date);
-      else if (sortBy === 'retiro-desc') primary = b.desired_date.localeCompare(a.desired_date);
-      else if (sortBy === 'pedido-desc') primary = (b.created_at || '').localeCompare(a.created_at || '');
-      else if (sortBy === 'pedido-asc') primary = (a.created_at || '').localeCompare(b.created_at || '');
-      else if (sortBy === 'monto-desc') primary = Number(b.total) - Number(a.total);
-      else if (sortBy === 'monto-asc') primary = Number(a.total) - Number(b.total);
-      else if (sortBy === 'cliente-asc') primary = a.customer_name.localeCompare(b.customer_name, 'es');
-
-      if (primary !== 0) return primary;
-
-      // Secondary sort
-      if (sortBy.startsWith('retiro') || sortBy.startsWith('pedido')) {
-        return (PAYMENT_SORT_ORDER[a.payment_status] ?? 1) - (PAYMENT_SORT_ORDER[b.payment_status] ?? 1);
-      }
-      if (sortBy.startsWith('monto') || sortBy.startsWith('cliente')) {
-        return a.desired_date.localeCompare(b.desired_date);
-      }
-      return 0;
-    });
-
-    return result;
-  }, [orders, search, statusFilter, dateFilter, sortBy, todayStr, tomorrowStr, weekEnd, paymentFilter, fulfillmentFilter]);
+  const filtered = ordersData?.data ?? [];
 
   const statusCounts = useMemo(() => {
-    if (!orders) return {};
+    if (!countsData) return {};
     const counts: Record<string, number> = {};
-    orders.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+    countsData.forEach((o: any) => { counts[o.status] = (counts[o.status] || 0) + 1; });
     return counts;
-  }, [orders]);
+  }, [countsData]);
 
-  const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
-  const paginated = filtered?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil((ordersData?.count ?? 0) / PAGE_SIZE) || 1;
+  const paginated = filtered;
 
   const formatDate = (d: string) => {
     if (!d) return '—';
@@ -283,14 +296,42 @@ export default function AdminPedidos() {
   };
 
   const sortLabel = SORT_OPTIONS.find(s => s.value === sortBy)?.label ?? '';
-  const subtitle = `${filtered?.length ?? 0} ${(filtered?.length ?? 0) === 1 ? 'pedido' : 'pedidos'} · Ordenados por ${sortLabel.toLowerCase()}`;
+  const subtitle = `${ordersData?.count ?? 0} ${(ordersData?.count ?? 0) === 1 ? 'pedido' : 'pedidos'} · Ordenados por ${sortLabel.toLowerCase()}`;
 
-  const exportCSV = () => {
-    if (!filtered?.length) return;
-    // Apply optional date range on created_at (inclusive both ends).
+  const fetchAllFilteredOrders = async () => {
+    let query = supabase.from('orders').select('*');
+    if (search.trim()) {
+      const term = search.trim();
+      query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
+    }
+    if (statusFilter !== 'todos') query = query.eq('status', statusFilter);
+    if (paymentFilter !== 'todos') query = query.eq('payment_status', paymentFilter);
+    if (fulfillmentFilter !== 'todos') query = query.eq('fulfillment_status', fulfillmentFilter);
+    if (dateFilter === 'hoy') query = query.eq('desired_date', todayStr);
+    else if (dateFilter === 'manana') query = query.eq('desired_date', tomorrowStr);
+    else if (dateFilter === 'semana') query = query.gte('desired_date', todayStr).lte('desired_date', weekEnd);
+    else if (dateFilter === 'vencidos') query = query.lt('desired_date', todayStr).neq('status', 'completed').neq('status', 'picked_up').neq('status', 'cancelled');
+    if (sortBy === 'retiro-asc') query = query.order('desired_date', { ascending: true });
+    else if (sortBy === 'retiro-desc') query = query.order('desired_date', { ascending: false });
+    else if (sortBy === 'pedido-desc') query = query.order('created_at', { ascending: false });
+    else if (sortBy === 'pedido-asc') query = query.order('created_at', { ascending: true });
+    else if (sortBy === 'monto-desc') query = query.order('total', { ascending: false });
+    else if (sortBy === 'monto-asc') query = query.order('total', { ascending: true });
+    else if (sortBy === 'cliente-asc') query = query.order('customer_name', { ascending: true });
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as any[];
+  };
+
+  const exportCSV = async () => {
+    const allFiltered = await fetchAllFilteredOrders();
+    if (!allFiltered?.length) {
+      toast.error('No hay pedidos para exportar');
+      return;
+    }
     const fromTs = exportFrom ? new Date(`${exportFrom}T00:00:00`).getTime() : null;
     const toTs = exportTo ? new Date(`${exportTo}T23:59:59.999`).getTime() : null;
-    const rowsSource = filtered.filter(o => {
+    const rowsSource = allFiltered.filter(o => {
       if (!fromTs && !toTs) return true;
       const t = new Date(o.created_at).getTime();
       if (fromTs && t < fromTs) return false;
@@ -803,19 +844,35 @@ export default function AdminPedidos() {
             })}
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => { setPage(i); setSelected(new Set()); }} className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${page === i ? 'bg-dusty-pink text-white' : 'text-warm-gray hover:bg-blush'}`}>
-                  {i + 1}
-                </button>
-              ))}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <button
+                onClick={() => { setPage(p => Math.max(0, p - 1)); setSelected(new Set()); }}
+                disabled={page === 0}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                  page === 0 ? 'text-warm-gray/40 cursor-not-allowed' : 'text-espresso hover:bg-blush'
+                }`}
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm font-semibold text-[#9B8578]">
+                Página {page + 1} de {totalPages}
+              </span>
+              <button
+                onClick={() => { setPage(p => Math.min(totalPages - 1, p + 1)); setSelected(new Set()); }}
+                disabled={page >= totalPages - 1}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                  page >= totalPages - 1 ? 'text-warm-gray/40 cursor-not-allowed' : 'text-espresso hover:bg-blush'
+                }`}
+              >
+                Siguiente →
+              </button>
             </div>
           )}
         </>
       )}
 
       <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
-      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={orders || []} />
+      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={countsData || []} />
       {paymentOrder && (
         <PagosPedidoAdmin order={paymentOrder} open={!!paymentOrder} onOpenChange={(v) => !v && setPaymentOrder(null)} />
       )}
