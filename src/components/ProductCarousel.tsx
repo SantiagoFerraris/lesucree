@@ -14,7 +14,7 @@ interface ProductCarouselProps {
   onProductClick?: (product: Tables<"products">) => void
 }
 
-export default function ProductCarousel({
+function ProductCarousel({
   products,
   onProductClick,
 }: ProductCarouselProps) {
@@ -85,3 +85,5 @@ export default function ProductCarousel({
     </div>
   )
 }
+
+export default memo(ProductCarousel)
