@@ -844,12 +844,28 @@ export default function AdminPedidos() {
             })}
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => { setPage(i); setSelected(new Set()); }} className={`w-8 h-8 rounded-full text-sm font-semibold transition-colors ${page === i ? 'bg-dusty-pink text-white' : 'text-warm-gray hover:bg-blush'}`}>
-                  {i + 1}
-                </button>
-              ))}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <button
+                onClick={() => { setPage(p => Math.max(0, p - 1)); setSelected(new Set()); }}
+                disabled={page === 0}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                  page === 0 ? 'text-warm-gray/40 cursor-not-allowed' : 'text-espresso hover:bg-blush'
+                }`}
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm font-semibold text-[#9B8578]">
+                Página {page + 1} de {totalPages}
+              </span>
+              <button
+                onClick={() => { setPage(p => Math.min(totalPages - 1, p + 1)); setSelected(new Set()); }}
+                disabled={page >= totalPages - 1}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                  page >= totalPages - 1 ? 'text-warm-gray/40 cursor-not-allowed' : 'text-espresso hover:bg-blush'
+                }`}
+              >
+                Siguiente →
+              </button>
             </div>
           )}
         </>
