@@ -115,12 +115,66 @@ export default function AdminPedidos() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ['admin-orders'],
+  const { data: countsData } = useQuery({
+    queryKey: ['admin-orders-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('orders').select('id, status, desired_date, customer_name, items');
       if (error) throw error;
       return data as any[];
+    },
+  });
+
+  const { data: ordersData, isLoading } = useQuery({
+    queryKey: ['admin-orders', page, search, statusFilter, paymentFilter, fulfillmentFilter, dateFilter, sortBy],
+    queryFn: async () => {
+      let query = supabase.from('orders').select('*', { count: 'exact' });
+
+      if (search.trim()) {
+        const term = search.trim();
+        query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
+      }
+      if (statusFilter !== 'todos') {
+        query = query.eq('status', statusFilter);
+      }
+      if (paymentFilter !== 'todos') {
+        query = query.eq('payment_status', paymentFilter);
+      }
+      if (fulfillmentFilter !== 'todos') {
+        query = query.eq('fulfillment_status', fulfillmentFilter);
+      }
+      if (dateFilter === 'hoy') {
+        query = query.eq('desired_date', todayStr);
+      } else if (dateFilter === 'manana') {
+        query = query.eq('desired_date', tomorrowStr);
+      } else if (dateFilter === 'semana') {
+        query = query.gte('desired_date', todayStr).lte('desired_date', weekEnd);
+      } else if (dateFilter === 'vencidos') {
+        query = query.lt('desired_date', todayStr).not.in('status', ['completed', 'picked_up', 'cancelled']);
+      }
+
+      if (sortBy === 'retiro-asc') {
+        query = query.order('desired_date', { ascending: true });
+      } else if (sortBy === 'retiro-desc') {
+        query = query.order('desired_date', { ascending: false });
+      } else if (sortBy === 'pedido-desc') {
+        query = query.order('created_at', { ascending: false });
+      } else if (sortBy === 'pedido-asc') {
+        query = query.order('created_at', { ascending: true });
+      } else if (sortBy === 'monto-desc') {
+        query = query.order('total', { ascending: false });
+      } else if (sortBy === 'monto-asc') {
+        query = query.order('total', { ascending: true });
+      } else if (sortBy === 'cliente-asc') {
+        query = query.order('customer_name', { ascending: true });
+      }
+
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data as any[], count: count ?? 0 };
     },
   });
 
