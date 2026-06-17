@@ -149,7 +149,7 @@ export default function AdminPedidos() {
       } else if (dateFilter === 'semana') {
         query = query.gte('desired_date', todayStr).lte('desired_date', weekEnd);
       } else if (dateFilter === 'vencidos') {
-        query = query.lt('desired_date', todayStr).not.in('status', ['completed', 'picked_up', 'cancelled']);
+        query = query.lt('desired_date', todayStr).neq('status', 'completed').neq('status', 'picked_up').neq('status', 'cancelled');
       }
 
       if (sortBy === 'retiro-asc') {
