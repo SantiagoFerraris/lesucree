@@ -56,6 +56,7 @@ function HeroSection() {
         backgroundColor: '#fdf6f0',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        willChange: 'background-image',
       }}
     >
 
