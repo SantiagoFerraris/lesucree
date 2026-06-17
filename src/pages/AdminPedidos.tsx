@@ -57,7 +57,7 @@ const DATE_FILTERS = [
   { value: 'semana', label: 'Esta semana' },
   { value: 'vencidos', label: 'Vencidos' },
 ];
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 25;
 
 const PAYMENT_SORT_ORDER: Record<string, number> = { pendiente: 0, 'seña_recibida': 1, 'pagado_completo': 2 };
 
