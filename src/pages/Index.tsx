@@ -331,7 +331,21 @@ function InstagramSection() {
         </h2>
         <SectionDivider />
         <div className="mt-6 max-w-4xl mx-auto">
-          <InstagramCarousel posts={posts ?? []} />
+          <Suspense
+            fallback={
+              <div className="flex" style={{ marginLeft: "-16px" }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 aspect-square bg-blush animate-pulse"
+                    style={{ paddingLeft: "16px" }}
+                  />
+                ))}
+              </div>
+            }
+          >
+            <InstagramCarousel posts={posts ?? []} />
+          </Suspense>
         </div>
         <div className="text-center mt-4">
           <a
