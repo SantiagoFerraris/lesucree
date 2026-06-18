@@ -16,8 +16,8 @@ import ProductImage from "@/components/ProductImage";
 import { useCart } from "@/contexts/CartContext";
 import { useHeroImageUrl, useSiteSettings } from "@/hooks/useSiteSettings";
 import ProductDetailModal from "@/components/ProductDetailModal";
-import ProductCarousel from "@/components/ProductCarousel";
-import InstagramCarousel from "@/components/InstagramCarousel";
+const ProductCarousel = lazy(() => import("@/components/ProductCarousel"));
+const InstagramCarousel = lazy(() => import("@/components/InstagramCarousel"));
 import type { Tables } from "@/integrations/supabase/types";
 
 
