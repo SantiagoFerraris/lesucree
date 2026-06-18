@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { generateReplySuggestion } from '@/lib/messageHelper';
 import { buildWhatsAppUrl } from '@/lib/insightEngine';
 import { getWhatsAppLink } from '@/lib/whatsapp';
+import { useDebounce } from '@/hooks/useDebounce';
 
 
 export default function AdminMensajes() {
@@ -13,6 +14,7 @@ export default function AdminMensajes() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [suggestionOpen, setSuggestionOpen] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [senderFilter, setSenderFilter] = useState<'todos' | 'auto' | 'cliente'>('todos');
   const [page, setPage] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export default function AdminMensajes() {
 
   const AUTO_EMAIL = 'manual@lesucree.com';
   const filtered = messages?.filter(m => {
-    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = m.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || m.email.toLowerCase().includes(debouncedSearch.toLowerCase());
     const isAuto = (m.email || '').toLowerCase() === AUTO_EMAIL;
     const matchSender = senderFilter === 'todos' || (senderFilter === 'auto' ? isAuto : !isAuto);
     return matchSearch && matchSender;

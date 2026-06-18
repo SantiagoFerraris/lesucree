@@ -10,6 +10,7 @@ import { FULFILLMENT_LABELS, FULFILLMENT_COLORS, FULFILLMENT_VALUES, type Fulfil
 import { formatPrice } from '@/lib/formatPrice';
 import { getTodayArgentina, daysUntilArgentina } from '@/lib/argentinaTimezone';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -73,6 +74,7 @@ function getStatusBorder(status: string): string {
 export default function AdminPedidos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<any | null>(null);
@@ -125,12 +127,12 @@ export default function AdminPedidos() {
   });
 
   const { data: ordersData, isLoading } = useQuery({
-    queryKey: ['admin-orders', page, search, statusFilter, paymentFilter, fulfillmentFilter, dateFilter, sortBy],
+    queryKey: ['admin-orders', page, debouncedSearch, statusFilter, paymentFilter, fulfillmentFilter, dateFilter, sortBy],
     queryFn: async () => {
       let query = supabase.from('orders').select('*', { count: 'exact' });
 
-      if (search.trim()) {
-        const term = search.trim();
+      if (debouncedSearch.trim()) {
+        const term = debouncedSearch.trim();
         query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
       }
       if (statusFilter !== 'todos') {
@@ -300,8 +302,8 @@ export default function AdminPedidos() {
 
   const fetchAllFilteredOrders = async () => {
     let query = supabase.from('orders').select('*');
-    if (search.trim()) {
-      const term = search.trim();
+    if (debouncedSearch.trim()) {
+      const term = debouncedSearch.trim();
       query = query.or(`customer_name.ilike.%${term}%,id.ilike.%${term}%,items::text.ilike.%${term}%`);
     }
     if (statusFilter !== 'todos') query = query.eq('status', statusFilter);

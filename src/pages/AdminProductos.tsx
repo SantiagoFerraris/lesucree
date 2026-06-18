@@ -10,6 +10,7 @@ import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Tables } from '@/integrations/supabase/types';
 import { PRODUCT_STATUS_VALUES, PRODUCT_STATUS_LABELS, PRODUCT_STATUS_BEHAVIOR, getProductStatus, type ProductStatus } from '@/lib/productStatus';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
 interface ProductFormData {
@@ -54,6 +55,7 @@ const PAGE_SIZE = 10;
 export default function AdminProductos() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [categoryFilter, setCategoryFilter] = useState('todos');
   const [editing, setEditing] = useState<Tables<'products'> | null>(null);
 
@@ -301,7 +303,7 @@ export default function AdminProductos() {
   };
 
   const filtered = products?.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = p.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchCat = categoryFilter === 'todos' || p.category === categoryFilter;
     return matchSearch && matchCat;
   });
