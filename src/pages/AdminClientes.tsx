@@ -11,6 +11,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const PAGE_SIZE = 10;
 
@@ -45,6 +46,7 @@ const MSG_TEMPLATES = [
 export default function AdminClientes() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [segmentFilter, setSegmentFilter] = useState<Segment>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -116,7 +118,7 @@ export default function AdminClientes() {
   };
 
   const filtered = customers.filter(c => {
-    const q = search.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     const matchSearch = !q ||
       (c.name || '').toLowerCase().includes(q) ||
       (c.phone || '').toLowerCase().includes(q) ||
