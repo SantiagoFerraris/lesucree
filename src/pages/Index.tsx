@@ -197,13 +197,34 @@ function FeaturedSection() {
         )}
         {!isLoading && (
           <div className="mt-8 sm:mt-12">
-            <ProductCarousel
-              products={products || []}
-              variants={allVariants}
-              categories={categories}
-              activePromotions={promosMap}
-              onProductClick={setSelectedProduct}
-            />
+            <Suspense
+              fallback={
+                <div className="flex" style={{ marginLeft: "-16px" }}>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
+                      style={{ paddingLeft: "16px" }}
+                    >
+                      <div className="aspect-[4/5] bg-blush animate-pulse rounded-lg" />
+                      <div className="mt-3 space-y-2">
+                        <div className="h-3 bg-blush rounded w-1/3" />
+                        <div className="h-5 bg-blush rounded w-2/3" />
+                        <div className="h-4 bg-blush rounded w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
+            >
+              <ProductCarousel
+                products={products || []}
+                variants={allVariants}
+                categories={categories}
+                activePromotions={promosMap}
+                onProductClick={setSelectedProduct}
+              />
+            </Suspense>
           </div>
         )}
         <div className="text-center mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
