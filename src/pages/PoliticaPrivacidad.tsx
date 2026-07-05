@@ -1,7 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import DOMPurify from 'dompurify';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
+
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: ['h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br', 'a'],
+  ALLOWED_ATTR: ['href', 'target', 'rel'],
+};
 
 export default function PoliticaPrivacidad() {
   const { data } = useQuery({
@@ -51,7 +57,7 @@ export default function PoliticaPrivacidad() {
         <div className="container max-w-3xl">
           <div
             className="text-espresso text-[15px] sm:text-[17px] leading-[1.7] sm:leading-[1.8] [&_h2]:font-script [&_h2]:text-2xl sm:[&_h2]:text-3xl [&_h2]:text-espresso [&_h2]:mb-4 [&_h2]:mt-10 [&_h2:first-child]:mt-0 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_ul]:mt-3 [&_p+ul]:mt-3 [&_p]:mt-3 [&_p:first-child]:mt-0 [&_strong]:font-semibold"
-            dangerouslySetInnerHTML={{ __html: data?.content || '' }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data?.content || '', SANITIZE_CONFIG) }}
           />
         </div>
       </div>
