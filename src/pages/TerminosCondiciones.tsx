@@ -1,7 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import DOMPurify from 'dompurify';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
+
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: ['h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'br', 'a'],
+  ALLOWED_ATTR: ['href', 'target', 'rel'],
+};
 
 export default function TerminosCondiciones() {
   const { data } = useQuery({
