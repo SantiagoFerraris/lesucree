@@ -426,7 +426,7 @@ export default function AdminPedidos() {
       <p className="text-xs text-[#9B8578] mb-5 mt-1">{subtitle}</p>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
           <input
