@@ -226,7 +226,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                       }}
                     >
                       <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                         {categories.map(c => (
                           <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                         ))}
@@ -241,7 +241,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                       disabled={!item.category}
                     >
                       <SelectTrigger><SelectValue placeholder={item.category ? 'Seleccionar producto...' : 'Elegí una categoría'} /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                         {products.filter(p => p.category === item.category).map(p => (
                           <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
                         ))}
@@ -267,7 +267,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                           onValueChange={v => updateItem(i, 'variantLabel', v)}
                         >
                           <SelectTrigger><SelectValue placeholder="Seleccionar variante..." /></SelectTrigger>
-                          <SelectContent>
+                          <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                             {variants.map((v) => (
                               <SelectItem key={v.label} value={v.label}>
                                 {v.label}{v.price ? ` — $${Number(v.price).toLocaleString('es-AR')}` : ''}
@@ -363,7 +363,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 <Label>Estado de pago</Label>
                 <Select value={paymentStatus} onValueChange={setPaymentStatus}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                     <SelectItem value="pendiente">Pendiente</SelectItem>
                     <SelectItem value="seña_recibida">Seña Recibida</SelectItem>
                     <SelectItem value="pagado_completo">Pagado</SelectItem>
@@ -385,7 +385,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 <Label>Forma de pago</Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                     <SelectItem value="Transferencia">Transferencia</SelectItem>
                     <SelectItem value="Efectivo">Efectivo</SelectItem>
                     <SelectItem value="Otro">Otro</SelectItem>
@@ -396,7 +396,7 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
                 <Label>Estado del pedido</Label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" sideOffset={4} className="max-h-[min(20rem,var(--radix-select-content-available-height))] z-[60]">
                     <SelectItem value="pending">Pendiente</SelectItem>
                     <SelectItem value="confirmed">Confirmado</SelectItem>
                   </SelectContent>
