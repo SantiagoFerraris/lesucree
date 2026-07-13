@@ -245,3 +245,85 @@ body {
         border-radius: 0.5rem;
   }
 }
+
+/* ============================================================
+   Admin panel proportional scale-down
+   Visual-only: shrinks form controls, labels, dialog padding,
+   and card spacing inside the admin scope so the panel matches
+   normal SaaS proportions at 100% browser zoom. No logic touched.
+   ============================================================ */
+.admin-scope {
+  /* Base body text inside admin runs one notch smaller. */
+  font-size: 0.9375rem; /* 15px */
+}
+
+/* Inputs, textareas, select triggers */
+.admin-scope input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-scope textarea,
+.admin-scope [role="combobox"] {
+  height: auto;
+  min-height: 2.25rem; /* 36px */
+  font-size: 0.875rem; /* 14px */
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  line-height: 1.25rem;
+}
+.admin-scope textarea {
+  min-height: 4.5rem;
+}
+/* Undo forced height on range/file/color inputs */
+.admin-scope input[type="date"],
+.admin-scope input[type="time"],
+.admin-scope input[type="datetime-local"] {
+  min-height: 2.25rem;
+}
+
+/* Labels — consistent small caps-ready scale */
+.admin-scope label {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.1rem;
+}
+
+/* Buttons inside admin: tighten default padding/text */
+.admin-scope button:not([data-radix-collection-item]):not(.no-admin-scale) {
+  font-size: 0.875rem;
+}
+
+/* Dialog / modal padding — normal SaaS density */
+.admin-scope [role="dialog"] {
+  padding: 1.25rem;
+}
+.admin-scope [role="dialog"] .space-y-5 > * + * { margin-top: 1rem; }
+.admin-scope [role="dialog"] .space-y-4 > * + * { margin-top: 0.875rem; }
+.admin-scope [role="dialog"] .space-y-3 > * + * { margin-top: 0.625rem; }
+
+/* Select / popover items */
+.admin-scope [role="option"],
+.admin-scope [role="menuitem"] {
+  font-size: 0.875rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+
+/* Cards / KPI tiles — trim excessive inner padding on desktop */
+@media (min-width: 768px) {
+  .admin-scope .p-6 { padding: 1.25rem; }
+  .admin-scope .p-8 { padding: 1.5rem; }
+}
+
+/* Ensure tables never force horizontal page scroll */
+.admin-scope table { font-size: 0.875rem; }
+
+/* Charts: constrain to their container so page never overflows */
+.admin-scope .recharts-responsive-container {
+  max-width: 100% !important;
+}
+
+/* Small screens: one more notch tighter */
+@media (max-width: 640px) {
+  .admin-scope { font-size: 0.9rem; }
+  .admin-scope [role="dialog"] { padding: 1rem; }
+}
+
