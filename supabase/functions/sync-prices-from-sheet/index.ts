@@ -106,13 +106,26 @@ Deno.serve(async (req) => {
                       return result;
           }
 
+          // Normalize a string: lowercase, trim, strip accents
+          function norm(s: string): string {
+                      return (s || '')
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .trim();
+          }
+
           const headers = parseCsvLine(lines[0]).map((h) =>
-                      h.toLowerCase().replace(/\s+/g, '_')
+                      norm(h).replace(/\s+/g, '_')
                                                          );
                        const nameIdx = headers.indexOf('product_name');
                        const priceIdx = headers.indexOf('price');
                        const variantNameIdx = headers.indexOf('variant_name');
                        const variantPriceIdx = headers.indexOf('variant_price');
+                       // Optional category column, matched by header name (any position)
+                       const categoryIdx = headers.findIndex((h) =>
+                                   ['category', 'categoria'].includes(h)
+                                 );
 
           if (nameIdx === -1 || priceIdx === -1) {
                       return new Response(
@@ -127,7 +140,12 @@ Deno.serve(async (req) => {
 
           const admin = createClient(supabaseUrl, supabaseServiceKey);
 
-          const { data: products } = await admin.from('products').select('id, name');
+          const { data: products } = await admin
+                       .from('products')
+                       .select('id, name, category');
+                       const { data: categories } = await admin
+                         .from('categories')
+                         .select('value, label');
                        const { data: variants } = await admin
                          .from('product_variants')
                          .select('id, product_id, label, price, sort_order')
@@ -144,9 +162,27 @@ Deno.serve(async (req) => {
                                   );
           }
 
-          const productMap = new Map(
-                      products.map((p) => [p.name.toLowerCase().trim(), p])
-                    );
+          // Map any category value OR label (normalized) -> canonical category value
+          const categoryAliasMap = new Map<string, string>();
+          for (const c of categories || []) {
+                      if (c.value) categoryAliasMap.set(norm(c.value), c.value);
+                      if (c.label) categoryAliasMap.set(norm(c.label), c.value);
+          }
+
+          function resolveCategory(raw: string): string | null {
+                      if (!raw) return null;
+                      return categoryAliasMap.get(norm(raw)) ?? null;
+          }
+
+          // category::name -> product, and name -> product[] (for ambiguity checks)
+          const productByCatName = new Map<string, typeof products[number]>();
+          const productsByName = new Map<string, typeof products[number][]>();
+          for (const p of products) {
+                      const n = norm(p.name);
+                      productByCatName.set(`${norm(p.category || '')}::${n}`, p);
+                      if (!productsByName.has(n)) productsByName.set(n, []);
+                      productsByName.get(n)!.push(p);
+          }
 
           // Group CSV rows by product, preserving order
           interface SheetVariant {
@@ -157,11 +193,14 @@ Deno.serve(async (req) => {
           }
 
           const sheetProductRows = new Map<string, SheetVariant[]>();
+          const groupMeta = new Map<string, { name: string; categoryRaw: string }>();
 
           for (let i = 1; i < lines.length; i++) {
                       const cols = parseCsvLine(lines[i]);
                       const productName = (cols[nameIdx] || '').trim();
                       const priceStr = (cols[priceIdx] || '').trim();
+                      const categoryRaw =
+                                    categoryIdx >= 0 ? (cols[categoryIdx] || '').trim() : '';
                       const variantName =
                                     variantNameIdx >= 0 ? (cols[variantNameIdx] || '').trim() : '';
                       const variantPriceStr =
@@ -169,9 +208,10 @@ Deno.serve(async (req) => {
 
                          if (!productName) continue;
 
-                         const key = productName.toLowerCase();
+                         const key = `${norm(categoryRaw)}::${norm(productName)}`;
                       if (!sheetProductRows.has(key)) {
                                     sheetProductRows.set(key, []);
+                                    groupMeta.set(key, { name: productName, categoryRaw });
                       }
 
                          sheetProductRows.get(key)!.push({
@@ -189,11 +229,43 @@ Deno.serve(async (req) => {
 
           // Iterate grouped products instead of row-by-row
           for (const [productKey, sheetRows] of sheetProductRows) {
-                      const product = productMap.get(productKey);
-                      if (!product) {
+                      const meta = groupMeta.get(productKey)!;
+                      const nameNorm = norm(meta.name);
+                      let product: typeof products[number] | undefined;
+
+                         if (meta.categoryRaw) {
+                                       const resolved = resolveCategory(meta.categoryRaw);
+                                       if (!resolved) {
+                                                       errors.push(
+                                                                         `${meta.name} (${meta.categoryRaw}): unknown category, skipped.`
+                                                                       );
+                                                       skipped += sheetRows.length;
+                                                       continue;
+                                       }
+                                       product = productByCatName.get(`${norm(resolved)}::${nameNorm}`);
+                         } else {
+                                       const matches = productsByName.get(nameNorm) || [];
+                                       if (matches.length > 1) {
+                                                       errors.push(
+                                                                         `${meta.name}: ambiguous — exists in ${matches.length} categories (${matches
+                                                                           .map((m) => m.category)
+                                                                           .join(', ')}). Add a category column to the sheet. Skipped.`
+                                                                       );
+                                                       skipped += sheetRows.length;
+                                                       continue;
+                                       }
+                                       product = matches[0];
+                         }
+
+                         const productLabel = product
+                        ? `${product.name}${product.category ? ` (${product.category})` : ''}`
+                        : meta.name;
+
+                         if (!product) {
                                     skipped += sheetRows.length;
                                     continue;
                       }
+
 
                          // DB variants for this product sorted by sort_order
                          const dbVariants = (variants || [])
@@ -213,7 +285,7 @@ Deno.serve(async (req) => {
                                                          .update({ price: basePrice })
                                                          .eq('id', product.id);
                                                        if (error) {
-                                                                         errors.push(`${product.name}: ${error.message}`);
+                                                                         errors.push(`${productLabel}: ${error.message}`);
                                                        } else {
                                                                          updated++;
                                                                          updatedProductIds.add(product.id);
@@ -236,7 +308,7 @@ Deno.serve(async (req) => {
                                                          .update({ price: basePrice })
                                                          .eq('id', product.id);
                                                        if (error) {
-                                                                         errors.push(`${product.name}: ${error.message}`);
+                                                                         errors.push(`${productLabel}: ${error.message}`);
                                                        } else {
                                                                          updated++;
                                                                          updatedProductIds.add(product.id);
@@ -258,7 +330,7 @@ Deno.serve(async (req) => {
 
                         if (error) {
                                         errors.push(
-                                                          `Row ${sv.rowNum} (${product.name}): ${error.message}`
+                                                          `Row ${sv.rowNum} (${productLabel}): ${error.message}`
                                                         );
                         } else {
                                         updated++;
@@ -268,12 +340,12 @@ Deno.serve(async (req) => {
 
                          if (sheetVariants.length > dbVariants.length) {
                                        errors.push(
-                                                       `${product.name}: sheet has ${sheetVariants.length} variants but DB only has ${dbVariants.length}. Extra variants ignored.`
+                                                       `${productLabel}: sheet has ${sheetVariants.length} variants but DB only has ${dbVariants.length}. Extra variants ignored.`
                                                      );
                          }
                       if (dbVariants.length > sheetVariants.length) {
                                     errors.push(
-                                                    `${product.name}: DB has ${dbVariants.length} variants but sheet only has ${sheetVariants.length}. Extra DB variants untouched.`
+                                                    `${productLabel}: DB has ${dbVariants.length} variants but sheet only has ${sheetVariants.length}. Extra DB variants untouched.`
                                                   );
                       }
           }
