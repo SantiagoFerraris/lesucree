@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
                                                          .update({ price: basePrice })
                                                          .eq('id', product.id);
                                                        if (error) {
-                                                                         errors.push(`${product.name}: ${error.message}`);
+                                                                         errors.push(`${productLabel}: ${error.message}`);
                                                        } else {
                                                                          updated++;
                                                                          updatedProductIds.add(product.id);
@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
                                                          .update({ price: basePrice })
                                                          .eq('id', product.id);
                                                        if (error) {
-                                                                         errors.push(`${product.name}: ${error.message}`);
+                                                                         errors.push(`${productLabel}: ${error.message}`);
                                                        } else {
                                                                          updated++;
                                                                          updatedProductIds.add(product.id);
@@ -330,7 +330,7 @@ Deno.serve(async (req) => {
 
                         if (error) {
                                         errors.push(
-                                                          `Row ${sv.rowNum} (${product.name}): ${error.message}`
+                                                          `Row ${sv.rowNum} (${productLabel}): ${error.message}`
                                                         );
                         } else {
                                         updated++;
@@ -340,12 +340,12 @@ Deno.serve(async (req) => {
 
                          if (sheetVariants.length > dbVariants.length) {
                                        errors.push(
-                                                       `${product.name}: sheet has ${sheetVariants.length} variants but DB only has ${dbVariants.length}. Extra variants ignored.`
+                                                       `${productLabel}: sheet has ${sheetVariants.length} variants but DB only has ${dbVariants.length}. Extra variants ignored.`
                                                      );
                          }
                       if (dbVariants.length > sheetVariants.length) {
                                     errors.push(
-                                                    `${product.name}: DB has ${dbVariants.length} variants but sheet only has ${sheetVariants.length}. Extra DB variants untouched.`
+                                                    `${productLabel}: DB has ${dbVariants.length} variants but sheet only has ${sheetVariants.length}. Extra DB variants untouched.`
                                                   );
                       }
           }
