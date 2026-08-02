@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
