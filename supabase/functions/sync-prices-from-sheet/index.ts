@@ -126,6 +126,10 @@ Deno.serve(async (req) => {
                        const categoryIdx = headers.findIndex((h) =>
                                    ['category', 'categoria'].includes(h)
                                  );
+                       // Optional product_id column (alias: id), matched by header name (any position)
+                       const productIdIdx = headers.findIndex((h) =>
+                                   ['product_id', 'id'].includes(h)
+                                 );
 
           if (nameIdx === -1 || priceIdx === -1) {
                       return new Response(
@@ -177,11 +181,13 @@ Deno.serve(async (req) => {
           // category::name -> product, and name -> product[] (for ambiguity checks)
           const productByCatName = new Map<string, typeof products[number]>();
           const productsByName = new Map<string, typeof products[number][]>();
+          const productById = new Map<string, typeof products[number]>();
           for (const p of products) {
                       const n = norm(p.name);
                       productByCatName.set(`${norm(p.category || '')}::${n}`, p);
                       if (!productsByName.has(n)) productsByName.set(n, []);
                       productsByName.get(n)!.push(p);
+                      productById.set(norm(p.id), p);
           }
 
           // Group CSV rows by product, preserving order
@@ -193,7 +199,10 @@ Deno.serve(async (req) => {
           }
 
           const sheetProductRows = new Map<string, SheetVariant[]>();
-          const groupMeta = new Map<string, { name: string; categoryRaw: string }>();
+          const groupMeta = new Map<
+                      string,
+                      { name: string; categoryRaw: string; productIdRaw: string }
+                    >();
 
           for (let i = 1; i < lines.length; i++) {
                       const cols = parseCsvLine(lines[i]);
@@ -201,6 +210,8 @@ Deno.serve(async (req) => {
                       const priceStr = (cols[priceIdx] || '').trim();
                       const categoryRaw =
                                     categoryIdx >= 0 ? (cols[categoryIdx] || '').trim() : '';
+                      const productIdRaw =
+                                    productIdIdx >= 0 ? (cols[productIdIdx] || '').trim() : '';
                       const variantName =
                                     variantNameIdx >= 0 ? (cols[variantNameIdx] || '').trim() : '';
                       const variantPriceStr =
@@ -208,10 +219,13 @@ Deno.serve(async (req) => {
 
                          if (!productName) continue;
 
-                         const key = `${norm(categoryRaw)}::${norm(productName)}`;
+                         // product_id, when present, is the authoritative grouping/match key
+                         const key = productIdRaw
+                        ? `id::${norm(productIdRaw)}`
+                        : `${norm(categoryRaw)}::${norm(productName)}`;
                       if (!sheetProductRows.has(key)) {
                                     sheetProductRows.set(key, []);
-                                    groupMeta.set(key, { name: productName, categoryRaw });
+                                    groupMeta.set(key, { name: productName, categoryRaw, productIdRaw });
                       }
 
                          sheetProductRows.get(key)!.push({
@@ -233,7 +247,17 @@ Deno.serve(async (req) => {
                       const nameNorm = norm(meta.name);
                       let product: typeof products[number] | undefined;
 
-                         if (meta.categoryRaw) {
+                         if (meta.productIdRaw) {
+                                       // Authoritative match by primary key — no category/name matching
+                                       product = productById.get(norm(meta.productIdRaw));
+                                       if (!product) {
+                                                       errors.push(
+                                                                         `Unknown product_id: ${meta.productIdRaw} (row referencing ${meta.name})`
+                                                                       );
+                                                       skipped += sheetRows.length;
+                                                       continue;
+                                       }
+                         } else if (meta.categoryRaw) {
                                        const resolved = resolveCategory(meta.categoryRaw);
                                        if (!resolved) {
                                                        errors.push(
