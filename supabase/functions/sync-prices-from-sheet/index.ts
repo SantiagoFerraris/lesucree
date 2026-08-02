@@ -181,11 +181,13 @@ Deno.serve(async (req) => {
           // category::name -> product, and name -> product[] (for ambiguity checks)
           const productByCatName = new Map<string, typeof products[number]>();
           const productsByName = new Map<string, typeof products[number][]>();
+          const productById = new Map<string, typeof products[number]>();
           for (const p of products) {
                       const n = norm(p.name);
                       productByCatName.set(`${norm(p.category || '')}::${n}`, p);
                       if (!productsByName.has(n)) productsByName.set(n, []);
                       productsByName.get(n)!.push(p);
+                      productById.set(norm(p.id), p);
           }
 
           // Group CSV rows by product, preserving order
