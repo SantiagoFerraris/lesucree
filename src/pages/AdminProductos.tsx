@@ -615,6 +615,23 @@ export default function AdminProductos() {
                           )}
                         </span>
                         {vars.length > 0 && <span className="text-xs text-warm-gray block">{vars.length} variantes</span>}
+                        <span className="flex items-center gap-1 text-xs text-warm-gray">
+                          <span title={p.id} className="font-mono">ID: {p.id.slice(0, 8)}…</span>
+                          <button
+                            type="button"
+                            title="Copiar ID completo"
+                            aria-label="Copiar ID completo"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(p.id)
+                                .then(() => toast.success('ID copiado'))
+                                .catch(() => toast.error('No se pudo copiar el ID'));
+                            }}
+                            className="p-0.5 rounded hover:bg-gray-100 text-warm-gray hover:text-espresso transition-colors"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </span>
                       </td>
 
                       <td className="py-3 pr-4 hidden md:table-cell text-warm-gray">{categoryLabels[p.category] || p.category}</td>
