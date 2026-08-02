@@ -421,10 +421,10 @@ export default function AdminProductos() {
 
   const exportProductsCSV = () => {
     if (!filtered?.length) return;
-    const headers = ['Nombre', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
+    const headers = ['Nombre', 'ID', 'Categoría', 'Precio', 'Activo', 'Destacado', 'Variantes'];
     const rows = filtered.map(p => {
       const vars = getVariants(p.id);
-      return [p.name, categoryLabels[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
+      return [p.name, p.id, categoryLabels[p.category] || p.category, p.price, p.active ? 'Sí' : 'No', p.featured ? 'Sí' : 'No', vars.map((v: any) => `${v.label}: $${v.price}`).join('; ')];
     });
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
