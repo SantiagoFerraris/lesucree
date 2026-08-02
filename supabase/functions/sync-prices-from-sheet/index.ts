@@ -199,7 +199,10 @@ Deno.serve(async (req) => {
           }
 
           const sheetProductRows = new Map<string, SheetVariant[]>();
-          const groupMeta = new Map<string, { name: string; categoryRaw: string }>();
+          const groupMeta = new Map<
+                      string,
+                      { name: string; categoryRaw: string; productIdRaw: string }
+                    >();
 
           for (let i = 1; i < lines.length; i++) {
                       const cols = parseCsvLine(lines[i]);
@@ -207,6 +210,8 @@ Deno.serve(async (req) => {
                       const priceStr = (cols[priceIdx] || '').trim();
                       const categoryRaw =
                                     categoryIdx >= 0 ? (cols[categoryIdx] || '').trim() : '';
+                      const productIdRaw =
+                                    productIdIdx >= 0 ? (cols[productIdIdx] || '').trim() : '';
                       const variantName =
                                     variantNameIdx >= 0 ? (cols[variantNameIdx] || '').trim() : '';
                       const variantPriceStr =
@@ -214,10 +219,13 @@ Deno.serve(async (req) => {
 
                          if (!productName) continue;
 
-                         const key = `${norm(categoryRaw)}::${norm(productName)}`;
+                         // product_id, when present, is the authoritative grouping/match key
+                         const key = productIdRaw
+                        ? `id::${norm(productIdRaw)}`
+                        : `${norm(categoryRaw)}::${norm(productName)}`;
                       if (!sheetProductRows.has(key)) {
                                     sheetProductRows.set(key, []);
-                                    groupMeta.set(key, { name: productName, categoryRaw });
+                                    groupMeta.set(key, { name: productName, categoryRaw, productIdRaw });
                       }
 
                          sheetProductRows.get(key)!.push({
