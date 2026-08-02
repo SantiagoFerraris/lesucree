@@ -126,6 +126,10 @@ Deno.serve(async (req) => {
                        const categoryIdx = headers.findIndex((h) =>
                                    ['category', 'categoria'].includes(h)
                                  );
+                       // Optional product_id column (alias: id), matched by header name (any position)
+                       const productIdIdx = headers.findIndex((h) =>
+                                   ['product_id', 'id'].includes(h)
+                                 );
 
           if (nameIdx === -1 || priceIdx === -1) {
                       return new Response(
