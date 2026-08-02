@@ -247,7 +247,17 @@ Deno.serve(async (req) => {
                       const nameNorm = norm(meta.name);
                       let product: typeof products[number] | undefined;
 
-                         if (meta.categoryRaw) {
+                         if (meta.productIdRaw) {
+                                       // Authoritative match by primary key — no category/name matching
+                                       product = productById.get(norm(meta.productIdRaw));
+                                       if (!product) {
+                                                       errors.push(
+                                                                         `Unknown product_id: ${meta.productIdRaw} (row referencing ${meta.name})`
+                                                                       );
+                                                       skipped += sheetRows.length;
+                                                       continue;
+                                       }
+                         } else if (meta.categoryRaw) {
                                        const resolved = resolveCategory(meta.categoryRaw);
                                        if (!resolved) {
                                                        errors.push(
