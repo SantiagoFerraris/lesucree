@@ -199,10 +199,12 @@ Deno.serve(async (req) => {
     let appliedCouponCode: string | null = null;
 
     if (couponCode) {
+      // Escape LIKE metacharacters so user input cannot act as a wildcard pattern
+      const safeCouponCode = couponCode.replace(/[\\%_]/g, (m: string) => `\\${m}`);
       const { data: coupon } = await supabaseAdmin
         .from('coupons')
         .select('*')
-        .ilike('code', couponCode)
+        .ilike('code', safeCouponCode)
         .maybeSingle();
 
       if (!coupon) {
