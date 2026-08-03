@@ -1,4 +1,5 @@
 import { formatPrice } from '@/lib/formatPrice';
+import { getCustomerKey, cleanEmail } from '@/lib/customerKey';
 
 export interface SmartInsight {
   id: string;
@@ -126,7 +127,7 @@ function isEarlyStage(orders: any[], now: Date): boolean {
   if (nonCancelled.length === 0) return true;
 
   // Fewer than 10 unique clients
-  const uniqueClients = new Set(nonCancelled.map(o => o.customer_email));
+  const uniqueClients = new Set(nonCancelled.map(o => getCustomerKey(o)));
   if (uniqueClients.size < 10) return true;
 
   // Fewer than 2 weeks of order data
@@ -231,10 +232,10 @@ export function generateDailySummary(orders: any[], products: any[], now: Date):
       phrases.push(`Ojo: ${unpaidSoon[0].customer_name} retira pronto y no pagó la seña.`);
     } else {
       const weekCustomers: Record<string, number> = {};
-      weekOrders.forEach(o => { weekCustomers[o.customer_email] = (weekCustomers[o.customer_email] || 0) + 1; });
+      weekOrders.forEach(o => { const k = getCustomerKey(o); weekCustomers[k] = (weekCustomers[k] || 0) + 1; });
       const repeater = Object.entries(weekCustomers).find(([, count]) => count > 1);
       if (repeater) {
-        const name = weekOrders.find(o => o.customer_email === repeater[0])?.customer_name;
+        const name = weekOrders.find(o => getCustomerKey(o) === repeater[0])?.customer_name;
         if (name) phrases.push(`¡${name} volvió a pedir esta semana! Cliente fiel 🤎`);
       } else if (earlyStage) {
         // Early stage: motivational instead of alarming
@@ -455,8 +456,11 @@ export function generateInsights(orders: any[], products: any[], messages: any[]
   // 🔴 HIGH: Recoverable inactive clients
   const customerMap: Record<string, { name: string; email: string; phone: string; orders: any[]; lastOrderDate: string }> = {};
   orders.filter(o => o.status !== 'cancelled').forEach(o => {
-    const k = o.customer_email;
-    if (!customerMap[k]) customerMap[k] = { name: o.customer_name, email: o.customer_email, phone: o.customer_phone, orders: [], lastOrderDate: '' };
+    const k = getCustomerKey(o);
+    if (!customerMap[k]) customerMap[k] = { name: o.customer_name || '', email: cleanEmail(o.customer_email), phone: o.customer_phone || '', orders: [], lastOrderDate: '' };
+    if (!customerMap[k].name) customerMap[k].name = o.customer_name || '';
+    if (!customerMap[k].email) customerMap[k].email = cleanEmail(o.customer_email);
+    if (!customerMap[k].phone) customerMap[k].phone = o.customer_phone || '';
     customerMap[k].orders.push(o);
     if (!customerMap[k].lastOrderDate || o.created_at > customerMap[k].lastOrderDate) customerMap[k].lastOrderDate = o.created_at;
   });
@@ -698,11 +702,14 @@ export function generateRetentionInsights(orders: any[], products: any[], today:
   // Build client map
   const clientMap: Record<string, { name: string; phone: string; email: string; orders: any[]; lastOrderDate: number; firstOrderDate: number; totalSpent: number }> = {};
   orders.filter(o => o.status !== 'cancelled').forEach(o => {
-    const key = o.customer_email;
+    const key = getCustomerKey(o);
     const ts = new Date(o.created_at).getTime();
     if (!clientMap[key]) {
-      clientMap[key] = { name: o.customer_name, phone: o.customer_phone, email: o.customer_email, orders: [], lastOrderDate: ts, firstOrderDate: ts, totalSpent: 0 };
+      clientMap[key] = { name: o.customer_name || '', phone: o.customer_phone || '', email: cleanEmail(o.customer_email), orders: [], lastOrderDate: ts, firstOrderDate: ts, totalSpent: 0 };
     }
+    if (!clientMap[key].name) clientMap[key].name = o.customer_name || '';
+    if (!clientMap[key].phone) clientMap[key].phone = o.customer_phone || '';
+    if (!clientMap[key].email) clientMap[key].email = cleanEmail(o.customer_email);
     clientMap[key].orders.push(o);
     clientMap[key].totalSpent += Number(o.total);
     if (ts > clientMap[key].lastOrderDate) clientMap[key].lastOrderDate = ts;
