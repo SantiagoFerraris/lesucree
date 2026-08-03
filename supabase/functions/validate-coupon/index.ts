@@ -39,10 +39,12 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const admin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Escape LIKE metacharacters so user input cannot act as a wildcard pattern
+    const safeCode = code.replace(/[\\%_]/g, (m) => `\\${m}`);
     const { data: coupon } = await admin
       .from('coupons')
       .select('*')
-      .ilike('code', code)
+      .ilike('code', safeCode)
       .maybeSingle();
 
     if (!coupon) return json({ valid: false, error: 'El código no existe.' });
