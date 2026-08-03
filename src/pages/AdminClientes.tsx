@@ -12,6 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useDebounce } from '@/hooks/useDebounce';
+import { getCustomerKey, cleanEmail } from '@/lib/customerKey';
 
 const PAGE_SIZE = 10;
 
@@ -72,19 +73,7 @@ export default function AdminClientes() {
   const customers = useMemo(() => {
     if (!orders) return [];
     const map: Record<string, { name: string; email: string; phone: string; orders: any[]; totalSpent: number; lastOrder: string; firstOrder: string }> = {};
-    const GENERIC_EMAILS = ['importado@lesucree.com', 'manual@lesucree.com'];
-    const cleanEmail = (e: string) => (e && !GENERIC_EMAILS.includes(e)) ? e : '';
-    const norm = (s: string) => (s || '').trim().toLowerCase();
-    const normPhone = (s: string) => (s || '').replace(/\D/g, '');
-    const getKey = (o: any) => {
-      const n = norm(o.customer_name);
-      if (n) return `name:${n}`;
-      const p = normPhone(o.customer_phone);
-      if (p) return `phone:${p}`;
-      const e = norm(cleanEmail(o.customer_email));
-      if (e) return `email:${e}`;
-      return `unknown:${o.id}`;
-    };
+    const getKey = getCustomerKey;
     orders.forEach(o => {
       const key = getKey(o);
       if (!map[key]) map[key] = { name: o.customer_name || '', email: cleanEmail(o.customer_email), phone: o.customer_phone || '', orders: [], totalSpent: 0, lastOrder: o.created_at, firstOrder: o.created_at };
