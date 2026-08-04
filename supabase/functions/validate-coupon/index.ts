@@ -37,6 +37,24 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const admin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Rate limiting: max 10 coupon checks per minute per IP (blocks enumeration,
+    // never triggers for a normal customer applying a code).
+    const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+    try { await admin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
+    const oneMinAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: attempts } = await admin
+      .from('rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('identifier', ip)
+      .eq('action_type', 'coupon')
+      .gte('created_at', oneMinAgo);
+
+    if ((attempts ?? 0) >= 10) {
+      return json({ valid: false, error: 'Demasiados intentos. Esperá un minuto e intentá de nuevo.' }, 429);
+    }
+    await admin.from('rate_limits').insert({ identifier: ip, action_type: 'coupon' });
+
+
     // Escape LIKE metacharacters so user input cannot act as a wildcard pattern
     const safeCode = code.replace(/[\\%_]/g, (m) => `\\${m}`);
     const { data: coupon } = await admin
