@@ -1,10 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://esm.sh/zod@3.25.76';
+import { corsFor } from '../_shared/cors.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
 
 const ItemSchema = z.object({
   productId: z.string().uuid(),
@@ -24,6 +21,7 @@ function normalizePhone(p: string | null | undefined): string {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = corsFor(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
@@ -38,6 +36,24 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const admin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting: max 10 coupon checks per minute per IP (blocks enumeration,
+    // never triggers for a normal customer applying a code).
+    const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+    try { await admin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
+    const oneMinAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: attempts } = await admin
+      .from('rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('identifier', ip)
+      .eq('action_type', 'coupon')
+      .gte('created_at', oneMinAgo);
+
+    if ((attempts ?? 0) >= 10) {
+      return json({ valid: false, error: 'Demasiados intentos. Esperá un minuto e intentá de nuevo.' }, 429);
+    }
+    await admin.from('rate_limits').insert({ identifier: ip, action_type: 'coupon' });
+
 
     // Escape LIKE metacharacters so user input cannot act as a wildcard pattern
     const safeCode = code.replace(/[\\%_]/g, (m) => `\\${m}`);

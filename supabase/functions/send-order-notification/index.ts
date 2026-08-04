@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from 'https://esm.sh/zod@3.25.76';
+import { corsFor } from '../_shared/cors.ts';
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -10,10 +11,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const corsHeaders = corsFor(null);
 
 const GENERIC_OK = () => new Response(JSON.stringify({ success: true }), {
   headers: { ...corsHeaders, 'Content-Type': 'application/json' },

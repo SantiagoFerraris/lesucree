@@ -16,15 +16,41 @@ export default function AdminLogin() {
       toast.error('Completá email y contraseña');
       return;
     }
+    if (loading) return;
     setLoading(true);
+
+    // Brute-force throttling (backend-enforced, fails open on errors).
+    const guard = async (action: 'check' | 'fail' | 'reset') => {
+      try {
+        const { data } = await supabase.functions.invoke('admin-login-guard', {
+          body: { action, email: email.trim() },
+        });
+        return data as { allowed?: boolean; error?: string } | null;
+      } catch {
+        return null;
+      }
+    };
+
+    const pre = await guard('check');
+    if (pre && pre.allowed === false) {
+      setLoading(false);
+      toast.error(pre.error || 'Demasiados intentos fallidos. Intentá más tarde.');
+      setPassword('');
+      return;
+    }
+
     const error = await login(email.trim(), password);
     setLoading(false);
     if (error) {
       console.error('Login failed');
-      toast.error(error);
+      const res = await guard('fail');
+      toast.error(res && res.allowed === false ? (res.error || error) : error);
       setPassword('');
+    } else {
+      void guard('reset');
     }
   };
+
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
