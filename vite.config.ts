@@ -20,7 +20,11 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     cssCodeSplit: true,
+    // Avoids Vite injecting an inline polyfill <script> into index.html,
+    // which would be blocked by the hash-based CSP (no 'unsafe-inline').
+    modulePreload: { polyfill: false },
     target: "es2020",
+
     rollupOptions: {
       output: {
         manualChunks: {
