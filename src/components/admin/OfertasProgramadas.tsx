@@ -415,16 +415,17 @@ export default function OfertasProgramadas() {
 
       {/* Form modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-bold text-espresso">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4" onClick={closeForm}>
+          <div className="admin-modal relative bg-white rounded-2xl max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <button type="button" onClick={closeForm} aria-label="Cerrar" className="admin-modal-close">
+              <X size={18} />
+            </button>
+            <div className="mb-4">
+              <h3 className="admin-modal-title font-display font-bold text-espresso pr-8">
                 {editing ? 'Editar promoción' : 'Nueva promoción'}
               </h3>
-              <button onClick={closeForm} className="p-1 text-warm-gray hover:text-espresso">
-                <X size={18} />
-              </button>
             </div>
+
 
             <form
               onSubmit={e => { e.preventDefault(); saveMutation.mutate(); }}
