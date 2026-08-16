@@ -399,3 +399,19 @@ body {
 @media (max-width: 640px) {
   .admin-modal { padding: 1rem; }
 }
+
+/* Radix DialogContent close button inside admin modals — match .admin-modal-close */
+.admin-modal > button.absolute.right-4 {
+  top: 0.875rem;
+  right: 0.875rem;
+  opacity: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  color: hsl(var(--muted-foreground, 25 10% 45%));
+}
+.admin-modal > button.absolute.right-4:hover { background-color: rgba(0,0,0,.05); }
+.admin-modal > button.absolute.right-4 svg { width: 1.125rem; height: 1.125rem; }
