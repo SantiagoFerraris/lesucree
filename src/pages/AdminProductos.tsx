@@ -747,10 +747,13 @@ export default function AdminProductos() {
 
       {/* Form modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="font-display text-xl font-bold text-espresso">{editing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 backdrop-blur-sm animate-fade-in p-4" onClick={closeForm}>
+          <div className="admin-modal relative bg-white rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <button type="button" onClick={closeForm} aria-label="Cerrar" className="admin-modal-close">
+              <X size={18} />
+            </button>
+            <h3 className="admin-modal-title font-display font-bold text-espresso pr-8">{editing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
                 <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Nombre *</label>
                 <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputClass} maxLength={200} />
