@@ -183,9 +183,9 @@ export default function ManualOrderModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) resetForm(); onOpenChange(v); }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="admin-modal max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl text-[#3B2617]">Nuevo Pedido Manual</DialogTitle>
+          <DialogTitle className="admin-modal-title font-display text-[#3B2617]">Nuevo Pedido Manual</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={e => { e.preventDefault(); insertOrder.mutate(); }} className="space-y-5">
