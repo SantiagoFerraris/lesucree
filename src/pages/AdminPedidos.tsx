@@ -1,8 +1,8 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload, Wallet } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
-import ExcelImportModal from '@/components/admin/ExcelImportModal';
+const ExcelImportModal = lazy(() => import('@/components/admin/ExcelImportModal'));
 import PagosPedidoAdmin from '@/components/admin/PagosPedidoAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -874,7 +874,9 @@ export default function AdminPedidos() {
       )}
 
       <ManualOrderModal open={showManualOrder} onOpenChange={setShowManualOrder} />
-      <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={countsData || []} />
+      <Suspense fallback={null}>
+        <ExcelImportModal open={showExcelImport} onOpenChange={setShowExcelImport} existingOrders={countsData || []} />
+      </Suspense>
       {paymentOrder && (
         <PagosPedidoAdmin order={paymentOrder} open={!!paymentOrder} onOpenChange={(v) => !v && setPaymentOrder(null)} />
       )}
