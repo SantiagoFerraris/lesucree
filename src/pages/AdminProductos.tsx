@@ -11,6 +11,33 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import type { Tables } from '@/integrations/supabase/types';
 import { PRODUCT_STATUS_VALUES, PRODUCT_STATUS_LABELS, PRODUCT_STATUS_BEHAVIOR, getProductStatus, type ProductStatus } from '@/lib/productStatus';
 import { useDebounce } from '@/hooks/useDebounce';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function sortByField<T>(list: T[], field: 'sort_order' | 'global_sort_order'): T[] {
+  return [...list].sort((a: any, b: any) => {
+    const sa = a[field] ?? Number.MAX_SAFE_INTEGER;
+    const sb = b[field] ?? Number.MAX_SAFE_INTEGER;
+    if (sa !== sb) return sa - sb;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+}
+
+function SortableRow({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <tr
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : undefined, position: 'relative', zIndex: isDragging ? 10 : undefined }}
+      className={`${className ?? ''} cursor-grab`}
+      {...attributes}
+      {...listeners}
+    >
+      {children}
+    </tr>
+  );
+}
 
 interface VariantForm { id?: string; label: string; price: string; sort_order: number; }
 interface ProductFormData {
@@ -223,12 +250,13 @@ export default function AdminProductos() {
   });
 
   const reorderMutation = useMutation({
-    mutationFn: async ({ a, b }: { a: { id: string; sort_order: number }; b: { id: string; sort_order: number } }) => {
-      // Swap sort_order values between two products in the same category
-      const { error: e1 } = await supabase.from('products').update({ sort_order: b.sort_order } as any).eq('id', a.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase.from('products').update({ sort_order: a.sort_order } as any).eq('id', b.id);
-      if (e2) throw e2;
+    mutationFn: async ({ ids, field }: { ids: string[]; field: 'sort_order' | 'global_sort_order' }) => {
+      // Renumber the full list of the active view (10, 20, 30...) on the given field only
+      const results = await Promise.all(ids.map((id, i) =>
+        supabase.from('products').update({ [field]: (i + 1) * 10 } as any).eq('id', id)
+      ));
+      const failed = results.find(r => r.error);
+      if (failed?.error) throw failed.error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-products'] });
@@ -302,11 +330,11 @@ export default function AdminProductos() {
     }));
   };
 
-  const filtered = products?.filter(p => {
+  const filtered = products ? sortByField(products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchCat = categoryFilter === 'todos' || p.category === categoryFilter;
     return matchSearch && matchCat;
-  });
+  }), categoryFilter === 'todos' ? 'global_sort_order' : 'sort_order') : undefined;
   const activeCount = products?.filter(p => p.active).length ?? 0;
   const inactiveCount = (products?.length ?? 0) - activeCount;
   const totalPages = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
@@ -397,8 +425,15 @@ export default function AdminProductos() {
     return map;
   }, [products]);
 
+  // List used for reordering in the active view: whole catalog (global_sort_order) for "Todos",
+  // otherwise the products of the selected category (sort_order).
+  const viewList = useMemo(() => {
+    if (categoryFilter === 'todos') return sortByField(products || [], 'global_sort_order');
+    return categorySortedProducts.get(categoryFilter) || [];
+  }, [products, categoryFilter, categorySortedProducts]);
+
   const getCategoryNeighbor = (p: Tables<'products'>, dir: -1 | 1): Tables<'products'> | null => {
-    const list = categorySortedProducts.get(p.category) || [];
+    const list = categoryFilter === 'todos' ? viewList : (categorySortedProducts.get(p.category) || []);
     const idx = list.findIndex(x => x.id === p.id);
     if (idx === -1) return null;
     const j = idx + dir;
@@ -406,17 +441,31 @@ export default function AdminProductos() {
     return list[j];
   };
 
+  const persistOrder = (ids: string[]) => {
+    reorderMutation.mutate({ ids, field: categoryFilter === 'todos' ? 'global_sort_order' : 'sort_order' });
+  };
+
   const handleMove = (p: Tables<'products'>, dir: -1 | 1) => {
-    const neighbor = getCategoryNeighbor(p, dir);
-    if (!neighbor) return;
-    let aSo = (p as any).sort_order ?? 0;
-    let bSo = (neighbor as any).sort_order ?? 0;
-    // If both share the same sort_order (e.g. legacy zeros), assign deterministic distinct values
-    // so the swap produces the intended ordering. dir=-1 means p moves up (lower number).
-    if (aSo === bSo) {
-      if (dir === -1) { aSo = 20; bSo = 10; } else { aSo = 10; bSo = 20; }
-    }
-    reorderMutation.mutate({ a: { id: p.id, sort_order: aSo }, b: { id: neighbor.id, sort_order: bSo } });
+    const ids = viewList.map(x => x.id);
+    const from = ids.indexOf(p.id);
+    const to = from + dir;
+    if (from === -1 || to < 0 || to >= ids.length) return;
+    persistOrder(arrayMove(ids, from, to));
+  };
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const ids = viewList.map(x => x.id);
+    const from = ids.indexOf(String(active.id));
+    const to = ids.indexOf(String(over.id));
+    if (from === -1 || to === -1) return;
+    persistOrder(arrayMove(ids, from, to));
   };
 
   const exportProductsCSV = () => {
@@ -562,11 +611,13 @@ export default function AdminProductos() {
                   <th className="py-3">Acciones</th>
                 </tr>
               </thead>
+              <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <tbody>
+                <SortableContext items={visibleIds} strategy={verticalListSortingStrategy}>
                 {paginated?.map((p, i) => {
                   const vars = getVariants(p.id);
                   return (
-                    <tr key={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'} ${selectedIds.has(p.id) ? 'bg-blush/40' : ''}`}>
+                    <SortableRow key={p.id} id={p.id} className={`border-b ${i % 2 === 0 ? 'bg-white' : 'bg-cream/50'} ${selectedIds.has(p.id) ? 'bg-blush/40' : ''}`}>
                       <td className="py-3 pr-3 w-8">
                         <input
                           type="checkbox"
@@ -673,10 +724,12 @@ export default function AdminProductos() {
                           </DropdownMenu>
                         </div>
                       </td>
-                    </tr>
+                    </SortableRow>
                   );
                 })}
+                </SortableContext>
               </tbody>
+              </DndContext>
             </table>
           </div>
           {totalPages > 1 && (

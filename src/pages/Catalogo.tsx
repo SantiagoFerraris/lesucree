@@ -46,7 +46,7 @@ export default function Catalogo() {
         .neq('status', 'oculto')
         .or(`visible_from.is.null,visible_from.lte.${nowIso}`)
         .or(`visible_until.is.null,visible_until.gte.${nowIso}`)
-        .order('sort_order', { ascending: true })
+        .order(category === 'todos' ? 'global_sort_order' : 'sort_order', { ascending: true, nullsFirst: false } as any)
         .order('created_at', { ascending: true })
         .limit(200);
       if (category !== 'todos') q = q.eq('category', category);
