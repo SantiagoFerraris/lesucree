@@ -96,10 +96,15 @@ export default function Catalogo() {
     const filtered = term ? list.filter(p => (p.name ?? '').toLowerCase().includes(term)) : list;
     if (sortBy === 'recommended') return filtered;
     const sorted = [...filtered];
-    if (sortBy === 'price_desc') sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-    else if (sortBy === 'price_asc') sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-    else sorted.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es', { sensitivity: 'base' }));
-    return sorted;
+    if (sortBy === 'name_asc') {
+      sorted.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es', { sensitivity: 'base' }));
+      return sorted;
+    }
+    // Products without a fixed price (personalizables) always go last.
+    const priced = sorted.filter(p => p.price != null);
+    const unpriced = sorted.filter(p => p.price == null);
+    priced.sort((a, b) => (sortBy === 'price_desc' ? (b.price ?? 0) - (a.price ?? 0) : (a.price ?? 0) - (b.price ?? 0)));
+    return [...priced, ...unpriced];
   }, [sortedProducts, debouncedSearch, sortBy]);
 
   const totalPages = Math.ceil((displayProducts?.length || 0) / ITEMS_PER_PAGE);
