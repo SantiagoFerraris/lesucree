@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw, Filter, ChevronDown, X } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw, Filter, ChevronDown, X, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
@@ -9,6 +9,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useActivePromotions } from '@/hooks/useActivePromotions';
+import { useDebounce } from '@/hooks/useDebounce';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface Variant { id: string; label: string; price: number; sort_order: number; product_id: string; }
@@ -25,6 +26,9 @@ export default function Catalogo() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [chipsExpanded, setChipsExpanded] = useState(false);
   const [overflowCount, setOverflowCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'recommended' | 'price_desc' | 'price_asc' | 'name_asc'>('recommended');
+  const debouncedSearch = useDebounce(search, 200);
   const reveal = useScrollReveal();
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
