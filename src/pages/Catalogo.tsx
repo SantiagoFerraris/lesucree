@@ -85,8 +85,25 @@ export default function Catalogo() {
     return [...promoted, ...regular];
   }, [products, category, promosMap]);
 
-  const totalPages = Math.ceil((sortedProducts?.length || 0) / ITEMS_PER_PAGE);
-  const paginatedProducts = sortedProducts?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  // Client-side search + sort on the already-fetched array. "recommended" keeps
+  // the exact database order used for the active view (global_sort_order for
+  // "Todos", sort_order for a specific category), including the promo-first
+  // reordering above. Array#sort is stable, so ties keep the recommended order.
+  const displayProducts = useMemo(() => {
+    const list = sortedProducts;
+    if (!list) return list;
+    const term = debouncedSearch.trim().toLowerCase();
+    const filtered = term ? list.filter(p => (p.name ?? '').toLowerCase().includes(term)) : list;
+    if (sortBy === 'recommended') return filtered;
+    const sorted = [...filtered];
+    if (sortBy === 'price_desc') sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    else if (sortBy === 'price_asc') sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    else sorted.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es', { sensitivity: 'base' }));
+    return sorted;
+  }, [sortedProducts, debouncedSearch, sortBy]);
+
+  const totalPages = Math.ceil((displayProducts?.length || 0) / ITEMS_PER_PAGE);
+  const paginatedProducts = displayProducts?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const goToPage = (p: number) => {
     setPage(p);
@@ -208,6 +225,46 @@ export default function Catalogo() {
             </div>
           )}
 
+          {/* Client-side search + sort (combines with the active category filter) */}
+          {!isLoading && !isError && (products?.length ?? 0) > 0 && (
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative flex-1 sm:max-w-sm">
+                <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-dusty-pink pointer-events-none" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  placeholder="Buscar producto..."
+                  aria-label="Buscar producto"
+                  className="w-full rounded-full border border-dusty-pink/40 bg-white py-2.5 pl-11 pr-9 text-sm text-espresso placeholder:text-warm-gray/70 transition-colors focus:border-dusty-pink focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+                />
+                {search && (
+                  <button
+                    onClick={() => { setSearch(''); setPage(1); }}
+                    aria-label="Limpiar búsqueda"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-warm-gray hover:text-espresso active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-dusty-pink focus-visible:outline-none rounded-full"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <div className="relative sm:ml-auto">
+                <select
+                  value={sortBy}
+                  onChange={e => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}
+                  aria-label="Ordenar productos"
+                  className="w-full sm:w-auto appearance-none rounded-full border border-dusty-pink/40 bg-white py-2.5 pl-5 pr-10 text-xs sm:text-sm font-semibold uppercase tracking-[0.06em] text-espresso transition-colors focus:border-dusty-pink focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+                >
+                  <option value="recommended">Orden recomendado</option>
+                  <option value="price_desc">Precio: mayor a menor</option>
+                  <option value="price_asc">Precio: menor a mayor</option>
+                  <option value="name_asc">Nombre: A-Z</option>
+                </select>
+                <ChevronDown size={15} className="absolute right-4 top-1/2 -translate-y-1/2 text-dusty-pink pointer-events-none" aria-hidden="true" />
+              </div>
+            </div>
+          )}
+
           <div ref={gridRef}>
             <div ref={reveal.ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
               {isLoading && Array.from({ length: 6 }).map((_, i) => (
@@ -265,6 +322,23 @@ export default function Catalogo() {
               >
                 <RefreshCw size={16} /> Reintentar
               </button>
+            </div>
+          )}
+
+          {!isLoading && !isError && (products?.length ?? 0) > 0 && (displayProducts?.length ?? 0) === 0 && (
+            <div className="text-center py-20">
+              <Search size={48} className="mx-auto text-warm-gray/30 mb-4" />
+              <p className="text-warm-gray text-lg font-display font-bold text-espresso">No encontramos productos con ese nombre</p>
+              <p className="text-warm-gray mt-2 text-sm">
+                Probá con otra palabra o{' '}
+                <button
+                  onClick={() => { setSearch(''); setPage(1); }}
+                  className="font-semibold text-dusty-pink underline underline-offset-2 hover:text-mauve transition-colors"
+                >
+                  ver todos los productos
+                </button>
+                .
+              </p>
             </div>
           )}
 
