@@ -583,6 +583,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           featured: boolean | null
+          global_sort_order: number | null
           id: string
           image_url: string | null
           is_customizable: boolean | null
@@ -602,6 +603,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          global_sort_order?: number | null
           id?: string
           image_url?: string | null
           is_customizable?: boolean | null
@@ -621,6 +623,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          global_sort_order?: number | null
           id?: string
           image_url?: string | null
           is_customizable?: boolean | null
