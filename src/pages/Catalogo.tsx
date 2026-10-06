@@ -100,9 +100,10 @@ export default function Catalogo() {
       sorted.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'es', { sensitivity: 'base' }));
       return sorted;
     }
-    // Products without a fixed price (personalizables) always go last.
-    const priced = sorted.filter(p => p.price != null);
-    const unpriced = sorted.filter(p => p.price == null);
+    // Products without a fixed price (personalizables: null or 0) always go last.
+    const hasPrice = (p: Tables<'products'>) => p.price != null && p.price > 0;
+    const priced = sorted.filter(hasPrice);
+    const unpriced = sorted.filter(p => !hasPrice(p));
     priced.sort((a, b) => (sortBy === 'price_desc' ? (b.price ?? 0) - (a.price ?? 0) : (a.price ?? 0) - (b.price ?? 0)));
     return [...priced, ...unpriced];
   }, [sortedProducts, debouncedSearch, sortBy]);
