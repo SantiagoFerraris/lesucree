@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toCsv } from '@/lib/csv';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Download, ChevronDown, ChevronUp, Users, Trash2, MessageCircle, TrendingUp, DollarSign, UserCheck, Crown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -139,7 +140,7 @@ export default function AdminClientes() {
     if (!filtered.length) return;
     const headers = ['Nombre', 'Email', 'Teléfono', 'Total Pedidos', 'Total Gastado', 'Último Pedido', 'Segmento'];
     const rows = filtered.map(c => [c.name, c.email, c.phone, c.orders.length, c.totalSpent, formatDate(c.lastOrder), SEGMENT_LABELS[getSegment(c)]]);
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = toCsv([headers, ...rows]);
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `clientes_${new Date().toISOString().split('T')[0]}.csv`; a.click();

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
+import { toCsv } from '@/lib/csv';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, ChevronDown, ChevronUp, Download, MessageCircle, ShoppingBag, Trash2, ArrowUpDown, Check, Plus, Upload, Wallet } from 'lucide-react';
 import ManualOrderModal from '@/components/admin/ManualOrderModal';
@@ -359,7 +360,7 @@ export default function AdminPedidos() {
       PAYMENT_LABELS[o.payment_status] || 'Pendiente',
       o.notes || '',
     ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = toCsv([headers, ...rows]);
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
