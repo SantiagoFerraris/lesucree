@@ -221,7 +221,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Zumbita personal coupon: must match phone or email of the original requester
+      // Zumbita personal coupon: must match BOTH phone and email of the original requester
       if (coupon.zumbita_request_id) {
         const { data: zReq } = await supabaseAdmin
           .from('zumbita_discount_requests')
@@ -230,11 +230,12 @@ Deno.serve(async (req) => {
           .maybeSingle();
         const phoneIn = normalizePhone(customerPhone);
         const reqPhone = normalizePhone(zReq?.whatsapp);
-        const emailIn = (customerEmail || '').toLowerCase();
-        const reqEmail = (zReq?.email || '').toLowerCase();
-        const phoneMatches = !!(phoneIn && reqPhone && (phoneIn === reqPhone || phoneIn.endsWith(reqPhone) || reqPhone.endsWith(phoneIn)));
+        const emailIn = (customerEmail || '').trim().toLowerCase();
+        const reqEmail = (zReq?.email || '').trim().toLowerCase();
+        const shorter = Math.min(phoneIn?.length ?? 0, reqPhone?.length ?? 0);
+        const phoneMatches = !!(phoneIn && reqPhone && (phoneIn === reqPhone || (shorter >= 8 && (phoneIn.endsWith(reqPhone) || reqPhone.endsWith(phoneIn)))));
         const emailMatches = !!(emailIn && reqEmail && emailIn === reqEmail);
-        if (!phoneMatches && !emailMatches) {
+        if (!phoneMatches || !emailMatches) {
           return new Response(JSON.stringify({ error: 'Este cupón es personal y no coincide con tus datos' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
