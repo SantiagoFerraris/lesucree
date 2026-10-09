@@ -256,17 +256,17 @@ export default function Catalogo() {
               </div>
               <div className="relative sm:ml-auto">
                 <select
-                  value={sortBy}
-                  onChange={e => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}
+                  value={sortBy === 'recommended' ? '' : sortBy}
+                  onChange={e => { setSortBy(e.target.value === '' ? 'recommended' : e.target.value as typeof sortBy); setPage(1); }}
                   aria-label="Ordenar productos"
-                  className="w-full sm:w-auto appearance-none rounded-full border border-dusty-pink/40 bg-white py-2.5 pl-5 pr-10 text-xs sm:text-sm font-semibold uppercase tracking-[0.06em] text-espresso transition-colors focus:border-dusty-pink focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+                  className={`w-full sm:w-auto appearance-none rounded-full border border-warm-gray/30 bg-white py-2.5 pl-5 pr-10 text-xs sm:text-sm font-normal normal-case tracking-normal transition-colors focus:border-dusty-pink focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 ${sortBy === 'recommended' ? 'text-warm-gray' : 'text-espresso'}`}
                 >
-                  <option value="recommended">Orden recomendado</option>
-                  <option value="price_desc">Precio: mayor a menor</option>
-                  <option value="price_asc">Precio: menor a mayor</option>
-                  <option value="name_asc">Nombre: A-Z</option>
+                  <option value="" disabled hidden>Ordenar por</option>
+                  <option value="price_asc" className="text-espresso">Precio: menor a mayor</option>
+                  <option value="price_desc" className="text-espresso">Precio: mayor a menor</option>
+                  <option value="name_asc" className="text-espresso">Nombre: A-Z</option>
                 </select>
-                <ChevronDown size={15} className="absolute right-4 top-1/2 -translate-y-1/2 text-dusty-pink pointer-events-none" aria-hidden="true" />
+                <ChevronDown size={15} className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
               </div>
             </div>
           )}
