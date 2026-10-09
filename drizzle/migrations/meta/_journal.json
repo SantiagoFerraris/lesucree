@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791578681533,
+      "tag": "0000_restrict_public_faqs_instagram",
+      "breakpoints": true
+    }
+  ]
+}
