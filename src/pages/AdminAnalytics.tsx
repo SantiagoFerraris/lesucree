@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { toCsv } from '@/lib/csv';
 import { useQuery } from '@tanstack/react-query';
 import { DollarSign, TrendingUp, CheckCircle, ShoppingBag, ArrowUp, ArrowDown, Download, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -394,7 +395,7 @@ function InternalProductsSection({ orders, products, isLoading }: { orders: any[
         ]);
       });
     });
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = toCsv(rows);
     const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

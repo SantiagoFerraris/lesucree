@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toCsv } from '@/lib/csv';
 import { X, Download } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,7 +44,7 @@ export default function ActionHistoryModal({ open, onClose }: Props) {
     if (!actions?.length) return;
     const headers = ['Fecha', 'Tipo', 'Descripción'];
     const rows = actions.map(a => [formatDate(a.created_at), a.action_type, a.description]);
-    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = toCsv([headers, ...rows]);
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `historial_acciones_${new Date().toISOString().split('T')[0]}.csv`; a.click();
