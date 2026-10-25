@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PromoDraftsModal from '@/components/admin/PromoDraftsModal';
-import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock, Copy } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, RefreshCw, Download, AlertTriangle, Settings2, MoreVertical, ArrowUp, ArrowDown, CalendarClock, Copy, GripVertical, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
@@ -14,6 +14,60 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+
+function PositionInput({ name, position, total, disabled, onConfirm }: {
+  name: string; position: number; total: number; disabled: boolean; onConfirm: (position: number) => void;
+}) {
+  return (
+    <input
+      key={position}
+      type="text"
+      inputMode="numeric"
+      aria-label={`Posición de ${name}`}
+      title={`Posición (1–${total})`}
+      defaultValue={position}
+      disabled={disabled}
+      className="w-14 shrink-0 rounded-lg border border-warm-gray/30 bg-background text-center text-sm text-espresso focus:outline-none focus:ring-2 focus:ring-dusty-pink/30 disabled:opacity-50"
+      onPointerDown={e => e.stopPropagation()}
+      onChange={e => {
+        if (!/^-?\d*$/.test(e.target.value)) e.target.value = String(position);
+      }}
+      onKeyDown={e => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+        if (e.key === 'Escape') { e.currentTarget.value = String(position); e.currentTarget.blur(); }
+      }}
+      onBlur={e => {
+        const raw = e.currentTarget.value.trim();
+        const value = Number(raw);
+        e.currentTarget.value = String(position);
+        if (!raw || !Number.isFinite(value) || !Number.isInteger(value) || total < 1) return;
+        const next = Math.max(1, Math.min(total, value));
+        if (next !== position) onConfirm(next);
+      }}
+    />
+  );
+}
+
+function CompactSortableProduct({ product, position, total, disabled, onConfirm }: {
+  product: Tables<'products'>; position: number; total: number; disabled: boolean; onConfirm: (position: number) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id, disabled });
+  return (
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`relative flex items-center gap-3 border-b border-warm-gray/20 bg-background py-2 ${isDragging ? 'z-10 opacity-60' : ''}`}>
+      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 touch-none cursor-grab text-warm-gray"
+        disabled={disabled} aria-label={`Arrastrar ${product.name}`} title="Arrastrar para reordenar" {...attributes} {...listeners}>
+        <GripVertical />
+      </Button>
+      <img src={product.image_url || '/placeholder.svg'} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" loading="lazy" />
+      <span className="min-w-0 flex-1 break-words text-sm text-espresso">{product.name}</span>
+      <PositionInput name={product.name} position={position} total={total} disabled={disabled} onConfirm={onConfirm} />
+    </div>
+  );
+}
 
 function sortByField<T>(list: T[], field: 'sort_order' | 'global_sort_order'): T[] {
   return [...list].sort((a: any, b: any) => {
@@ -93,6 +147,7 @@ export default function AdminProductos() {
   const [page, setPage] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showReorder, setShowReorder] = useState(false);
   const [showPromoDrafts, setShowPromoDrafts] = useState(false);
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -258,8 +313,13 @@ export default function AdminProductos() {
       const failed = results.find(r => r.error);
       if (failed?.error) throw failed.error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    onSuccess: async (_, { ids, field }) => {
+      const positions = new Map(ids.map((id, i) => [id, (i + 1) * 10]));
+      qc.setQueryData<Tables<'products'>[]>(['admin-products'], current => current?.map(product => {
+        const order = positions.get(product.id);
+        return order === undefined ? product : { ...product, [field]: order };
+      }));
+      await qc.invalidateQueries({ queryKey: ['admin-products'] });
     },
     onError: (err: any) => toast.error(`Error al reordenar: ${err?.message || 'Error desconocido'}`),
   });
@@ -442,7 +502,17 @@ export default function AdminProductos() {
   };
 
   const persistOrder = (ids: string[]) => {
+    if (reorderMutation.isPending) return;
     reorderMutation.mutate({ ids, field: categoryFilter === 'todos' ? 'global_sort_order' : 'sort_order' });
+  };
+
+  const positionById = new Map(viewList.map((product, index) => [product.id, index + 1]));
+  const handlePosition = (id: string, position: number) => {
+    const ids = viewList.map(product => product.id);
+    const from = ids.indexOf(id);
+    if (from < 0 || ids.length === 0 || !Number.isInteger(position)) return;
+    const to = Math.max(0, Math.min(ids.length - 1, position - 1));
+    if (from !== to) persistOrder(arrayMove(ids, from, to));
   };
 
   const handleMove = (p: Tables<'products'>, dir: -1 | 1) => {
@@ -503,6 +573,10 @@ export default function AdminProductos() {
           <button onClick={() => setShowCategoryManager(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
             <Settings2 size={16} /> Categorías
           </button>
+          <Button variant="outline" onClick={() => setShowReorder(true)} disabled={isLoading || viewList.length === 0}
+            className="h-auto rounded-full border-espresso bg-transparent px-4 py-2 text-sm font-semibold text-espresso hover:bg-espresso/10 hover:text-espresso">
+            <ArrowUpDown size={16} /> Reordenar
+          </Button>
           {(promoDraftCount ?? 0) > 0 && (
             <button onClick={() => setShowPromoDrafts(true)} className="flex items-center gap-2 rounded-full border border-espresso text-espresso px-4 py-2 text-sm font-semibold hover:bg-espresso/10 transition-colors">
               📋 Borradores de promos ({promoDraftCount})
@@ -515,8 +589,8 @@ export default function AdminProductos() {
       </div>
 
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-        <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
+        <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-warm-gray" />
+        <input placeholder="Buscar productos..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white !pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
 
       {/* Category filter pills */}
@@ -701,6 +775,8 @@ export default function AdminProductos() {
                       </td>
                       <td className="py-3">
                         <div className="flex items-center gap-1">
+                          <PositionInput name={p.name} position={positionById.get(p.id) ?? 1} total={viewList.length}
+                            disabled={reorderMutation.isPending} onConfirm={position => handlePosition(p.id, position)} />
                           {(() => {
                             const canUp = !!getCategoryNeighbor(p, -1);
                             const canDown = !!getCategoryNeighbor(p, 1);
@@ -741,6 +817,24 @@ export default function AdminProductos() {
           )}
         </>
       )}
+
+      <Dialog open={showReorder} onOpenChange={setShowReorder}>
+        <DialogContent aria-describedby={undefined} className="admin-scope admin-modal flex max-h-[85vh] w-[calc(100%-2rem)] max-w-lg flex-col rounded-lg bg-background">
+          <DialogTitle className="admin-modal-title shrink-0 pr-8 font-display font-bold text-espresso">
+            Reordenar · {categoryFilter === 'todos' ? 'Todos' : (categoryLabels[categoryFilter] || categoryFilter)}
+          </DialogTitle>
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-busy={reorderMutation.isPending}>
+              <SortableContext items={viewList.map(product => product.id)} strategy={verticalListSortingStrategy}>
+                {viewList.map((product, index) => (
+                  <CompactSortableProduct key={product.id} product={product} position={index + 1} total={viewList.length}
+                    disabled={reorderMutation.isPending} onConfirm={position => handlePosition(product.id, position)} />
+                ))}
+              </SortableContext>
+            </div>
+          </DndContext>
+        </DialogContent>
+      </Dialog>
 
       {/* Bulk change category */}
       {bulkCategoryOpen && (

@@ -96,9 +96,9 @@ export default function AdminMensajes() {
       {unreadCount > 0 && <p className="text-xs text-warm-gray mb-4">{unreadCount} sin leer</p>}
 
       <div className="relative mb-3">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+        <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-warm-gray" />
         <input placeholder="Buscar por nombre o email..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
-          className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
+          className="w-full sm:w-80 rounded-lg border border-gray-200 bg-white !pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30" />
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">

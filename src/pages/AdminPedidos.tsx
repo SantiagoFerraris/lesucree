@@ -429,12 +429,12 @@ export default function AdminPedidos() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 mb-3">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+          <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-warm-gray" />
           <input
             placeholder="Buscar por nombre, ID o producto..."
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(0); setSelected(new Set()); }}
-            className="w-full sm:w-64 rounded-lg border border-[#E8DDD4] bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
+            className="w-full sm:w-64 rounded-lg border border-[#E8DDD4] bg-white !pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-dusty-pink/30"
           />
         </div>
         <select
