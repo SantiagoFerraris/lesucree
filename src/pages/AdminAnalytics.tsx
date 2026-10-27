@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { DollarSign, TrendingUp, CheckCircle, ShoppingBag, ArrowUp, ArrowDown, Download, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatPrice';
+import { fetchAll } from '@/lib/fetchAll';
+import { toArgentinaDate } from '@/lib/argentinaTimezone';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -42,14 +44,12 @@ export default function AdminAnalytics() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-analytics-orders', period],
     queryFn: async () => {
-      let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
-      if (period > 0) {
-        const periodStart = new Date(Date.now() - period * 86400000).toISOString();
-        query = query.gte('created_at', periodStart);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as any[];
+      const periodStart = period > 0 ? new Date(Date.now() - period * 86400000).toISOString() : null;
+      return fetchAll<any>(() => {
+        let query = supabase.from('orders').select('*').order('created_at', { ascending: false }).order('id');
+        if (periodStart) query = query.gte('created_at', periodStart);
+        return query;
+      });
     },
   });
 
@@ -92,8 +92,8 @@ export default function AdminAnalytics() {
     const days = period > 0 ? period : 90;
     return Array.from({ length: Math.min(days, 60) }, (_, i) => {
       const d = new Date(now); d.setDate(d.getDate() - (days - 1 - i));
-      const dateStr = d.toISOString().split('T')[0];
-      const rev = periodOrders.filter(o => o.created_at?.startsWith(dateStr)).reduce((s, o) => s + Number(o.total), 0);
+      const dateStr = toArgentinaDate(d);
+      const rev = periodOrders.filter(o => o.created_at && toArgentinaDate(o.created_at) === dateStr).reduce((s, o) => s + Number(o.total), 0);
       return { date: d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }), ingresos: rev };
     });
   }, [periodOrders, period]);
@@ -344,8 +344,8 @@ function InternalProductsSection({ orders, products, isLoading }: { orders: any[
     const days = period > 0 ? period : 90;
     return Array.from({ length: Math.min(days, 60) }, (_, i) => {
       const d = new Date(now); d.setDate(d.getDate() - (days - 1 - i));
-      const dateStr = d.toISOString().split('T')[0];
-      const rev = internalOrders.filter(o => o.created_at?.startsWith(dateStr)).reduce((s, o) => {
+      const dateStr = toArgentinaDate(d);
+      const rev = internalOrders.filter(o => o.created_at && toArgentinaDate(o.created_at) === dateStr).reduce((s, o) => {
         const lineSum = o._internalItems.reduce((acc: number, it: any) => acc + Number(it.price || it.unitPrice || 0) * (it.quantity || 1), 0);
         if (lineSum > 0) return s + lineSum;
         const totalItems = (o.items as any[] || []).length;

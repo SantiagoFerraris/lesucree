@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchAll } from '@/lib/fetchAll';
 import { runFullAnalysis } from '@/lib/businessAdvisor';
 import type { BusinessInsight, AnalysisContext } from '@/types/advisor';
 
@@ -26,7 +27,7 @@ export function useBusinessAdvisor() {
     const start = Date.now();
     try {
       const [ordersRes, productsRes, variantsRes, messagesRes] = await Promise.all([
-        supabase.from('orders').select('*'),
+        fetchAll(() => supabase.from('orders').select('*').order('id')).then(data => ({ data })),
         supabase.from('products').select('*'),
         supabase.from('product_variants').select('*'),
         supabase.from('contact_messages').select('*'),
