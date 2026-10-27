@@ -45,9 +45,9 @@ Deno.serve(async (req) => {
     const customerEmail = (rawEmail && rawEmail.trim()) ? rawEmail.trim() : null;
     const rateLimitId = customerEmail || normalizePhone(customerPhone) || 'anon';
 
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + 2);
-    minDate.setHours(0, 0, 0, 0);
+    const baFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' });
+    const [baY, baM, baD] = baFormatter.format(new Date()).split('-').map(Number);
+    const minDate = new Date(baY, baM - 1, baD + 2);
     const requestedDate = new Date(desiredDate + 'T00:00:00');
     if (requestedDate < minDate) {
       return new Response(JSON.stringify({ error: 'Desired date must be at least 2 days from now' }), {
@@ -126,7 +126,6 @@ Deno.serve(async (req) => {
       .in('product_id', productIds);
 
     const productsWithPromo = new Set<string>();
-    const promoFinalPriceMap = new Map<string, number>(); // productId -> best promo price
     (activePromoLinks || []).forEach((link: any) => {
       const promos: any[] = Array.isArray(link.promotions) ? link.promotions : [link.promotions];
       promos.forEach((promo: any) => {
@@ -325,8 +324,6 @@ Deno.serve(async (req) => {
       if (depositPercentage < minPct) depositPercentage = minPct;
       if (depositPercentage > maxPct) depositPercentage = maxPct;
     } catch { /* defaults */ }
-    const depositAmount = Math.round(finalTotal * (depositPercentage / 100));
-
     const orderId = crypto.randomUUID();
     const { error: insertError } = await supabaseAdmin.from('orders').insert({
       id: orderId,
