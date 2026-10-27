@@ -10,7 +10,7 @@ const norm = (s?: string | null) => (s || '').trim().toLowerCase();
 const normPhone = (s?: string | null) => (s || '').replace(/\D/g, '');
 
 /**
- * Groups orders by real customer: name → phone → non-generic email → unique fallback.
+ * Groups orders by real customer: normalized phone → non-generic email → name → unique fallback.
  */
 export function getCustomerKey(o: {
   id?: string | number;
@@ -18,11 +18,11 @@ export function getCustomerKey(o: {
   customer_phone?: string | null;
   customer_email?: string | null;
 }): string {
-  const n = norm(o.customer_name);
-  if (n) return `name:${n}`;
   const p = normPhone(o.customer_phone);
   if (p) return `phone:${p}`;
   const e = norm(cleanEmail(o.customer_email));
   if (e) return `email:${e}`;
+  const n = norm(o.customer_name);
+  if (n) return `name:${n}`;
   return `unknown:${o.id}`;
 }

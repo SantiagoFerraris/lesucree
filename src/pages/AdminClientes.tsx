@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getCustomerKey, cleanEmail } from '@/lib/customerKey';
+import { fetchAll } from '@/lib/fetchAll';
 
 const PAGE_SIZE = 10;
 
@@ -53,7 +54,7 @@ export default function AdminClientes() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [deleteTarget, setDeleteTarget] = useState<{ keys: string[]; emails: string[]; names: string[] } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ keys: string[]; emails: string[]; names: string[]; orderIds: string[] } | null>(null);
   const [groupModal, setGroupModal] = useState(false);
   const [groupMessage, setGroupMessage] = useState('');
   const [groupTemplate, setGroupTemplate] = useState('custom');
@@ -62,9 +63,7 @@ export default function AdminClientes() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['admin-customers-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as any[];
+      return fetchAll<any>(() => supabase.from('orders').select('*').order('created_at', { ascending: false }).order('id'));
     },
   });
 
@@ -148,14 +147,10 @@ export default function AdminClientes() {
   };
 
   const deleteCustomers = useMutation({
-    mutationFn: async (keys: { email: string; name: string }[]) => {
-      for (const k of keys) {
-        if (k.email) {
-          await supabase.from('orders').delete().eq('customer_email', k.email);
-          await supabase.from('contact_messages').delete().eq('email', k.email);
-        } else {
-          await supabase.from('orders').delete().eq('customer_name', k.name).eq('customer_email', '');
-        }
+    mutationFn: async (orderIds: string[]) => {
+      for (let i = 0; i < orderIds.length; i += 200) {
+        const { error } = await supabase.from('orders').delete().in('id', orderIds.slice(i, i + 200));
+        if (error) throw error;
       }
     },
     onSuccess: () => {
@@ -169,13 +164,13 @@ export default function AdminClientes() {
   const clientKey = (c: { email: string; name: string; phone: string }) => c.name || c.phone || c.email;
   const handleDeleteClick = (customer: typeof customers[0]) => {
     const key = clientKey(customer);
-    setDeleteTarget({ keys: [key], emails: [customer.email], names: [customer.name] });
+    setDeleteTarget({ keys: [key], emails: [customer.email], names: [customer.name], orderIds: customer.orders.map(o => o.id) });
   };
   const handleBulkDelete = () => {
     const targets = filtered.filter(c => selected.has(clientKey(c)));
-    setDeleteTarget({ keys: targets.map(c => clientKey(c)), emails: targets.map(c => c.email), names: targets.map(c => c.name) });
+    setDeleteTarget({ keys: targets.map(c => clientKey(c)), emails: targets.map(c => c.email), names: targets.map(c => c.name), orderIds: targets.flatMap(c => c.orders.map(o => o.id)) });
   };
-  const confirmDelete = () => { if (deleteTarget) deleteCustomers.mutate(deleteTarget.emails.map((e, i) => ({ email: e, name: deleteTarget.names[i] }))); };
+  const confirmDelete = () => { if (deleteTarget) deleteCustomers.mutate(deleteTarget.orderIds); };
   const toggleSelect = (key: string) => { setSelected(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; }); };
   const toggleSelectAll = () => { if (selected.size === paginated.length) setSelected(new Set()); else setSelected(new Set(paginated.map(c => clientKey(c)))); };
   const allPageSelected = paginated.length > 0 && paginated.every(c => selected.has(clientKey(c)));
@@ -426,8 +421,8 @@ export default function AdminClientes() {
             <AlertDialogTitle>{deleteTarget && deleteTarget.keys.length === 1 ? '¿Eliminar este cliente?' : `¿Eliminar ${deleteTarget?.keys.length} clientes?`}</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget && deleteTarget.keys.length === 1
-                ? `Se eliminará permanentemente a "${deleteTarget.names[0]}" y todos sus pedidos y mensajes asociados. Esta acción no se puede deshacer.`
-                : `Se eliminarán permanentemente ${deleteTarget?.keys.length} clientes y todos sus pedidos y mensajes asociados. Esta acción no se puede deshacer.`}
+                ? `Se eliminará permanentemente a "${deleteTarget.names[0]}" y sus ${deleteTarget.orderIds.length} pedido(s). Esta acción no se puede deshacer.`
+                : `Se eliminarán permanentemente ${deleteTarget?.keys.length} clientes y sus ${deleteTarget?.orderIds.length ?? 0} pedido(s). Esta acción no se puede deshacer.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
