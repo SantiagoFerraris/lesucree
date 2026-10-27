@@ -12,15 +12,16 @@ import ProductImage from '@/components/ProductImage';
 import SectionDivider from '@/components/SectionDivider';
 import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
+import { getTodayArgentina } from '@/lib/argentinaTimezone';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
 
 const PHONE_REGEX = /^[\d\s\-+()]{7,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function getMinDate() {
-    const d = new Date();
-    d.setDate(d.getDate() + 2);
-    return d.toISOString().split('T')[0];
+    const [y, m, d] = getTodayArgentina().split('-').map(Number);
+    const min = new Date(y, m - 1, d + 2);
+    return `${min.getFullYear()}-${String(min.getMonth() + 1).padStart(2, '0')}-${String(min.getDate()).padStart(2, '0')}`;
 }
 
 /** Parse business_hours string like "Mañana: 9:00 - 12:00 / Tarde: 12:00 - 18:00" into select options */
