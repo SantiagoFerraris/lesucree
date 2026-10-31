@@ -60,6 +60,25 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Date availability: blocked dates and daily capacity (dates are Argentina calendar days)
+    const { data: blocked } = await supabaseAdmin.from('blocked_dates').select('reason').eq('date', desiredDate).maybeSingle();
+    if (blocked) {
+      return new Response(JSON.stringify({ error: `No tomamos pedidos para esa fecha${blocked.reason ? ` (${blocked.reason})` : ''}. Elegí otro día, por favor.` }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: maxSetting } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'max_orders_per_day').maybeSingle();
+    const maxPerDay = /^\d+$/.test((maxSetting?.value || '').trim()) ? Number(maxSetting!.value!.trim()) : null;
+    if (maxPerDay !== null) {
+      const { count: dayCount } = await supabaseAdmin.from('orders').select('id', { count: 'exact', head: true })
+        .eq('desired_date', desiredDate).neq('status', 'cancelled');
+      if ((dayCount ?? 0) >= maxPerDay) {
+        return new Response(JSON.stringify({ error: 'Ya no tenemos lugar para pedidos en esa fecha. Elegí otro día, por favor.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     try { await supabaseAdmin.rpc('cleanup_old_rate_limits'); } catch { /* ignore */ }
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count } = await supabaseAdmin

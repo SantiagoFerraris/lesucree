@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793458460480,
+      "tag": "0000_blocked_dates_and_daily_capacity",
+      "breakpoints": true
+    }
+  ]
+}

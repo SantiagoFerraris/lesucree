@@ -68,6 +68,27 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_dates: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       business_insights: {
         Row: {
           action_label: string | null
@@ -930,6 +951,7 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_date_full: { Args: { _date: string }; Returns: boolean }
       obtener_deuda_pedido: {
         Args: { pedido_id_param: string }
         Returns: {

@@ -138,6 +138,31 @@ export default function Pedido() {
         return () => clearTimeout(t);
   }, [cooldown]);
 
+    // Date availability (informative only — the server is the source of truth)
+    const [blockedDates, setBlockedDates] = useState<Record<string, string | null>>({});
+    const [dateNotice, setDateNotice] = useState('');
+    useEffect(() => {
+        supabase.from('blocked_dates').select('date, reason').gte('date', getTodayArgentina()).then(({ data }) => {
+            const map: Record<string, string | null> = {};
+            (data || []).forEach((r: any) => { map[r.date] = r.reason; });
+            setBlockedDates(map);
+        });
+    }, []);
+    useEffect(() => {
+        setDateNotice('');
+        if (!form.date) return;
+        if (form.date in blockedDates) {
+            const reason = blockedDates[form.date];
+            setDateNotice(`No tomamos pedidos para esa fecha${reason ? ` (${reason})` : ''}. Elegí otro día, por favor.`);
+            return;
+        }
+        let cancelled = false;
+        supabase.rpc('is_date_full', { _date: form.date }).then(({ data }) => {
+            if (!cancelled && data === true) setDateNotice('Ya no tenemos lugar para pedidos en esa fecha. Elegí otro día, por favor.');
+        });
+        return () => { cancelled = true; };
+    }, [form.date, blockedDates]);
+
   const validate = () => {
         const e: Record<string, string> = {};
         if (!form.name.trim()) e.name = 'Ingresá tu nombre';
@@ -300,6 +325,7 @@ export default function Pedido() {
                                                                             <label htmlFor="pedido-date" className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Fecha de retiro *</label>
                                                                             <input id="pedido-date" type="date" min={getMinDate()} value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} onBlur={() => handleBlur('date')} className={getInputClass('date')} />
                                                               {touched.date && errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
+                                                              {!errors.date && dateNotice && <p className="text-xs text-red-500 mt-1">{dateNotice}</p>}
                                                             </div>
                                               
                                                             <div>
