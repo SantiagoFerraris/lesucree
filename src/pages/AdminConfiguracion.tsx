@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Upload, Image as ImageIcon, Trash2, Plus, Pencil, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getTodayArgentina, toArgentinaDate } from '@/lib/argentinaTimezone';
 import pistachoImg from '@/assets/torta_2_pistacho_chocolate_blanco.jpg';
 import pavlovaImg from '@/assets/torta_3_pavlova.jpg';
 import petitFoursImg from '@/assets/torta_4_petit_fours.jpg';
@@ -441,6 +442,41 @@ export default function AdminConfiguracion() {
 
 
 
+  // Date availability
+  const [newBlocked, setNewBlocked] = useState({ date: '', reason: '' });
+  const { data: blockedDates, refetch: refetchBlocked } = useQuery({
+    queryKey: ['admin-blocked-dates'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('blocked_dates').select('id, date, reason')
+        .gte('date', getTodayArgentina()).order('date');
+      if (error) throw error;
+      return data as { id: string; date: string; reason: string | null }[];
+    },
+  });
+  const addBlockedDate = async () => {
+    if (!newBlocked.date) return toast.error('Elegí una fecha');
+    const { error } = await supabase.from('blocked_dates').insert({ date: toArgentinaDate(newBlocked.date), reason: newBlocked.reason.trim() || null });
+    if (error) return toast.error(error.code === '23505' ? 'Esa fecha ya está bloqueada' : 'No se pudo bloquear la fecha');
+    toast.success('Fecha bloqueada');
+    setNewBlocked({ date: '', reason: '' });
+    refetchBlocked();
+  };
+  const removeBlockedDate = async (id: string) => {
+    if (!confirm('¿Desbloquear esta fecha?')) return;
+    const { error } = await supabase.from('blocked_dates').delete().eq('id', id);
+    if (error) return toast.error('No se pudo desbloquear');
+    toast.success('Fecha desbloqueada');
+    refetchBlocked();
+  };
+  const saveMaxPerDay = async () => {
+    const v = (form.max_orders_per_day || '').trim();
+    if (v && !/^\d+$/.test(v)) return toast.error('Ingresá un número entero o dejalo vacío');
+    const { error } = await supabase.from('site_settings')
+      .upsert({ key: 'max_orders_per_day', value: v, updated_at: new Date().toISOString() } as any, { onConflict: 'key' });
+    if (error) return toast.error('No se pudo guardar');
+    toast.success('Límite diario guardado');
+  };
+
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-site-settings'],
     queryFn: async () => {
@@ -759,6 +795,42 @@ export default function AdminConfiguracion() {
           })}
         </div>
       </details>
+
+      {/* Date availability admin */}
+      <div className="mt-12 max-w-5xl">
+        <h3 className="text-sm font-semibold text-espresso uppercase tracking-wider mb-4">Disponibilidad de fechas</h3>
+        <div className="bg-white rounded-xl border border-warm-gray/15 p-5 space-y-5">
+          <div>
+            <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Máximo de pedidos por día</label>
+            <div className="flex gap-2 mt-1">
+              <input type="number" min={0} placeholder="Sin límite" value={form.max_orders_per_day || ''}
+                onChange={e => setForm(p => ({ ...p, max_orders_per_day: e.target.value }))}
+                className="w-40 px-3 py-2 rounded-lg border border-warm-gray/20 text-sm" />
+              <button onClick={saveMaxPerDay} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-espresso text-cream text-sm"><Save size={14} /> Guardar</button>
+            </div>
+            <p className="text-xs text-warm-gray mt-1">Dejalo vacío para no tener límite. No cuenta los pedidos cancelados.</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-warm-gray uppercase tracking-wider">Bloquear una fecha</label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              <input type="date" min={getTodayArgentina()} value={newBlocked.date} onChange={e => setNewBlocked(p => ({ ...p, date: e.target.value }))}
+                className="px-3 py-2 rounded-lg border border-warm-gray/20 text-sm" />
+              <input type="text" placeholder="Motivo (opcional)" value={newBlocked.reason} onChange={e => setNewBlocked(p => ({ ...p, reason: e.target.value }))}
+                className="flex-1 min-w-[180px] px-3 py-2 rounded-lg border border-warm-gray/20 text-sm" />
+              <button onClick={addBlockedDate} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-espresso text-cream text-sm"><Plus size={14} /> Bloquear</button>
+            </div>
+          </div>
+          <ul className="divide-y divide-warm-gray/10">
+            {(blockedDates || []).length === 0 && <li className="text-sm text-warm-gray py-2">No hay fechas bloqueadas próximas.</li>}
+            {(blockedDates || []).map(b => (
+              <li key={b.id} className="flex items-center justify-between py-2 text-sm">
+                <span className="text-espresso">{b.date.split('-').reverse().join('/')}{b.reason && <span className="text-warm-gray"> — {b.reason}</span>}</span>
+                <button onClick={() => removeBlockedDate(b.id)} className="text-red-500 hover:text-red-700" aria-label="Desbloquear fecha"><Trash2 size={15} /></button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       {/* FAQ admin */}
       <div className="mt-12 max-w-5xl">
