@@ -16,7 +16,11 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm install
-      - run: npx tsc --noEmit -p tsconfig.app.json
-      - run: npx vitest run
-      - run: npm run build
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck application
+        run: npx tsc --noEmit -p tsconfig.app.json
+      - name: Run unit tests
+        run: npm test
+      - name: Build production assets
+        run: npm run build

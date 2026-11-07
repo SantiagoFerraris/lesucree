@@ -23,4 +23,20 @@ describe('productStatus', () => {
     expect(isPubliclyVisible({ status: 'activo', active: false })).toBe(false);
     expect(isPubliclyVisible({ status: 'agotado', active: null })).toBe(true);
   });
+  it.each([
+    ['activo', true, true, true],
+    ['agotado', true, false, true],
+    ['temporada', true, true, true],
+    ['proximamente', true, false, false],
+    ['oculto', false, false, true],
+  ])('preserves %s behavior for standard and customizable products', (status, publicVisible, canAddToCart, showPrice) => {
+    for (const customizable of [false, true]) {
+      expect(getProductStatusBehavior({ status }, customizable)).toMatchObject({ publicVisible, canAddToCart, showPrice });
+    }
+  });
+  it('allows missing legacy active values but always honors explicit false', () => {
+    expect(isPubliclyVisible({})).toBe(true);
+    expect(isPubliclyVisible({ status: 'temporada', active: false })).toBe(false);
+    expect(getProductStatus({ status: null })).toBe('activo');
+  });
 });

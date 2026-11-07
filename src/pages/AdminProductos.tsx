@@ -390,7 +390,7 @@ export default function AdminProductos() {
     }));
   };
 
-  const filtered = products ? sortByField(products.filter(p => {
+  const filtered = products ? sortByField<Tables<'products'>>(products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchCat = categoryFilter === 'todos' || p.category === categoryFilter;
     return matchSearch && matchCat;

@@ -26,4 +26,18 @@ describe('applyBestPromotion', () => {
     expect(applyBestPromotion(1000, [promo('a', 'bogus', 50)]).hasDiscount).toBe(false);
     expect(applyBestPromotion(0, [promo('a', 'fixed', 10)]).final).toBe(0);
   });
+  it('applies a fixed discount', () => {
+    const discount = promo('fixed', 'fixed', 250);
+    expect(applyBestPromotion(1000, [discount])).toEqual({ final: 750, hasDiscount: true, promo: discount });
+  });
+  it('clamps percentage discounts above 100 percent to zero', () => {
+    expect(applyBestPromotion(1000, [promo('a', 'percentage', 150)]).final).toBe(0);
+  });
+  it('keeps the first promotion when final prices tie', () => {
+    const first = promo('first', 'percentage', 20);
+    expect(applyBestPromotion(1000, [first, promo('second', 'fixed', 200)]).promo).toBe(first);
+  });
+  it.each([0, -10])('does not apply a non-beneficial discount of %s', discount => {
+    expect(applyBestPromotion(1000, [promo('a', 'fixed', discount)])).toEqual({ final: 1000, hasDiscount: false, promo: null });
+  });
 });

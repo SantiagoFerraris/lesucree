@@ -18,4 +18,14 @@ describe('getCustomerKey', () => {
     expect(cleanEmail('manual@lesucree.com')).toBe('');
     expect(cleanEmail('real@x.com')).toBe('real@x.com');
   });
+  it('ignores phone punctuation without digits before considering email', () => {
+    expect(getCustomerKey({ id: 2, customer_phone: ' ()- ', customer_email: ' REAL@X.COM ', customer_name: 'Ana' })).toBe('email:real@x.com');
+  });
+  it.each([' IMPORTADO@LESUCREE.COM ', ' MANUAL@LESUCREE.COM '])('ignores normalized generic email %s', email => {
+    expect(getCustomerKey({ id: 3, customer_email: email, customer_name: ' ANA ' })).toBe('name:ana');
+  });
+  it('keeps unidentified orders separate by their unique ids', () => {
+    expect(getCustomerKey({ id: 'first', customer_name: ' ', customer_phone: null })).toBe('unknown:first');
+    expect(getCustomerKey({ id: 'second', customer_email: null })).toBe('unknown:second');
+  });
 });
