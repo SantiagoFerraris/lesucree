@@ -611,6 +611,7 @@ export type Database = {
           last_price_sync: string | null
           name: string
           price: number
+          slug: string | null
           sort_order: number
           status: string
           updated_at: string | null
@@ -631,6 +632,7 @@ export type Database = {
           last_price_sync?: string | null
           name: string
           price: number
+          slug?: string | null
           sort_order?: number
           status?: string
           updated_at?: string | null
@@ -651,6 +653,7 @@ export type Database = {
           last_price_sync?: string | null
           name?: string
           price?: number
+          slug?: string | null
           sort_order?: number
           status?: string
           updated_at?: string | null

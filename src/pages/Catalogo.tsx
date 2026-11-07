@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, ChevronLeft, ChevronRight, RefreshCw, Filter, ChevronDown, X, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
@@ -17,6 +18,7 @@ interface Variant { id: string; label: string; price: number; sort_order: number
 const ITEMS_PER_PAGE = 9;
 
 export default function Catalogo() {
+  const navigate = useNavigate();
   const { data: settings } = useSiteSettings();
   const seoTitle = settings?.seo_title_catalogo?.trim();
   const seoDesc = settings?.seo_description_catalogo?.trim();
@@ -73,6 +75,13 @@ export default function Catalogo() {
   });
 
   const getVariants = (productId: string) => allVariants?.filter(v => v.product_id === productId) || [];
+
+  const openProduct = async (product: Tables<'products'>) => {
+    // Resolve the stable slug without changing catalog ordering or filtering.
+    const { data, error } = await supabase.from('products').select('slug').eq('id', product.id).maybeSingle();
+    if (!error && data?.slug) navigate(`/catalogo/${encodeURIComponent(data.slug)}`);
+    else setSelectedProduct(product); // The existing modal remains the fallback.
+  };
 
   // When viewing "todos", surface products with active promotions first (stable for the rest).
   const promosMap = useActivePromotions();
@@ -284,7 +293,7 @@ export default function Catalogo() {
                 </div>
               ))}
               {paginatedProducts?.map((p, i) => (
-                <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer">
+                <div key={p.id} onClick={() => openProduct(p)} className="cursor-pointer">
                   <ProductCard product={p} index={reveal.isVisible ? i : -1} variants={getVariants(p.id)} categories={dbCategories} activePromotions={promosMap} />
                 </div>
               ))}

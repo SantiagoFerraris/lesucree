@@ -12,6 +12,7 @@ import CartSidebar from "@/components/CartSidebar";
 import Index from "./pages/Index";
 
 const Catalogo = lazy(() => import("./pages/Catalogo"));
+const ProductoDetalle = lazy(() => import("./pages/ProductoDetalle"));
 const Nosotros = lazy(() => import("./pages/Nosotros"));
 const Contacto = lazy(() => import("./pages/Contacto"));
 const Pedido = lazy(() => import("./pages/Pedido"));
@@ -77,6 +78,7 @@ const App = () => (
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/catalogo" element={<PublicSuspense><Catalogo /></PublicSuspense>} />
+                  <Route path="/catalogo/:slug" element={<PublicSuspense><ProductoDetalle /></PublicSuspense>} />
                   <Route path="/historia" element={<PublicSuspense><Nosotros /></PublicSuspense>} />
                   <Route path="/contacto" element={<PublicSuspense><Contacto /></PublicSuspense>} />
                   <Route path="/pedido" element={<PublicSuspense><Pedido /></PublicSuspense>} />
