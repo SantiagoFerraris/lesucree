@@ -47,7 +47,7 @@ export default function Catalogo() {
       const nowIso = new Date().toISOString();
       let q = supabase
         .from('products')
-        .select('id, name, description, price, category, image_url, featured, active, status, is_customizable, sort_order, visible_from, visible_until, urgency_message')
+        .select('id, name, description, price, category, image_url, featured, active, status, is_customizable, sort_order, visible_from, visible_until, urgency_message, slug')
         .eq('active', true)
         .neq('status', 'oculto')
         .or(`visible_from.is.null,visible_from.lte.${nowIso}`)
@@ -76,10 +76,8 @@ export default function Catalogo() {
 
   const getVariants = (productId: string) => allVariants?.filter(v => v.product_id === productId) || [];
 
-  const openProduct = async (product: Tables<'products'>) => {
-    // Resolve the stable slug without changing catalog ordering or filtering.
-    const { data, error } = await supabase.from('products').select('slug').eq('id', product.id).maybeSingle();
-    if (!error && data?.slug) navigate(`/catalogo/${encodeURIComponent(data.slug)}`);
+  const openProduct = (product: Tables<'products'>) => {
+    if (product.slug) navigate(`/catalogo/${encodeURIComponent(product.slug)}`);
     else setSelectedProduct(product); // The existing modal remains the fallback.
   };
 
