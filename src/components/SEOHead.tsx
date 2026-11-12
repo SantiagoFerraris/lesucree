@@ -8,7 +8,7 @@ interface SEOHeadProps {
   path?: string;
 }
 
-const BASE_URL = 'https://lesucreepasteleria.com.ar';
+export const BASE_URL = 'https://lesucreepasteleria.com.ar';
 const DEFAULT_OG_IMAGE = 'https://qrspfsejotzfajwklocm.supabase.co/storage/v1/object/public/site-images/og_image.jpg';
 
 export default function SEOHead({

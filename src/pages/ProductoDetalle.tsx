@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import ProductImage from '@/components/ProductImage';
 import ProductDetailModal from '@/components/ProductDetailModal';
-import SEOHead from '@/components/SEOHead';
+import SEOHead, { BASE_URL } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useActivePromotions, applyBestPromotion } from '@/hooks/useActivePromotions';
@@ -33,7 +33,7 @@ function ProductDetail({ product, variants, slug }: { product: Tables<'products'
   const basePrice = selectedVariant?.price ?? product.price;
   const { final: currentPrice, hasDiscount, promo } = applyBestPromotion(basePrice, productPromos);
   const path = `/catalogo/${encodeURIComponent(slug)}`;
-  const url = `https://lesucree.lovable.app${path}`;
+  const url = `${BASE_URL}${path}`;
   const description = product.description || `${product.name} de Le Sucrée Pastelería artesanal en Rosario.`;
   const consultText = selectedVariant
     ? `Hola! Quiero consultar por ${product.name} - ${selectedVariant.label}`
@@ -73,8 +73,6 @@ function ProductDetail({ product, variants, slug }: { product: Tables<'products'
       <SEOHead title={`${product.name} | Le Sucrée Pastelería`} description={description} path={path}
         ogImage={product.image_url || undefined} />
       <Helmet>
-        <link rel="canonical" href={url} />
-        <meta property="og:url" content={url} />
         <script type="application/ld+json">{JSON.stringify(schema).replace(/</g, '\\u003c')}</script>
       </Helmet>
       <div className="container px-4 py-8 sm:py-12">
