@@ -96,6 +96,24 @@ Deno.serve(async (req) => {
     }
     await supabaseAdmin.from('rate_limits').insert({ identifier: rateLimitId, action_type: 'order' });
 
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const { count: ipCount, error: ipCountError } = await supabaseAdmin
+      .from('rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('identifier', clientIp)
+      .eq('action_type', 'order_ip')
+      .gte('created_at', tenMinAgo);
+    if (ipCountError) throw ipCountError;
+    if (ipCount !== null && ipCount >= 10) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { error: ipInsertError } = await supabaseAdmin.from('rate_limits')
+      .insert({ identifier: clientIp, action_type: 'order_ip' });
+    if (ipInsertError) throw ipInsertError;
+
     const productIds = [...new Set(items.map(i => i.productId))];
     const variantIds = items.filter(i => i.variantId).map(i => i.variantId!);
 
@@ -372,11 +390,19 @@ Deno.serve(async (req) => {
     }
 
     if (couponId) {
-      await supabaseAdmin.from('coupon_usage').insert({
-        coupon_id: couponId,
-        customer_id: customerEmail || normalizePhone(customerPhone) || null,
-        order_id: orderId,
+      const { data: redeemed, error: redeemError } = await supabaseAdmin.rpc('redeem_coupon', {
+        _coupon_id: couponId,
+        _customer_id: customerEmail || normalizePhone(customerPhone) || null,
+        _order_id: orderId,
       });
+      if (redeemError || redeemed !== true) {
+        const { error: deleteError } = await supabaseAdmin.from('orders').delete().eq('id', orderId);
+        if (deleteError) throw deleteError;
+        if (redeemError) throw redeemError;
+        return new Response(JSON.stringify({ error: 'Este cupón alcanzó el límite de usos.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     try {
