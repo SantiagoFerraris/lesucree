@@ -83,6 +83,10 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://qrspfsejotzfajwklocm.supabase.co/functions/v1/sitemap"
+    },
+    {
       "source": "/((?!assets/|.*\\..*).*)",
       "destination": "/index.html"
     }

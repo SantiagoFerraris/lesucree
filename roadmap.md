@@ -12,3 +12,8 @@
 - [x] Add the public product route and page with variant/quantity/cart parity, SEOHead, Product JSON-LD and copy-link action.
 - [x] Update only catalog opening handlers; preserve the original modal as fallback and quick view.
 - [x] Verify a real product link, copy, reload, modal, cart quantity, mobile fit and missing-product 404; existing 33 tests pass.
+
+# Dynamic sitemap
+
+- [x] Add and verify a public read-only sitemap function with visible product URLs and authoritative lastmod values; live GET returns 7 static pages and 63 products.
+- [x] Add the sitemap rewrite without changing existing headers; robots and fallback references are correct. The domain currently serves the 7-page fallback until this rewrite is published.
