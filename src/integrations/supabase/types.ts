@@ -964,6 +964,10 @@ export type Database = {
           total_pagado: number
         }[]
       }
+      redeem_coupon: {
+        Args: { _coupon_id: string; _customer_id: string; _order_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
