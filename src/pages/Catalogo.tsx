@@ -68,7 +68,7 @@ export default function Catalogo() {
     gcTime: 20 * 60 * 1000,
     enabled: true,
     queryFn: async () => {
-      const { data, error } = await supabase.from('product_variants').select('*').order('sort_order');
+      const { data, error } = await supabase.from('product_variants').select('id, product_id, label, price, sort_order').order('sort_order');
       if (error) throw error;
       return data as Variant[];
     },
