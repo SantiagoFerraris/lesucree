@@ -14,6 +14,7 @@ import SEOHead from '@/components/SEOHead';
 import HoneypotField from '@/components/HoneypotField';
 import { getTodayArgentina } from '@/lib/argentinaTimezone';
 import { isHoneypotFilled, isSubmissionTooFast, checkRateLimit } from '@/lib/antispam';
+import { syncCart } from '@/lib/cartSync';
 
 const PHONE_REGEX = /^[\d\s\-+()]{7,20}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,7 +39,41 @@ function parseHoursToOptions(hours: string): string[] {
 }
 
 export default function Pedido() {
-    const { items, getCartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
+    const { items, getCartTotal, clearCart, updateQuantity, removeFromCart, addToCart } = useCart();
+    const currentCart = useRef(items);
+    currentCart.current = items;
+    const cartSyncRequest = useRef<ReturnType<typeof syncCart> | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        if (!cartSyncRequest.current) cartSyncRequest.current = syncCart(currentCart.current);
+        cartSyncRequest.current.then(changes => {
+            if (cancelled) return;
+            let removed = 0;
+            let updated = 0;
+            for (const change of changes) {
+                const item = currentCart.current.find(i => i.productId === change.productId && i.variantId === change.variantId);
+                if (!item || item.isCustomizable) continue;
+                if (change.price === null) {
+                    removeFromCart(item.productId, item.variantId);
+                    removed++;
+                } else if (item.price !== change.price) {
+                    removeFromCart(item.productId, item.variantId);
+                    addToCart({ ...item, price: change.price }, item.quantity);
+                    updated++;
+                }
+            }
+            if (removed || updated) {
+                const details = [
+                    updated ? `Actualizamos los precios de ${updated} producto(s).` : '',
+                    removed ? `Retiramos ${removed} producto(s) que ya no están disponibles.` : '',
+                ].filter(Boolean).join(' ');
+                toast.info(details);
+            }
+        }).catch(() => {
+            if (!cancelled) toast.error('No pudimos actualizar el carrito. Los precios se verificarán al confirmar el pedido.');
+        });
+        return () => { cancelled = true; };
+    }, [addToCart, removeFromCart]);
     const { data: settings } = useSiteSettings();
 
   const whatsappNumber = settings?.whatsapp_number || WHATSAPP_NUMBER;
