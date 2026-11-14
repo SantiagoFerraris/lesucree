@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/formatPrice';
 import { useCategories, buildCategoryLabels } from '@/hooks/useCategories';
 import CategoryManagerModal from '@/components/admin/CategoryManagerModal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Tables, TablesUpdate } from '@/integrations/supabase/types';
 import { PRODUCT_STATUS_VALUES, PRODUCT_STATUS_LABELS, PRODUCT_STATUS_BEHAVIOR, getProductStatus, type ProductStatus } from '@/lib/productStatus';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
@@ -421,7 +421,7 @@ export default function AdminProductos() {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
-  const runBulkUpdate = async (patch: Record<string, any>, successMsg: string) => {
+  const runBulkUpdate = async (patch: TablesUpdate<'products'>, successMsg: string) => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
     setBulkBusy(true);
